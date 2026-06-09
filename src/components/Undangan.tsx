@@ -38,6 +38,7 @@ import {
   CheckCircle,
   Settings,
   RotateCcw,
+  RefreshCw,
   Store,
   Camera
 } from 'lucide-react';
@@ -3626,6 +3627,38 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                     />
                     <p className="text-[10px] text-slate-400 mt-1 bg-transparent">Muncul sebagai sarana kontak surat resmi (baris ke-3) di lembaran KOP laporan cetak.</p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Segarkan Cache Aplikasi (Hanya memperbarui sisa memori browser, tidak menghapus data) */}
+            <div className="border-t border-slate-150 pt-5 bg-transparent">
+              <div className="border border-sky-100 bg-sky-50/20 p-4 rounded-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent">
+                  <div className="space-y-1 bg-transparent">
+                    <div className="flex items-center gap-1.5 text-sky-700 font-extrabold text-xs uppercase tracking-wider bg-transparent">
+                      <RefreshCw className="w-4 h-4 text-sky-600 shrink-0" />
+                      <span>Segarkan Memori Sela (Clear Cache)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-505 leading-relaxed max-w-sm sm:max-w-md font-medium bg-transparent font-sans">
+                      Menyegarkan memori sementara penjelajah (gawai HP/Laptop) guna memuat ulang skrip web paling mutakhir jika Anda baru saja memperbaharui setelan server. <strong className="text-sky-650">Tidak menghapus basis iuran offline Anda</strong>.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isConfirmed = window.confirm(
+                        "Apakah Anda ingin menyegarkan cache aplikasi di penjelajah perangkat ini?\n\nSegarkan Cache akan memuat ulang (reload) halaman secara penuh untuk memperbarui sisa memori sela serta memastikan skrip berjalan pada versi paling baru tanpa menghapus data iuran lokal gawai Anda."
+                      );
+                      if (isConfirmed) {
+                        window.location.reload();
+                      }
+                    }}
+                    className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-4.5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition shrink-0 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Segarkan Cache Browser</span>
+                  </button>
                 </div>
               </div>
             </div>

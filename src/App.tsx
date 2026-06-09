@@ -62,7 +62,9 @@ import {
   HelpCircle,
   Lock,
   Unlock,
-  Mail
+  Mail,
+  X,
+  Wifi
 } from 'lucide-react';
 
 const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
@@ -236,6 +238,7 @@ export default function App() {
   const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
   const [resetConfirmInput, setResetConfirmInput] = useState<string>('');
+  const [showConnectionGuidelinesModal, setShowConnectionGuidelinesModal] = useState<boolean>(false);
   const [cloudStatus, setCloudStatus] = useState<'connected' | 'offline' | 'error'>('connected');
   const [cloudErrorMsg, setCloudErrorMsg] = useState<string>('');
 
@@ -1256,43 +1259,12 @@ export default function App() {
     setShowResetConfirmModal(true);
   };
 
-  // Bersihkan cache pencatatan lokal & Segarkan Data dari Database Aktif
-  const handleClearCacheAndSync = () => {
+  // Bersihkan cache aplikasi di browser saja tanpa menghapus basis iuran utama
+  const handleRefreshCacheOnly = () => {
     const isConfirmed = window.confirm(
-      "Apakah Anda ingin membersihkan penyangga cache lokal di gawai ini?\n\n\"Segarkan Cache & Data\" akan membersihkan penyimpanan data iuran sementara di browser gawai ini lalu secara otomatis mengunduh & sinkronisasi ulang data paling segar dari database utama yang aktif saat ini (Supabase, Firebase, Wi-Fi Server, atau Penyimpanan Offline)."
+      "Apakah Anda ingin menyegarkan cache aplikasi di gawai ini?\n\nSegarkan Cache akan memuat ulang (reload) halaman secara penuh untuk memperbarui sisa memori sela serta memastikan skrip berjalan pada versi paling baru tanpa menghapus data iuran lokal gawai Anda."
     );
     if (!isConfirmed) return;
-
-    // Simpan data setelan krusial agar tidak ikut terhapus
-    const ip = localStorage.getItem('perumtas_rt08_local_server_ip');
-    const syncEnabled = localStorage.getItem('perumtas_rt08_local_sync_enabled');
-    const currentUserSaved = localStorage.getItem('perumtas_rt08_current_user');
-
-    // Kunci-kunci cache data utama yang akan dibersihkan
-    const targetKeysClearing = [
-      'perumtas_rt08_letters',
-      'perumtas_rt08_kas',
-      'perumtas_rt08_ledger',
-      'perumtas_rt08_warga',
-      'perumtas_rt08_rombong',
-      'perumtas_rt08_users',
-      'perumtas_rt08_blocks',
-      'perumtas_rt08_years',
-      'perumtas_rt08_rate_rt',
-      'perumtas_rt08_rate_rombong',
-      'perumtas_rt08_title',
-      'perumtas_rt08_address',
-      'perumtas_rt08_email'
-    ];
-
-    targetKeysClearing.forEach(key => localStorage.removeItem(key));
-
-    // Kembalikan setelan krusial agar tidak usah ketik ulang
-    if (ip) localStorage.setItem('perumtas_rt08_local_server_ip', ip);
-    if (syncEnabled) localStorage.setItem('perumtas_rt08_local_sync_enabled', syncEnabled);
-    if (currentUserSaved) localStorage.setItem('perumtas_rt08_current_user', currentUserSaved);
-
-    // Muat ulang (reload) halaman secara langsung
     window.location.reload();
   };
 
@@ -1345,62 +1317,78 @@ export default function App() {
             {/* Connection/Data sync state indicator based on cloud or local availability */}
             {(isFirebaseConfigured || isSupabaseConfigured) ? (
               cloudStatus === 'connected' ? (
-                <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-emerald-700 font-mono shadow-xs" title={`Koneksi cloud (${isSupabaseConfigured ? 'Supabase' : 'Firebase'}) berjalan lancar. Seluruh data tersinkronisasi cepat.`}>
+                <div 
+                  onClick={() => setShowConnectionGuidelinesModal(true)} 
+                  className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-emerald-700 font-sans shadow-xs cursor-pointer hover:bg-emerald-100/60 active:scale-95 transition" 
+                  title="Koneksi cloud berjalan lancar. Klik untuk panduan troubleshoot koneksi."
+                >
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                  <span className="hidden sm:inline">Cloud Aktif: {isSupabaseConfigured ? 'Supabase' : 'Firebase'}</span>
+                  <span className="hidden sm:inline">Cloud: {isSupabaseConfigured ? 'Supabase' : 'Firebase'} (Stabil)</span>
                   <span className="sm:hidden">{isSupabaseConfigured ? 'Supabase' : 'Firebase'}</span>
                 </div>
               ) : cloudStatus === 'offline' ? (
-                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-amber-700 font-mono shadow-xs" title={`Perangkat Anda terdeteksi offline. Perubahan disimpan di penyimpanan lokal dan akan dikirim secara otomatis setelah koneksi pulih kembali ke ${isSupabaseConfigured ? 'Supabase' : 'Firebase'}.`}>
+                <div 
+                  onClick={() => setShowConnectionGuidelinesModal(true)} 
+                  className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-amber-700 font-sans shadow-xs cursor-pointer hover:bg-amber-100/60 active:scale-95 transition" 
+                  title="Perangkat Anda offline. Klik untuk panduan solusi koneksi."
+                >
                   <span className="w-2 h-2 bg-amber-500 rounded-full shrink-0 animate-pulse"></span>
-                  <span className="hidden sm:inline">Terputus ({isSupabaseConfigured ? 'Supabase' : 'Firebase'} Offline)</span>
+                  <span className="hidden sm:inline">Offline ({isSupabaseConfigured ? 'Supabase' : 'Firebase'})</span>
                   <span className="sm:hidden">Offline</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-rose-700 font-mono shadow-xs cursor-help" title={`Terjadi kendala saat sinkronisasi data dengan server cloud ${isSupabaseConfigured ? 'Supabase' : 'Firebase'}. Detail error: ${cloudErrorMsg}. Hubungi Admin bila terus terjadi.`}>
+                <div 
+                  onClick={() => setShowConnectionGuidelinesModal(true)} 
+                  className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-rose-700 font-sans shadow-xs cursor-pointer hover:bg-rose-105 active:scale-95 transition" 
+                  title={`Gagal sync cloud: ${cloudErrorMsg}. Klik untuk panduan solusi koneksi.`}
+                >
                   <span className="w-2 h-2 bg-rose-500 rounded-full shrink-0 animate-pulse"></span>
                   <span className="hidden sm:inline">Kendala {isSupabaseConfigured ? 'Supabase' : 'Firebase'}</span>
-                  <span className="sm:hidden">Error</span>
+                  <span className="sm:hidden">Error Cloud</span>
                 </div>
               )
             ) : localSyncEnabled ? (
               localServerStatus === 'connected' ? (
-                <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-emerald-700 font-mono shadow-xs" title={`Terhubung dengan Penyimpanan Bersama lokal di ${localServerIp}. Semua perubahan otomatis tersinkron.`}>
-                  <span className="w-2 h-2 rounded-full bg-emerald-550 min-w-2 min-h-2 bg-emerald-500 animate-pulse shrink-0"></span>
-                  <span className="hidden sm:inline">Penyimpanan Bersama (Wi-Fi Aktif)</span>
-                  <span className="sm:hidden">Wifi Aktif</span>
+                <div 
+                  onClick={() => setShowConnectionGuidelinesModal(true)} 
+                  className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-emerald-700 font-sans shadow-xs cursor-pointer hover:bg-emerald-100/60 active:scale-95 transition" 
+                  title={`Terhubung ke ${localServerIp}. Klik untuk panduan solusi koneksi.`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                  <span className="hidden sm:inline">Wi-Fi lokal: Terhubung</span>
+                  <span className="sm:hidden">Wi-Fi Aktif</span>
                 </div>
               ) : localServerStatus === 'scanning' ? (
-                <div className="flex items-center gap-1.5 bg-sky-50 border border-sky-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-sky-700 font-mono shadow-xs animate-pulse" title={`Sedang mencari / menghubungkan ke server lokal di ${localServerIp}...`}>
+                <div 
+                  onClick={() => setShowConnectionGuidelinesModal(true)} 
+                  className="flex items-center gap-1.5 bg-sky-50 border border-sky-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-sky-700 font-sans shadow-xs animate-pulse cursor-pointer hover:bg-sky-100/60 transition active:scale-95" 
+                  title={`Sedang menghubungkan ke server ${localServerIp}... Klik untuk panduan solusi koneksi.`}
+                >
                   <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
-                  <span className="hidden sm:inline">Menghubungi Server Wi-Fi...</span>
+                  <span className="hidden sm:inline">Cari Server Wi-Fi...</span>
                   <span className="sm:hidden">Mencari...</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-rose-700 font-mono shadow-xs" title={`Gagal terhubung dengan server lokal di ${localServerIp}. Silahkan sesuaikan alamat IP di menu panduan.`}>
+                <div 
+                  onClick={() => setShowConnectionGuidelinesModal(true)} 
+                  className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl text-[11px] font-extrabold text-rose-700 shadow-md cursor-pointer hover:bg-rose-100/65 active:scale-95 transition-all duration-150 animate-bounce" 
+                  title={`Gagal terhubung dengan laptop server di ${localServerIp}. Klik untuk cara mengatasi gagal koneksi.`}
+                >
                   <span className="w-2 h-2 bg-rose-500 rounded-full shrink-0 animate-pulse"></span>
-                  <span className="hidden sm:inline">Gagal Koneksi Server Wi-Fi</span>
+                  <span className="hidden sm:inline">Gagal Koneksi Wi-Fi</span>
                   <span className="sm:hidden">Gagal IP</span>
                 </div>
               )
             ) : (
-              <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-amber-700 font-mono shadow-xs" title="Menggunakan database offline lokal mandiri di HP ini saja.">
+              <div 
+                onClick={() => setShowConnectionGuidelinesModal(true)} 
+                className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-amber-700 font-sans shadow-xs cursor-pointer hover:bg-amber-100/60 transition" 
+                title="Menggunakan database offline HP ini saja. Klik untuk panduan koneksi."
+              >
                 <span className="w-2 h-2 bg-amber-400 rounded-full shrink-0 animate-pulse"></span>
-                <span>Penyimpanan Mandiri (Lokal HP)</span>
+                <span>Offline Lokal HP</span>
               </div>
             )}
-
-            {/* Bersihkan Cache & Refresh Button */}
-            <button
-              type="button"
-              onClick={handleClearCacheAndSync}
-              className="flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-xl text-[11px] font-bold text-sky-700 font-sans shadow-xs transition active:scale-95 cursor-pointer"
-              title="Bersihkan data sementara di gawai ini (cache), lalu dapati data segar paling baru langsung dari jenis penyimpanan aktif saat ini."
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-              <span className="hidden lg:inline">Segarkan Cache &amp; Data</span>
-              <span className="lg:hidden">Segarkan</span>
-            </button>
 
             {/* Real-time formatted date */}
             <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 font-mono">
@@ -1620,7 +1608,7 @@ export default function App() {
               updateRtEmail={updateRtEmail}
               currentUser={currentUser}
               onTriggerReset={handleResetData}
-              onClearCache={handleClearCacheAndSync}
+              onClearCache={handleRefreshCacheOnly}
               localSyncEnabled={localSyncEnabled}
               updateLocalSyncEnabled={setLocalSyncEnabled}
               localServerIp={localServerIp}
@@ -1769,6 +1757,100 @@ export default function App() {
         wargaList={wargaList}
         rombongList={rombongList}
       />
+
+      {/* Troubleshooting Connection Guidelines Modal (Cara Mengatasi Gagal Koneksi) */}
+      {showConnectionGuidelinesModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-150 text-slate-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setShowConnectionGuidelinesModal(false)}
+              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer"
+              title="Tutup Panduan"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-sky-100 pb-3.5 mb-5">
+              <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
+                <Wifi className="w-6 h-6 text-sky-650 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base">Panduan Solusi Gagal Koneksi</h3>
+                <p className="text-[11px] text-slate-400 font-bold font-mono tracking-wide uppercase">Cara Mengatasi Kendala Penyambungan &amp; Sinkronisasi</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs text-slate-600 leading-relaxed font-sans">
+              <div className="bg-amber-50 border border-amber-200/80 p-3.5 rounded-2xl flex items-start gap-2.5 text-amber-900">
+                <HelpCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+                <div>
+                  <strong className="block font-bold mb-1">Penting Diketahui:</strong>
+                  Sistem ini menggunakan status fleksibel: otomatis beralih ke penyimpanan mandiri offline bila koneksi terputus, dan otomatis tersinkron ketika sambungan Wi-Fi atau internet pulih kembali.
+                </div>
+              </div>
+
+              {/* Wi-Fi Section */}
+              <div className="border border-slate-150 rounded-2xl p-4 space-y-3 bg-slate-50/50">
+                <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5 uppercase tracking-wide text-sky-700 font-mono">
+                  <span>📶 1. Masalah Koneksi Wi-Fi Lokal (Transmisi HP ke Laptop)</span>
+                </h4>
+                <p className="font-medium">
+                  Bila gawai HP menampilkan status <strong className="text-rose-650">"Gagal Koneksi Wi-Fi"</strong> saat mencoba menyambung ke database bersama di Laptop Server:
+                </p>
+                <div className="space-y-2 text-[11.5px] pl-2 border-l-2 border-slate-200">
+                  <p>
+                    📌 <strong className="text-slate-800">Satu Jaringan Wi-Fi Wajib:</strong> Pastikan HP Kolektor &amp; Laptop Server Bendahara Anda tersambung ke titik Wi-Fi / Hotspot yang <strong className="text-slate-900 font-black">sama</strong>. Jika HP Anda menggunakan kuota seluler (3G/4G/5G) atau Wi-Fi lain, HP tentu dilarang masuk ke database Laptop Server.
+                  </p>
+                  <p>
+                    📌 <strong className="text-slate-800">Periksa Ulang IP Laptop Server:</strong> Laptop Server sering mendapatkan IP dinamis (DHCP) yang berubah setiap kali tersambung ulang ke Wi-Fi. Masuk ke terminal laptop (Ketik <code className="bg-slate-100 font-mono text-xs px-1 text-rose-600">ipconfig</code> di cmd windows), temukan IPv4 Anda (contoh <code className="font-semibold text-slate-900">192.168.1.15</code>), lalu sesuaikan alamat tersebut pada bagian setelan IP lokal menu panduannya.
+                  </p>
+                  <p>
+                    📌 <strong className="text-slate-800">Nonaktifkan Firewall Laptop Server:</strong> Sistem Firewall windows Defender / Antivirus pada Laptop Host biasanya mencegat port transmisi masuk. Nonaktifkan Firewall jaringan Privat sementara pada Laptop Server, atau tambahkan aturan pengecualian (Inbound Rules) khusus agar Port <strong className="font-mono">3000</strong> dapat dilewati data HP.
+                  </p>
+                  <p>
+                    📌 <strong className="text-slate-800">Uji Akses Browser HP:</strong> Ujilah dengan mengetikkan tautan alamat IP Laptop Server secara langsung di browser HP Google Chrome Anda (misalnya <code className="bg-slate-100 px-1 py-0.5 rounded text-rose-600 font-mono">http://192.168.1.15:3000</code>). Jika web gagal diakses di Chrome HP, maka perizinan jaringan di laptop server Anda masih tersumbat.
+                  </p>
+                </div>
+              </div>
+
+              {/* Cloud Section */}
+              <div className="border border-slate-150 rounded-2xl p-4 space-y-3 bg-slate-50/50">
+                <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5 uppercase tracking-wide text-indigo-700 font-mono">
+                  <span>☁️ 2. Masalah Koneksi Database Cloud (Supabase / Firebase)</span>
+                </h4>
+                <p className="font-medium">
+                  Bila gawai terputus atau menampilkan kendala status sinkronasi cloud:
+                </p>
+                <div className="space-y-2 text-[11.5px] pl-2 border-l-2 border-slate-200">
+                  <p>
+                    📌 <strong className="text-slate-800">Koneksi Internet:</strong> Pastikan perangkat HP / Laptop di rukun tetangga memiliki akses kuota data seluler internet yang stabil.
+                  </p>
+                  <p>
+                    📌 <strong className="text-slate-800">Kondisi Database Supabase (Tertidur/Hibernasi):</strong> Jika Anda menggunakan akun server gratis Supabase, server cloud akan menghentikan proyek secara otomatis setelah beberapa minggu tidak ada aktivitas. Silakan masuk ke dashboard konsol Supabase Anda, lalu klik <strong className="text-indigo-650">"Restore Project"</strong> untuk membangunkan kembali database RT Anda seketika.
+                  </p>
+                  <p>
+                    📌 <strong className="text-slate-800">Verifikasi Kredensial URL:</strong> Pastikan token, API Keys, dan URL referensi server yang Anda masukkan di menu kelola integrasi sudah tepat tanpa ada kesalahan ketik karakter atau tanda hubung.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-sky-50 text-sky-950 p-3 rounded-2xl text-[11px] font-medium leading-relaxed border border-sky-100">
+                💡 **Saran Praktis**: Jika saat bertugas keliling menagih warga terjadi kendala koneksi Wi-Fi server, Anda tidak perlu cemas atau menunda penagihan. **Kolektor tetap dapat mencatat iuran warga secara offline di HP**. Begitu Anda kembali pulang ke rumah / dekat dengan laptop server, nyalakan kembali sinkronisasi Wi-Fi untuk mengunggah otomatis data Anda ke laptop pembukuan dalam hitungan detik.
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-slate-150">
+              <button
+                type="button"
+                onClick={() => setShowConnectionGuidelinesModal(false)}
+                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold rounded-xl text-xs cursor-pointer transition active:scale-95 w-full sm:w-auto text-center"
+              >
+                Tutup Panduan Solusi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reset Confirmation Modal */}
       {showResetConfirmModal && (

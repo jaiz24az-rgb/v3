@@ -1,5 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
+  isSupabaseConfigured, 
+  supabase, 
+  saveAppUser, 
+  saveLedgerEntry, 
+  saveWargaBill, 
+  saveRombongBill, 
+  saveOfficialLetter, 
+  upsertGeneralSettings 
+} from '../supabase';
+import { 
   BookOpen, 
   Key, 
   Database, 
@@ -105,9 +115,95 @@ export default function UserGuide({
   localSyncMessage = '',
   onRetryLocalCheck
 }: UserGuideProps) {
-  const [activeTab, setActiveTab] = useState<'peran' | 'troubleshoot' | 'backup'>('peran');
+  const [activeTab, setActiveTab] = useState<'peran' | 'troubleshoot' | 'backup' | 'supabase'>('peran');
   const isAdmin = currentUser?.role === 'admin';
   const effectiveTab = isAdmin ? activeTab : 'peran';
+
+  // Supabase migration state
+  const [migrationStatus, setMigrationStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error'; message: string }>({ type: 'idle', message: '' });
+  const [migrationProgress, setMigrationProgress] = useState(0);
+
+  const handleMigrateToSupabase = async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      setMigrationStatus({ type: 'error', message: 'Koneksi Supabase belum terkonfigurasi. Selesaikan Langkah 3 terlebih dahulu.' });
+      return;
+    }
+
+    setMigrationStatus({ type: 'loading', message: 'Menyiapkan proses migrasi data dari penyimpanan lokal...' });
+    setMigrationProgress(5);
+
+    try {
+      // 1. Migrate settings
+      setMigrationStatus({ type: 'loading', message: 'Memigrasikan Pengaturan Umum & Nilai Kas...' });
+      await upsertGeneralSettings({
+        kas,
+        blocksList,
+        yearsList,
+        rateRT,
+        rateRombong,
+        rtTitle,
+        rtAddress,
+        rtEmail,
+      });
+      setMigrationProgress(20);
+
+      // 2. Migrate users
+      setMigrationStatus({ type: 'loading', message: `Memigrasikan Akun Pengurus (${usersList.length} akun)...` });
+      for (let i = 0; i < usersList.length; i++) {
+        await saveAppUser(usersList[i]);
+      }
+      setMigrationProgress(40);
+
+      // 3. Migrate warga bills
+      setMigrationStatus({ type: 'loading', message: `Memigrasikan Pembukuan Iuran Warga (${wargaList.length} warga)...` });
+      for (let i = 0; i < wargaList.length; i++) {
+        await saveWargaBill(wargaList[i]);
+      }
+      setMigrationProgress(65);
+
+      // 4. Migrate rombong bills
+      setMigrationStatus({ type: 'loading', message: `Memigrasikan Buku Iuran Rombong Kuliner (${rombongList.length} lapak)...` });
+      for (let i = 0; i < rombongList.length; i++) {
+        await saveRombongBill(rombongList[i]);
+      }
+      setMigrationProgress(80);
+
+      // 5. Migrate ledger entries (buku kas)
+      setMigrationStatus({ type: 'loading', message: `Memigrasikan Riwayat Keuangan/Mutasi Kas RT (${ledger.length} transaksi)...` });
+      for (let i = 0; i < ledger.length; i++) {
+        await saveLedgerEntry(ledger[i]);
+      }
+      setMigrationProgress(95);
+
+      // 6. Migrate letters
+      const localLettersList = localStorage.getItem('perumtas_rt08_official_letters');
+      if (localLettersList) {
+        try {
+          const parsedLetters = JSON.parse(localLettersList);
+          if (Array.isArray(parsedLetters) && parsedLetters.length > 0) {
+            setMigrationStatus({ type: 'loading', message: `Memigrasikan Surat Undangan Resmi (${parsedLetters.length} berkas)...` });
+            for (let i = 0; i < parsedLetters.length; i++) {
+              await saveOfficialLetter(parsedLetters[i]);
+            }
+          }
+        } catch (err) {
+          console.warn('Gagal membaca/migrasi surat resmi offline:', err);
+        }
+      }
+
+      setMigrationProgress(100);
+      setMigrationStatus({ 
+        type: 'success', 
+        message: 'Keren! Migrasi 100% Berhasil! Seluruh data iuran, lapak rombong, ledger mutasi kas, dan akun pengurus telah diunggah dan disimpan ke server Supabase Cloud Anda. Silakan muat ulang (refresh) halaman browser untuk mengaktifkan sinkronisasi otomatis.' 
+      });
+    } catch (err) {
+      console.error(err);
+      setMigrationStatus({ 
+        type: 'error', 
+        message: 'Gagal melakukan migrasi data: ' + (err instanceof Error ? err.message : String(err)) 
+      });
+    }
+  };
   
   // Role guide drilldown
   const [activeRoleTab, setActiveRoleTab] = useState<'admin' | 'bendahara' | 'kolektor' | 'warga'>('admin');
@@ -482,6 +578,20 @@ export default function UserGuide({
           >
             <Database className="w-4 h-4" />
             <span>Pusat Backup & Restore Data</span>
+          </button>
+        )}
+
+        {isAdmin && (
+          <button
+            onClick={() => setActiveTab('supabase')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black cursor-pointer transition-all ${
+              effectiveTab === 'supabase'
+                ? 'bg-white text-sky-600 shadow-sm border border-slate-200/50'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Cloud className="w-4 h-4" />
+            <span>Integrasi Supabase Cloud</span>
           </button>
         )}
       </div>
@@ -1307,30 +1417,413 @@ export default function UserGuide({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={onClearCache}
-                className="text-sky-650 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-xl font-bold cursor-pointer transition text-[11px] active:scale-95 flex items-center gap-1"
-                title="Bersihkan data penyangga sementara di gawai ini, lalu muat ulang otomatis untuk menarik data segar paling baru dari server aktif."
-              >
-                <RefreshCw className="w-3 h-3 text-sky-600 animate-spin-once" />
-                <span>Segarkan Cache &amp; Data</span>
-              </button>
               {isAdmin && (
-                <>
-                  <span className="text-slate-300 select-none">|</span>
-                  <button
-                    type="button"
-                    onClick={onTriggerReset}
-                    className="text-rose-600 bg-rose-50 hover:bg-rose-100/60 border border-rose-200 px-3 py-1.5 rounded-xl font-bold cursor-pointer transition text-[11px] active:scale-95"
-                  >
-                    Kosongkan Pembukuan RT (Reset)
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={onTriggerReset}
+                  className="text-rose-600 bg-rose-50 hover:bg-rose-100/60 border border-rose-200 px-3 py-1.5 rounded-xl font-bold cursor-pointer transition text-[11px] active:scale-95"
+                >
+                  Kosongkan Pembukuan RT (Reset)
+                </button>
               )}
             </div>
           </div>
         </div>
+
+      {/* 4. INTEGRASI SUPABASE CLOUD TAB */}
+      <div className={`space-y-6 animate-in fade-in duration-300 ${isAdmin && effectiveTab === 'supabase' ? 'block' : 'hidden'}`}>
+        <div className="bg-sky-50 border border-sky-100 p-4 rounded-2xl flex items-start gap-3 text-sky-900 text-xs">
+          <Cloud className="w-5 h-5 shrink-0 mt-0.5 text-sky-600 font-bold" />
+          <div className="space-y-1 leading-relaxed">
+            <strong className="text-sky-950 font-bold">Mengapa Beralih Ke Server Supabase?</strong>
+            <p className="text-sky-850 font-medium font-sans">
+              Supabase adalah platform database PostgreSQL real-time modern yang efisien, handal, dan gratis untuk skala RT. Dengan memindahkan data ke Supabase, seluruh pengurus dapat mengakses, menginput iuran warga, dan menyinkronkan saldo kas RT secara instan dari perangkat manapun dengan kestabilan penuh.
+            </p>
+          </div>
+        </div>
+
+        {/* Supabase status header card */}
+        <div className="bg-white border border-slate-250 p-5 rounded-2xl shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="p-2 bg-slate-100 rounded-xl leading-none text-slate-800">
+                <Cloud className="w-5 h-5 text-sky-600" />
+              </span>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-sm font-sans">Status Sinkronisasi Supabase</h3>
+                <p className="text-[10px] text-slate-500 font-mono">Sistem Deteksi Lingkungan Server</p>
+              </div>
+            </div>
+
+            {isSupabaseConfigured ? (
+              <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-250 text-emerald-700 text-xs px-3.5 py-1.5 rounded-xl font-bold font-mono">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                TERKONEKSI &amp; CLOUD AKTIF
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3.5 py-1.5 rounded-xl font-bold font-mono">
+                <span className="w-2 h-2 rounded-full bg-amber-550 bg-amber-500 animate-pulse"></span>
+                OFFLINE (LOKAL ONLY)
+              </span>
+            )}
+          </div>
+
+          <div className="text-xs leading-relaxed text-slate-600 font-sans font-medium">
+            {isSupabaseConfigured ? (
+              <p>
+                🟢 <strong className="text-slate-800 font-semibold">Tersambung ke Server Cloud!</strong> Aplikasi ini berhasil mendeteksi kredensial Supabase. Seluruh penyimpanan iuran dan mutasi kas RT saat ini disimpan langsung secara permanen di database PostgreSQL cloud Anda dan disinkronkan ke HP/Laptop seluruh pengurus RT secara real-time.
+              </p>
+            ) : (
+              <p>
+                ⚠️ <strong className="text-slate-800 font-semibold font-sans">Belum Terdeteksi:</strong> Aplikasi saat ini beroperasi pada model penyimpanan aman berbasis lokal di browser (Local Storage) / database Firebase default yang disediakan. Silakan ikuti langkah-langkah di bawah untuk menghubungkan sistem keuangan ke server akun Supabase milik Anda sendiri.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Steps configuration panels */}
+        <div className="space-y-6">
+          <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-150 pb-2 font-sans">
+            <span>📖 Langkah Demi Langkah Migrasi Ke Supabase</span>
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Step 1 & 2 */}
+            <div className="bg-white border border-slate-250 p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex gap-2.5">
+                  <span className="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">1</span>
+                  <div className="space-y-1">
+                    <strong className="text-slate-900 block text-xs font-bold leading-snug font-sans">Buat Akun &amp; Project Supabase Baru</strong>
+                    <p className="text-[11px] text-slate-500 leading-normal font-sans font-medium">
+                      Buka situs resmi <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 font-bold hover:underline inline-flex items-center gap-0.5">https://supabase.com <ExternalLink className="w-3 h-3" /></a>. Daftar akun gratis dan buat satu Proyek (Project) baru bernama e.g., <code className="bg-slate-150 px-1 py-0.5 rounded font-mono text-[10.5px]">Buku Kas RT 08</code>. Isi password database Anda dengan aman.
+                    </p>
+                  </div>
+                </div>
+
+                <hr className="border-slate-100" />
+
+                <div className="flex gap-2.5">
+                  <span className="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">2</span>
+                  <div className="space-y-1.5 w-full">
+                    <strong className="text-slate-900 block text-xs font-bold leading-snug font-sans font-bold">Jalankan Inisialisasi SQL Schema</strong>
+                    <p className="text-[11px] text-slate-500 leading-normal font-sans font-medium">
+                      Pindah ke tab <strong className="text-slate-800">"SQL Editor"</strong> pada panel sebelah kiri di Dashboard Supabase Anda. Klik <strong className="text-slate-805">"New Query"</strong>, salin script inisialisasi tabel lengkap di bawah ini, rekatkan, lalu klik tombol <strong className="text-emerald-700 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded">Run / Play</strong> untuk membuat struktur tabel dan kebijakan keamanan (RLS Policy) otomatis.
+                    </p>
+
+                    <div className="relative border border-slate-200 rounded-xl overflow-hidden mt-3 max-h-56 overflow-y-auto bg-slate-950 p-3.5 text-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sqlCode = `-- 1. Settings Table
+CREATE TABLE IF NOT EXISTS public.settings (
+    id TEXT PRIMARY KEY DEFAULT 'general',
+    kas JSONB,
+    blocks_list JSONB,
+    years_list JSONB,
+    rate_rt NUMERIC,
+    rate_rombong NUMERIC,
+    rt_title TEXT,
+    rt_address TEXT,
+    rt_email TEXT
+);
+
+-- 2. App Users Table
+CREATE TABLE IF NOT EXISTS public.app_users (
+    id TEXT PRIMARY KEY,
+    username TEXT,
+    pin TEXT,
+    role TEXT,
+    nama TEXT,
+    warga_id TEXT,
+    rombong_id TEXT
+);
+
+-- 3. Ledger Entries Table
+CREATE TABLE IF NOT EXISTS public.ledger_entries (
+    id TEXT PRIMARY KEY,
+    tanggal TEXT,
+    deskripsi TEXT,
+    jumlah NUMERIC,
+    tipe TEXT,
+    sumber_kas TEXT,
+    kategori TEXT,
+    petugas TEXT,
+    foto_base64 TEXT,
+    foto_nama_file TEXT
+);
+
+-- 4. Warga Bills Table
+CREATE TABLE IF NOT EXISTS public.warga_bills (
+    id TEXT PRIMARY KEY,
+    nama TEXT,
+    blok TEXT,
+    no_rumah TEXT,
+    no_wa TEXT,
+    is_deleted BOOLEAN DEFAULT false,
+    no_ktp TEXT,
+    no_kk TEXT,
+    alamat_ktp_asal TEXT,
+    ktp_base64 TEXT,
+    kk_base64 TEXT,
+    ktp_nama_file TEXT,
+    kk_nama_file TEXT,
+    foto_base64 TEXT,
+    foto_nama_file TEXT,
+    iuran_rt JSONB,
+    anggota_keluarga JSONB
+);
+
+-- 5. Rombong Bills Table
+CREATE TABLE IF NOT EXISTS public.rombong_bills (
+    id TEXT PRIMARY KEY,
+    nama_pemilik TEXT,
+    lokasi TEXT,
+    no_lapak TEXT,
+    no_wa TEXT,
+    is_deleted BOOLEAN DEFAULT false,
+    foto_base64 TEXT,
+    foto_nama_file TEXT,
+    iuran_rombong JSONB
+);
+
+-- 6. Official Letters Table
+CREATE TABLE IF NOT EXISTS public.official_letters (
+    id TEXT PRIMARY KEY,
+    nomor_surat TEXT,
+    tanggal_surat TEXT,
+    jenis_surat TEXT,
+    perihal TEXT,
+    penerima TEXT,
+    keperluan TEXT,
+    warga_id TEXT,
+    created_at_str TEXT,
+    created_by TEXT
+);
+
+-- ENABLE ROW LEVEL SECURITY
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ledger_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.warga_bills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rombong_bills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.official_letters ENABLE ROW LEVEL SECURITY;
+
+-- CREATE ALLOW ALL ANONYMOUS POLICIES (PERMISSIVE ACCESS FOR EASY DEPLOYMENT)
+CREATE POLICY "Allow settings select" ON public.settings FOR SELECT USING (true);
+CREATE POLICY "Allow settings insert" ON public.settings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow settings update" ON public.settings FOR UPDATE USING (true);
+CREATE POLICY "Allow settings delete" ON public.settings FOR DELETE USING (true);
+
+CREATE POLICY "Allow users select" ON public.app_users FOR SELECT USING (true);
+CREATE POLICY "Allow users insert" ON public.app_users FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow users update" ON public.app_users FOR UPDATE USING (true);
+CREATE POLICY "Allow users delete" ON public.app_users FOR DELETE USING (true);
+
+CREATE POLICY "Allow ledger select" ON public.ledger_entries FOR SELECT USING (true);
+CREATE POLICY "Allow ledger insert" ON public.ledger_entries FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow ledger update" ON public.ledger_entries FOR UPDATE USING (true);
+CREATE POLICY "Allow ledger delete" ON public.ledger_entries FOR DELETE USING (true);
+
+CREATE POLICY "Allow warga select" ON public.warga_bills FOR SELECT USING (true);
+CREATE POLICY "Allow warga insert" ON public.warga_bills FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow warga update" ON public.warga_bills FOR UPDATE USING (true);
+CREATE POLICY "Allow warga delete" ON public.warga_bills FOR DELETE USING (true);
+
+CREATE POLICY "Allow rombong select" ON public.rombong_bills FOR SELECT USING (true);
+CREATE POLICY "Allow rombong insert" ON public.rombong_bills FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow rombong update" ON public.rombong_bills FOR UPDATE USING (true);
+CREATE POLICY "Allow rombong delete" ON public.rombong_bills FOR DELETE USING (true);
+
+CREATE POLICY "Allow letters select" ON public.official_letters FOR SELECT USING (true);
+CREATE POLICY "Allow letters insert" ON public.official_letters FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow letters update" ON public.official_letters FOR UPDATE USING (true);
+CREATE POLICY "Allow letters delete" ON public.official_letters FOR DELETE USING (true);`;
+                          
+                          navigator.clipboard.writeText(sqlCode);
+                          setCopiedKey('supabase-sql');
+                          setTimeout(() => setCopiedKey(null), 2000);
+                        }}
+                        className="absolute top-2 right-2 text-white bg-slate-800 hover:bg-slate-700 hover:text-white text-[10px] px-2.5 py-1.5 rounded-lg font-bold border border-slate-750 cursor-pointer transition active:scale-95 flex items-center gap-1 shadow-sm"
+                      >
+                        {copiedKey === 'supabase-sql' ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            <span>Tersalin!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 text-slate-400" />
+                            <span>Salin SQL Instan</span>
+                          </>
+                        )}
+                      </button>
+                      <pre className="text-[9.5px] text-slate-350 font-mono select-all">
+{`-- SQL PEMBUATAN TABEL RT 08
+CREATE TABLE public.settings (
+    id TEXT PRIMARY KEY DEFAULT 'general',
+    kas JSONB,
+    blocks_list JSONB,
+    years_list JSONB,
+    rate_rt NUMERIC,
+    rate_rombong NUMERIC,
+    rt_title TEXT,
+    rt_address TEXT,
+    rt_email TEXT
+);
+
+CREATE TABLE public.app_users (
+    id TEXT PRIMARY KEY,
+    username TEXT,
+    pin TEXT,
+    role TEXT,
+    nama TEXT,
+    warga_id TEXT,
+    rombong_id TEXT
+);
+
+CREATE TABLE public.ledger_entries (
+    id TEXT PRIMARY KEY,
+    tanggal TEXT,
+    deskripsi TEXT,
+    jumlah NUMERIC,
+    tipe TEXT,
+    sumber_kas TEXT,
+    kategori TEXT,
+    petugas TEXT,
+    foto_base64 TEXT,
+    foto_nama_file TEXT
+);
+
+CREATE TABLE public.warga_bills (
+    id TEXT PRIMARY KEY,
+    nama TEXT,
+    blok TEXT,
+    no_rumah TEXT,
+    no_wa TEXT,
+    is_deleted BOOLEAN,
+    no_ktp TEXT,
+    no_kk TEXT,
+    alamat_ktp_asal TEXT,
+    ktp_base64 TEXT,
+    kk_base64 TEXT,
+    iuran_rt JSONB,
+    anggota_keluarga JSONB
+);`}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 & Migration Client */}
+            <div className="bg-white border border-slate-250 p-5 rounded-2xl flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                <div className="flex gap-2.5">
+                  <span className="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">3</span>
+                  <div className="space-y-1.5 w-full">
+                    <strong className="text-slate-900 block text-xs font-bold leading-snug font-sans font-bold">Masukkan Kredensial URL &amp; Anon Key</strong>
+                    <p className="text-[11px] text-slate-500 leading-normal font-mono font-medium font-sans">
+                      Salin nilai <strong className="text-slate-805">Project URL</strong> dan <strong className="text-slate-805">API Key Anon</strong> dari tab <strong className="text-slate-800 font-semibold">Project Settings &gt; API</strong> di dashboard Supabase Anda. Rekatkan nilai-nilai tersebut ke panel pengaturan rahasia atau file <code className="bg-slate-150 px-1 py-0.5 rounded font-mono text-[10.5px]">.env</code> aplikasi:
+                    </p>
+
+                    <div className="bg-slate-50 border border-slate-150 p-3 rounded-xl font-mono text-[10.5px] text-slate-700 leading-relaxed space-y-1.5">
+                      <div>
+                        <span className="text-slate-400"># Masukkan URL Server Supabase Anda</span>
+                        <div className="font-semibold text-slate-800">VITE_SUPABASE_URL="https://[proyek-anda].supabase.co"</div>
+                      </div>
+                      <div className="border-t border-slate-100 pt-1.5">
+                        <span className="text-slate-400"># Masukkan Kunci Rahasia Publik Anon</span>
+                        <div className="font-semibold text-slate-800 truncate">VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX..."</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-slate-100" />
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 bg-sky-600 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">4</span>
+                    <strong className="text-slate-900 text-xs font-bold font-sans">Pindahkan Sisa Data/Historis (Migrasi 1-Klik)</strong>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-normal font-sans font-medium pl-8">
+                    Sekali Anda telah mengisi kredensial pada Langkah 3, status sinkronisasi di atas akan berubah menjadi <strong className="text-emerald-700 font-bold">"Terkoneksi"</strong>. Klik tombol pemindah data di bawah ini untuk langsung memindahkan seluruh data warga, transaksi keuangan, dan iuran saat ini dari memori browser lokal langsung ke database cloud Supabase baru Anda.
+                  </p>
+
+                  <div className="pl-8 pt-1">
+                    {migrationStatus.type === 'loading' ? (
+                      <div className="space-y-2.5 border border-slate-150 rounded-xl p-3.5 bg-slate-50">
+                        <div className="flex items-center justify-between text-xs font-bold text-sky-850">
+                          <span className="flex items-center gap-1.5 font-sans">
+                            <RefreshCw className="w-3.5 h-3.5 text-sky-600 animate-spin" />
+                            {migrationStatus.message}
+                          </span>
+                          <span className="font-mono">{migrationProgress}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            style={{ width: `${migrationProgress}%` }} 
+                            className="bg-sky-500 h-full transition-all duration-300"
+                          />
+                        </div>
+                      </div>
+                    ) : migrationStatus.type === 'success' ? (
+                      <div className="bg-emerald-50 border border-emerald-250 p-4 rounded-xl space-y-2 text-emerald-850 font-sans">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="w-5 h-5 shrink-0 text-emerald-100/10 text-emerald-600 mt-0.5" />
+                          <div className="text-xs font-semibold leading-relaxed">
+                            {migrationStatus.message}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => window.location.reload()}
+                          className="text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-lg shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3 text-white" />
+                          <span>Muat Ulang Halaman</span>
+                        </button>
+                      </div>
+                    ) : migrationStatus.type === 'error' ? (
+                      <div className="bg-rose-50 border border-rose-250 p-4 rounded-xl space-y-2 text-rose-850 font-sans">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                          <div className="text-xs font-semibold leading-relaxed">
+                            {migrationStatus.message}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleMigrateToSupabase}
+                          className="text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 px-3.5 py-1.5 rounded-lg shadow-sm transition active:scale-95 cursor-pointer"
+                        >
+                          Coba Lagi Migrasi
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={!isSupabaseConfigured}
+                        onClick={handleMigrateToSupabase}
+                        className={`w-full py-3.5 rounded-xl font-extrabold text-xs transition duration-200 cursor-pointer shadow-sm flex items-center justify-center gap-2 border active:scale-95 ${
+                          isSupabaseConfigured
+                            ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-450 hover:brightness-110 text-white'
+                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                        }`}
+                      >
+                        <Cloud className="w-4 h-4 shrink-0" />
+                        <span>Pindahkan Seluruh Data Lokal Ke Supabase Sekarang</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Print Warning Modal for iFrame */}
       {printWarning && (
