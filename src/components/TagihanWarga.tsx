@@ -84,6 +84,12 @@ interface TagihanWargaProps {
   updateRtAddress?: (newVal: string) => void;
   rtEmail?: string;
   updateRtEmail?: (newVal: string) => void;
+  appName?: string;
+  appLogo?: string;
+  labelWargaSingular?: string;
+  labelWargaPlural?: string;
+  labelRombongSingular?: string;
+  labelRombongPlural?: string;
 }
 
 export default function TagihanWarga({ 
@@ -112,7 +118,13 @@ export default function TagihanWarga({
   rtAddress = 'PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.',
   updateRtAddress = () => {},
   rtEmail = '',
-  updateRtEmail = () => {}
+  updateRtEmail = () => {},
+  appName = 'Kas Perumtas 3 RT 08',
+  appLogo = '',
+  labelWargaSingular = 'Warga',
+  labelWargaPlural = 'Warga',
+  labelRombongSingular = 'Rombong',
+  labelRombongPlural = 'Lapak Rombong'
 }: TagihanWargaProps) {
   const printContentViaIframe = (htmlContent: string) => {
     const iframe = document.createElement('iframe');
@@ -3803,7 +3815,7 @@ export default function TagihanWarga({
             }`}
           >
             <Users className="w-4.5 h-4.5" />
-            Iuran Bulanan Warga
+            Iuran Bulanan {labelWargaSingular}
           </button>
           <button
             onClick={() => {
@@ -3819,7 +3831,7 @@ export default function TagihanWarga({
             }`}
           >
             <Store className="w-4.5 h-4.5" />
-            Iuran Lapak Rombong
+            Iuran {labelRombongPlural}
           </button>
         </div>
       )}
@@ -3916,8 +3928,8 @@ export default function TagihanWarga({
                   type="text"
                   placeholder={
                     activeSubTab === 'warga' 
-                      ? "Cari warga berdasarkan nama atau blok nomor..." 
-                      : "Cari pemilik rombong, nomor lapak, lokasi..."
+                      ? `Cari ${labelWargaSingular.toLowerCase()} berdasarkan nama atau blok nomor...` 
+                      : `Cari pemilik ${labelRombongSingular.toLowerCase()}, nomor lapak, lokasi...`
                   }
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

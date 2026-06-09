@@ -27,6 +27,12 @@ interface LandingPageProps {
   isFirebaseConfigured: boolean;
   isSupabaseConfigured: boolean;
   onUpdateUsersList?: (newUsers: AppUser[]) => void;
+  appName: string;
+  appLogo: string;
+  labelWargaSingular: string;
+  labelWargaPlural: string;
+  labelRombongSingular: string;
+  labelRombongPlural: string;
 }
 
 export default function LandingPage({ 
@@ -36,7 +42,13 @@ export default function LandingPage({
   rtAddress,
   isFirebaseConfigured,
   isSupabaseConfigured,
-  onUpdateUsersList
+  onUpdateUsersList,
+  appName,
+  appLogo,
+  labelWargaSingular,
+  labelWargaPlural,
+  labelRombongSingular,
+  labelRombongPlural
 }: LandingPageProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -156,16 +168,15 @@ export default function LandingPage({
           <div className="space-y-3.5">
             <div className="flex items-center justify-center lg:justify-start">
               <div className="w-20 h-20 rounded-3xl overflow-hidden bg-slate-950 p-0.5 border border-sky-400/40 shadow-xl shadow-sky-500/15 mb-2 hover:scale-105 transition duration-300">
-                <img src="/favicon.png" alt="RT.008 Logo" className="w-full h-full object-cover rounded-[22px]" referrerPolicy="no-referrer" />
+                <img src={appLogo || "/favicon.png"} alt="App Logo" className="w-full h-full object-cover rounded-[22px]" referrerPolicy="no-referrer" />
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 bg-sky-500/10 text-sky-300 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wider uppercase font-mono">
               <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-              SISTEM DIGITALISASI WARGA
+              SISTEM DIGITALISASI {labelWargaPlural.toUpperCase()} &amp; {labelRombongPlural.toUpperCase()}
             </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-none bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-              PERUMTAS 3<br />
-              <span className="text-sky-400 font-extrabold">RT.008</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent whitespace-pre-line">
+              {appName}
             </h2>
 
           </div>
@@ -175,9 +186,9 @@ export default function LandingPage({
               <div className="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400 mb-2 group-hover:scale-110 transition">
                 <Users className="w-4.5 h-4.5" />
               </div>
-              <h4 className="text-xs font-bold text-white">Iuran Warga</h4>
+              <h4 className="text-xs font-bold text-white">Iuran {labelWargaSingular}</h4>
               <p className="text-[11px] text-slate-450 mt-1 font-medium leading-normal">
-                Lihat tagihan bulanan langsung lewat akun warga sendiri.
+                Lihat tagihan bulanan langsung lewat akun {labelWargaSingular.toLowerCase()} sendiri.
               </p>
             </div>
 
@@ -185,9 +196,9 @@ export default function LandingPage({
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-2 group-hover:scale-110 transition">
                 <Store className="w-4.5 h-4.5" />
               </div>
-              <h4 className="text-xs font-bold text-white">Iuran Rombong</h4>
+              <h4 className="text-xs font-bold text-white">Iuran {labelRombongSingular}</h4>
               <p className="text-[11px] text-slate-450 mt-1 font-medium leading-normal">
-                Lihat Tagihan Iuran bulanan Rombong.
+                Lihat Tagihan Iuran bulanan sewa {labelRombongSingular.toLowerCase()}.
               </p>
             </div>
           </div>

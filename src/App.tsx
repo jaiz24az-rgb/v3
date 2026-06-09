@@ -233,6 +233,54 @@ export default function App() {
     const saved = localStorage.getItem('perumtas_rt08_email');
     return saved && saved !== 'tas3.rt.08@gmail.com' ? saved : '';
   });
+  const [appName, setAppName] = useState<string>(() => {
+    const saved = localStorage.getItem('perumtas_rt08_app_name');
+    return saved || 'Kas Perumtas 3 RT 08';
+  });
+  const [appLogo, setAppLogo] = useState<string>(() => {
+    const saved = localStorage.getItem('perumtas_rt08_app_logo');
+    return saved || '';
+  });
+  const [labelWargaSingular, setLabelWargaSingular] = useState<string>(() => {
+    const saved = localStorage.getItem('perumtas_rt08_label_warga_singular');
+    return saved || 'Warga';
+  });
+  const [labelWargaPlural, setLabelWargaPlural] = useState<string>(() => {
+    const saved = localStorage.getItem('perumtas_rt08_label_warga_plural');
+    return saved || 'Warga';
+  });
+  const [labelRombongSingular, setLabelRombongSingular] = useState<string>(() => {
+    const saved = localStorage.getItem('perumtas_rt08_label_rombong_singular');
+    return saved || 'Rombong';
+  });
+  const [labelRombongPlural, setLabelRombongPlural] = useState<string>(() => {
+    const saved = localStorage.getItem('perumtas_rt08_label_rombong_plural');
+    return saved || 'Lapak Rombong';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('perumtas_rt08_app_name', appName);
+  }, [appName]);
+
+  useEffect(() => {
+    localStorage.setItem('perumtas_rt08_app_logo', appLogo);
+  }, [appLogo]);
+
+  useEffect(() => {
+    localStorage.setItem('perumtas_rt08_label_warga_singular', labelWargaSingular);
+  }, [labelWargaSingular]);
+
+  useEffect(() => {
+    localStorage.setItem('perumtas_rt08_label_warga_plural', labelWargaPlural);
+  }, [labelWargaPlural]);
+
+  useEffect(() => {
+    localStorage.setItem('perumtas_rt08_label_rombong_singular', labelRombongSingular);
+  }, [labelRombongSingular]);
+
+  useEffect(() => {
+    localStorage.setItem('perumtas_rt08_label_rombong_plural', labelRombongPlural);
+  }, [labelRombongPlural]);
   const [showUserManagement, setShowUserManagement] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
@@ -808,6 +856,12 @@ export default function App() {
         if (data.rtTitle !== undefined) setRtTitle(data.rtTitle);
         if (data.rtAddress !== undefined) setRtAddress(data.rtAddress);
         if (data.rtEmail !== undefined) setRtEmail(data.rtEmail);
+        if (data.appName !== undefined) setAppName(data.appName);
+        if (data.appLogo !== undefined) setAppLogo(data.appLogo);
+        if (data.labelWargaSingular !== undefined) setLabelWargaSingular(data.labelWargaSingular);
+        if (data.labelWargaPlural !== undefined) setLabelWargaPlural(data.labelWargaPlural);
+        if (data.labelRombongSingular !== undefined) setLabelRombongSingular(data.labelRombongSingular);
+        if (data.labelRombongPlural !== undefined) setLabelRombongPlural(data.labelRombongPlural);
       } else {
         // Initial seed of Settings to Firestore
         setDoc(settingsRef, {
@@ -818,7 +872,13 @@ export default function App() {
           rateRombong,
           rtTitle,
           rtAddress,
-          rtEmail
+          rtEmail,
+          appName,
+          appLogo,
+          labelWargaSingular,
+          labelWargaPlural,
+          labelRombongSingular,
+          labelRombongPlural
         }).catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
       }
     }, (err) => {
@@ -1250,6 +1310,60 @@ export default function App() {
     }
   };
 
+  const updateAppName = (newVal: string | ((prev: string) => string)) => {
+    const nextVal = typeof newVal === 'function' ? newVal(appName) : newVal;
+    setAppName(nextVal);
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'settings', 'general'), { appName: nextVal }, { merge: true })
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
+    }
+  };
+
+  const updateAppLogo = (newVal: string | ((prev: string) => string)) => {
+    const nextVal = typeof newVal === 'function' ? newVal(appLogo) : newVal;
+    setAppLogo(nextVal);
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'settings', 'general'), { appLogo: nextVal }, { merge: true })
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
+    }
+  };
+
+  const updateLabelWargaSingular = (newVal: string | ((prev: string) => string)) => {
+    const nextVal = typeof newVal === 'function' ? newVal(labelWargaSingular) : newVal;
+    setLabelWargaSingular(nextVal);
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'settings', 'general'), { labelWargaSingular: nextVal }, { merge: true })
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
+    }
+  };
+
+  const updateLabelWargaPlural = (newVal: string | ((prev: string) => string)) => {
+    const nextVal = typeof newVal === 'function' ? newVal(labelWargaPlural) : newVal;
+    setLabelWargaPlural(nextVal);
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'settings', 'general'), { labelWargaPlural: nextVal }, { merge: true })
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
+    }
+  };
+
+  const updateLabelRombongSingular = (newVal: string | ((prev: string) => string)) => {
+    const nextVal = typeof newVal === 'function' ? newVal(labelRombongSingular) : newVal;
+    setLabelRombongSingular(nextVal);
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'settings', 'general'), { labelRombongSingular: nextVal }, { merge: true })
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
+    }
+  };
+
+  const updateLabelRombongPlural = (newVal: string | ((prev: string) => string)) => {
+    const nextVal = typeof newVal === 'function' ? newVal(labelRombongPlural) : newVal;
+    setLabelRombongPlural(nextVal);
+    if (isFirebaseConfigured) {
+      setDoc(doc(db, 'settings', 'general'), { labelRombongPlural: nextVal }, { merge: true })
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
+    }
+  };
+
   // Reset Application Data Helper (Admin ONLY)
   const handleResetData = () => {
     if (!currentUser || currentUser.role !== 'admin') {
@@ -1285,6 +1399,12 @@ export default function App() {
         isFirebaseConfigured={isFirebaseConfigured}
         isSupabaseConfigured={isSupabaseConfigured}
         onUpdateUsersList={handleUpdateUsersList}
+        appName={appName}
+        appLogo={appLogo}
+        labelWargaSingular={labelWargaSingular}
+        labelWargaPlural={labelWargaPlural}
+        labelRombongSingular={labelRombongSingular}
+        labelRombongPlural={labelRombongPlural}
       />
     );
   }
@@ -1301,14 +1421,14 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-950 p-0.5 border border-sky-400/30 shadow-md shadow-sky-500/10">
-              <img src="/favicon.png" alt="RT.008 Logo" className="w-full h-full object-cover rounded-[10px]" referrerPolicy="no-referrer" />
+              <img src={appLogo || "/favicon.png"} alt="App Logo" className="w-full h-full object-cover rounded-[10px]" referrerPolicy="no-referrer" />
             </div>
             <div>
               <h1 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5 leading-none">
-                Kas Perumtas 3 RT 08
+                {appName}
               </h1>
               <span className="text-[10px] md:text-xs font-semibold text-sky-600 font-mono tracking-wide uppercase mt-1 block">
-                Sistem Pengelolaan Keuangan & Tagihan
+                {rtTitle || 'Sistem Pengelolaan Keuangan & Tagihan'}
               </span>
             </div>
           </div>
@@ -1518,6 +1638,12 @@ export default function App() {
               updateRtAddress={updateRtAddress}
               rtEmail={rtEmail}
               updateRtEmail={updateRtEmail}
+              appName={appName}
+              appLogo={appLogo}
+              labelWargaSingular={labelWargaSingular}
+              labelWargaPlural={labelWargaPlural}
+              labelRombongSingular={labelRombongSingular}
+              labelRombongPlural={labelRombongPlural}
             />
           )}
 
@@ -1577,6 +1703,18 @@ export default function App() {
               updateRombongList={handleUpdateRombongList}
               ledger={ledger}
               addLedgerEntry={addLedgerEntry}
+              appName={appName}
+              updateAppName={updateAppName}
+              appLogo={appLogo}
+              updateAppLogo={updateAppLogo}
+              labelWargaSingular={labelWargaSingular}
+              updateLabelWargaSingular={updateLabelWargaSingular}
+              labelWargaPlural={labelWargaPlural}
+              updateLabelWargaPlural={updateLabelWargaPlural}
+              labelRombongSingular={labelRombongSingular}
+              updateLabelRombongSingular={updateLabelRombongSingular}
+              labelRombongPlural={labelRombongPlural}
+              updateLabelRombongPlural={updateLabelRombongPlural}
             />
           )}
 
