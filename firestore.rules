@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all at first level
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Helper function to guard against long or poisoned document IDs
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // 1. Settings Collection Validator
+    function isValidSettings(data) {
+      return data.keys().hasAll(['kas', 'blocksList', 'yearsList', 'rateRT', 'rateRombong', 'rtTitle', 'rtAddress', 'rtEmail'])
+        && data.kas is map
+        && data.blocksList is list
+        && data.yearsList is list
+        && data.rateRT is int
+        && data.rateRombong is int
+        && data.rtTitle is string
+        && data.rtTitle.size() <= 500
+        && data.rtAddress is string
+        && data.rtAddress.size() <= 1000
+        && data.rtEmail is string
+        && data.rtEmail.size() <= 200;
+    }
+
+    // Settings collection rules
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isValidId(settingId) && (request.resource == null || isValidSettings(incoming()));
+    }
+
+    // 2. Ledger entries Validator
+    function isValidLedger(data) {
+      return data.keys().hasAll(['id', 'tanggal', 'deskripsi', 'jumlah', 'tipe', 'sumberKas', 'kategori', 'petugas'])
+        && data.id is string
+        && data.tanggal is string
+        && data.deskripsi is string
+        && data.deskripsi.size() <= 1000
+        && (data.jumlah is int || data.jumlah is float)
+        && data.tipe is string
+        && (data.tipe == 'pemasukan' || data.tipe == 'pengeluaran')
+        && data.sumberKas is string
+        && data.kategori is string
+        && data.petugas is string;
+    }
+
+    // Ledger entries collection rules
+    match /ledger_entries/{ledgerId} {
+      allow read: if true;
+      allow write: if isValidId(ledgerId) && (request.resource == null || isValidLedger(incoming()));
+    }
+
+    // 3. Warga bills Validator
+    function isValidWarga(data) {
+      return data.keys().hasAll(['id', 'nama', 'blok', 'noRumah', 'iuranRT'])
+        && data.id is string
+        && data.nama is string
+        && data.nama.size() <= 200
+        && data.blok is string
+        && data.noRumah is string
+        && data.iuranRT is list;
+    }
+
+    // Warga bills collection rules
+    match /warga_bills/{wargaId} {
+      allow read: if true;
+      allow write: if isValidId(wargaId) && (request.resource == null || isValidWarga(incoming()));
+    }
+
+    // 4. Rombong bills Validator
+    function isValidRombong(data) {
+      return data.keys().hasAll(['id', 'namaPemilik', 'lokasi', 'noLapak', 'iuranRombong'])
+        && data.id is string
+        && data.namaPemilik is string
+        && data.namaPemilik.size() <= 200
+        && data.lokasi is string
+        && data.noLapak is string
+        && data.iuranRombong is list;
+    }
+
+    // Rombong bills collection rules
+    match /rombong_bills/{rombongId} {
+      allow read: if true;
+      allow write: if isValidId(rombongId) && (request.resource == null || isValidRombong(incoming()));
+    }
+
+    // 5. App User Validator
+    function isValidAppUser(data) {
+      return data.keys().hasAll(['id', 'username', 'pin', 'role', 'nama'])
+        && data.id is string
+        && data.username is string
+        && data.pin is string
+        && data.pin.size() <= 50
+        && data.role is string
+        && (data.role == 'admin' || data.role == 'bendahara' || data.role == 'kolektor' || data.role == 'warga' || data.role == 'rombong' || data.role == 'sekretaris')
+        && data.nama is string
+        && data.nama.size() <= 100
+        && (!('wargaId' in data) || data.wargaId is string)
+        && (!('rombongId' in data) || data.rombongId is string);
+    }
+
+    // App users collection
+    match /app_users/{userId} {
+      allow read: if true;
+      allow write: if isValidId(userId) && (request.resource == null || isValidAppUser(incoming()));
+    }
+
+    // 6. Official Letter Validator
+    function isValidOfficialLetter(data) {
+      return data.keys().hasAll(['id', 'nomorSurat', 'tanggalSurat', 'jenisSurat', 'perihal', 'penerima', 'createdAt', 'createdBy'])
+        && data.id is string
+        && data.nomorSurat is string
+        && data.nomorSurat.size() <= 100
+        && data.tanggalSurat is string
+        && data.jenisSurat is string
+        && (data.jenisSurat == 'undangan_rapat' || data.jenisSurat == 'undangan_kerja_bakti' || data.jenisSurat == 'undangan_khusus' || data.jenisSurat == 'custom')
+        && data.perihal is string
+        && data.perihal.size() <= 500
+        && data.penerima is string
+        && data.penerima.size() <= 200
+        && (!('keperluan' in data) || (data.keperluan is string && data.keperluan.size() <= 1000))
+        && (!('wargaId' in data) || data.wargaId is string)
+        && data.createdAt is string
+        && data.createdBy is string;
+    }
+
+    // Official letters collection rules
+    match /official_letters/{letterId} {
+      allow read: if true;
+      allow write: if isValidId(letterId) && (request.resource == null || isValidOfficialLetter(incoming()));
+    }
+  }
+}

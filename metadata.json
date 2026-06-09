@@ -1,0 +1,8 @@
+{
+  "name": "me: Buku Kas Perumtas 3 RT 08",
+  "description": "Aplikasi pengelolaan kas dan tagihan warga RT 08 Perumtas 3.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

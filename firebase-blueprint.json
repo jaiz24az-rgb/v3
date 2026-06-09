@@ -1,0 +1,148 @@
+{
+  "entities": {
+    "Settings": {
+      "title": "Application General Settings and Balance",
+      "description": "Singleton configuration document containing app settings and balances.",
+      "type": "object",
+      "properties": {
+        "kas": {
+          "type": "object",
+          "description": "The current split balances of RT and Rombong."
+        },
+        "blocksList": {
+          "type": "array",
+          "description": "List of block numbers/letters."
+        },
+        "yearsList": {
+          "type": "array",
+          "description": "List of active budget/calendar years."
+        },
+        "rateRT": {
+          "type": "number",
+          "description": "Base rate for RT billings."
+        },
+        "rateRombong": {
+          "type": "number",
+          "description": "Base rate for Rombong billings."
+        },
+        "rtTitle": {
+          "type": "string"
+        },
+        "rtAddress": {
+          "type": "string"
+        },
+        "rtEmail": {
+          "type": "string"
+        }
+      },
+      "required": ["kas", "blocksList", "yearsList", "rateRT", "rateRombong", "rtTitle", "rtAddress", "rtEmail"]
+    },
+    "LedgerEntry": {
+      "title": "Ledger Entry",
+      "description": "Represents an individual financial transaction (income or outcome).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tanggal": { "type": "string", "format": "date" },
+        "deskripsi": { "type": "string" },
+        "jumlah": { "type": "number" },
+        "tipe": { "type": "string", "enum": ["pemasukan", "pengeluaran"] },
+        "sumberKas": { "type": "string" },
+        "kategori": { "type": "string" },
+        "petugas": { "type": "string" }
+      },
+      "required": ["id", "tanggal", "deskripsi", "jumlah", "tipe", "sumberKas", "kategori", "petugas"]
+    },
+    "WargaBill": {
+      "title": "Warga Bill",
+      "description": "Tracks utility/RT iuran status for a single home owner.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nama": { "type": "string" },
+        "blok": { "type": "string" },
+        "noRumah": { "type": "string" },
+        "noWa": { "type": "string" },
+        "iuranRT": {
+          "type": "array"
+        }
+      },
+      "required": ["id", "nama", "blok", "noRumah", "iuranRT"]
+    },
+    "RombongBill": {
+      "title": "Rombong Bill",
+      "description": "Tracks sewa/lapak iuran status for a single shop occupant.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "namaPemilik": { "type": "string" },
+        "lokasi": { "type": "string" },
+        "noLapak": { "type": "string" },
+        "noWa": { "type": "string" },
+        "iuranRombong": {
+          "type": "array"
+        }
+      },
+      "required": ["id", "namaPemilik", "lokasi", "noLapak", "iuranRombong"]
+    },
+    "AppUser": {
+      "title": "App User",
+      "description": "Authenticatable user schema (admin, bendahara, warga, rombong, kolektor, or sekretaris role).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "pin": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "bendahara", "warga", "rombong", "kolektor", "sekretaris"] },
+        "nama": { "type": "string" },
+        "wargaId": { "type": "string" },
+        "rombongId": { "type": "string" }
+      },
+      "required": ["id", "username", "pin", "role", "nama"]
+    },
+    "OfficialLetter": {
+      "title": "Official Letter Registry",
+      "description": "Represents a registered official letter with sequential ID/number.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nomorSurat": { "type": "string" },
+        "tanggalSurat": { "type": "string", "format": "date" },
+        "jenisSurat": { "type": "string", "enum": ["undangan_rapat", "undangan_kerja_bakti", "undangan_khusus", "custom"] },
+        "perihal": { "type": "string" },
+        "penerima": { "type": "string" },
+        "keperluan": { "type": "string" },
+        "wargaId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "nomorSurat", "tanggalSurat", "jenisSurat", "perihal", "penerima", "createdAt", "createdBy"]
+    }
+  },
+  "firestore": {
+    "settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global application configuration document."
+    },
+    "ledger_entries/{ledgerId}": {
+      "schema": "LedgerEntry",
+      "description": "Individual cash mutation transaction ledger."
+    },
+    "warga_bills/{wargaId}": {
+      "schema": "WargaBill",
+      "description": "Individual residential utility billing records and receipt states."
+    },
+    "rombong_bills/{rombongId}": {
+      "schema": "RombongBill",
+      "description": "Individual rombong market stall billing records."
+    },
+    "app_users/{userId}": {
+      "schema": "AppUser",
+      "description": "Administrative users."
+    },
+    "official_letters/{letterId}": {
+      "schema": "OfficialLetter",
+      "description": "Sequence logs of official letters dispatched by the RT."
+    }
+  }
+}

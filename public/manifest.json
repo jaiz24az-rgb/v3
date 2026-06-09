@@ -1,0 +1,31 @@
+{
+  "name": "Buku Kas & Registrasi RT.008",
+  "short_name": "RT.008 App",
+  "description": "Sistem Pengelolaan Kas, Tagihan Iuran Warga & Buku Kerja Ketua RT 08 Perumtas 3",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
