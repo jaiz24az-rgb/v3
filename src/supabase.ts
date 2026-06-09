@@ -5,12 +5,24 @@ import { Balance, LedgerEntry, WargaBill, RombongBill, AppUser, OfficialLetter }
 const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || '';
 
-// Check if configuration exists
+// Check if configuration exists and is a valid URL
+const isValidHttpUrl = (urlStr: string): boolean => {
+  if (!urlStr || urlStr === 'https://your-project-ref.supabase.co' || urlStr.includes('your-project-ref')) {
+    return false;
+  }
+  try {
+    const url = new URL(urlStr);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 export const isSupabaseConfigured = !!(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl !== 'https://your-project-ref.supabase.co' &&
-  supabaseUrl !== ''
+  supabaseAnonKey !== 'your-supabase-anon-key' &&
+  isValidHttpUrl(supabaseUrl)
 );
 
 // Create Client
