@@ -5298,6 +5298,37 @@ export default function TagihanWarga({
               </div>
             </div>
 
+            {/* Visual Kartu Ucapan Terima Kasih (Premium Gratitude Card) */}
+            <div className="mt-3.5 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-250/60 rounded-2xl p-3.5 text-center relative overflow-hidden group shadow`xs border-dashed animate-in slide-in-from-bottom-2 duration-300">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-100/30 rounded-bl-full pointer-events-none transition duration-500 group-hover:scale-110" />
+              <div className="absolute -left-2 -bottom-2 text-3xl opacity-15 pointer-events-none select-none">🎉</div>
+              <div className="absolute -right-2 -bottom-2 text-3xl opacity-15 pointer-events-none select-none">🌸</div>
+              
+              <div className="flex justify-center items-center gap-1.5 text-emerald-700 font-extrabold text-[11px] uppercase tracking-wider mb-1.5 font-mono">
+                <span>💖 UCAPAN APRESIASI RT 08 💖</span>
+              </div>
+              
+              <h5 className="text-xs font-black text-emerald-950 leading-snug">
+                Terima Kasih Banyak Atas Pembayaran Anda! 🙏
+              </h5>
+              
+              <p className="text-[10.5px] text-slate-650 leading-relaxed mt-2 font-medium font-sans">
+                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{receiptSuccessInfo.nama}</span> dalam pelunasan <strong className="text-slate-805 font-bold">{receiptSuccessInfo.category} ({receiptSuccessInfo.bulan} {receiptSuccessInfo.tahun})</strong>.
+              </p>
+              
+              <p className="text-[10px] text-slate-505 leading-relaxed mt-1.5 font-semibold italic bg-white/70 border border-slate-100 p-1.5 rounded-xl">
+                "Kontribusi nyata Bapak/Ibu adalah wujud kepedulian berharga yang menguatkan tali kekeluargaan, menjaga kehangatan paguyuban warga, serta membawa kebaikan bersama di RT 08 Perumahan TAS 3."
+              </p>
+              
+              <div className="flex justify-center gap-1 mt-2.5">
+                <span className="text-xs select-none">⭐️</span>
+                <span className="text-xs select-none">⭐️</span>
+                <span className="text-xs select-none">⭐️</span>
+                <span className="text-xs select-none">⭐️</span>
+                <span className="text-xs select-none">⭐️</span>
+              </div>
+            </div>
+
             {/* Tombol-Tombol Aksi Utama */}
             <div className="space-y-2 mt-4">
               
@@ -6287,13 +6318,13 @@ export default function TagihanWarga({
                           key={IndoMonth}
                           className={`p-3 rounded-xl border flex flex-col justify-between min-h-[5.5rem] h-auto pb-1.5 transition duration-150 ${
                             isLunas
-                              ? 'bg-emerald-50/40 border-emerald-150 shadow-xs'
+                              ? 'bg-emerald-50 border-emerald-300 ring-1 ring-emerald-350/20 shadow-sm'
                               : 'bg-amber-50/30 border-amber-200'
                           }`}
                         >
                           <div>
                             <div className="flex justify-between items-start">
-                              <span className="text-xs font-extrabold text-slate-700">{IndoMonth}</span>
+                              <span className={`text-xs font-extrabold ${isLunas ? 'text-emerald-900 font-black' : 'text-slate-705'}`}>{IndoMonth}</span>
                               <span className="text-[9px] text-slate-400 font-mono">#{String(idx + 1).padStart(2, '0')}</span>
                             </div>
                             {matchedSlot?.catatan && (
@@ -6303,15 +6334,15 @@ export default function TagihanWarga({
                             )}
                           </div>
 
-                          <div className="mt-1 flex justify-between items-end">
-                            <div className="text-[10px] font-mono text-slate-500 self-end">
+                          <div className="mt-1 flex justify-between items-end bg-transparent">
+                            <div className={`text-[10px] font-mono self-end ${isLunas ? 'text-emerald-705 font-bold' : 'text-slate-500'}`}>
                               Rp {nominalValue.toLocaleString('id-ID')}
                             </div>
                             
                             {/* Payment status badge */}
                             {isLunas ? (
-                              <div className="flex flex-col items-end gap-0.5">
-                                <span className="text-[10px] text-emerald-700 font-black flex items-center gap-0.5 whitespace-nowrap">
+                              <div className="flex flex-col items-end gap-0.5 bg-transparent">
+                                <span className="text-[9.5px] text-white bg-emerald-600 border border-emerald-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
                                   Lunas ✓
                                 </span>
                                 {matchedSlot?.tanggalBayar && (
@@ -6591,13 +6622,13 @@ export default function TagihanWarga({
                         key={IndoMonth}
                         className={`p-3 rounded-xl border flex flex-col justify-between min-h-[5.5rem] h-auto pb-1.5 transition duration-150 ${
                           isLunas
-                            ? 'bg-emerald-50/40 border-emerald-150 shadow-xs'
+                            ? 'bg-emerald-50 border-emerald-300 ring-1 ring-emerald-350/20 shadow-sm'
                             : 'bg-amber-50/30 border-amber-200'
                         }`}
                       >
                         <div>
                           <div className="flex justify-between items-start">
-                            <span className="text-xs font-extrabold text-slate-700">{IndoMonth}</span>
+                            <span className={`text-xs font-extrabold ${isLunas ? 'text-emerald-900 font-black' : 'text-slate-705'}`}>{IndoMonth}</span>
                             <span className="text-[9px] text-slate-400 font-mono">#{String(idx + 1).padStart(2, '0')}</span>
                           </div>
                           {matchedSlot?.catatan && (
@@ -6607,15 +6638,15 @@ export default function TagihanWarga({
                           )}
                         </div>
 
-                        <div className="mt-1 flex justify-between items-end">
-                          <div className="text-[10px] font-mono text-slate-500 self-end">
+                        <div className="mt-1 flex justify-between items-end bg-transparent">
+                          <div className={`text-[10px] font-mono self-end ${isLunas ? 'text-emerald-705 font-bold' : 'text-slate-500'}`}>
                             Rp {nominalValue.toLocaleString('id-ID')}
                           </div>
                           
                           {/* Payment status badge */}
                           {isLunas ? (
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[10px] text-emerald-700 font-black flex items-center gap-0.5 whitespace-nowrap">
+                            <div className="flex flex-col items-end gap-0.5 bg-transparent">
+                              <span className="text-[9.5px] text-white bg-emerald-600 border border-emerald-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
                                 Lunas ✓
                               </span>
                               {matchedSlot?.tanggalBayar && (
@@ -6926,18 +6957,18 @@ export default function TagihanWarga({
                                   disabled={slot.lunas || !isOfficer}
                                   className={`px-2 py-1 rounded-lg text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[72px] ${
                                     slot.lunas
-                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/85 cursor-default'
+                                      ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
                                       : isOfficer
-                                      ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer'
-                                      : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default'
+                                      ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
+                                      : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >
-                                  <span className="text-[10px] font-semibold">{slot.bulan} <span className="text-[8px] font-normal opacity-75">'{String(selectedBillingYear).slice(-2)}</span></span>
+                                  <span className="text-[10px] font-black">{slot.bulan} <span className={`text-[8px] font-normal ${slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
                                   {slot.lunas ? (
                                     <>
-                                      <span className="text-[8px] mt-0.5 block opacity-95 text-emerald-600 font-bold">Lunas ✓</span>
+                                      <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
                                       {slot.tanggalBayar && (
-                                        <span className="text-[7.5px] text-emerald-650 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88]">
+                                        <span className="text-[7.5px] text-emerald-100 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88]">
                                           {(() => {
                                             const p = slot.tanggalBayar.split('-');
                                             const datePart = p.length === 3 ? `${p[2]}/${p[1]}` : slot.tanggalBayar;
@@ -7125,18 +7156,18 @@ export default function TagihanWarga({
                                   disabled={slot.lunas || !isOfficer}
                                   className={`px-2 py-1 rounded-lg text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[72px] ${
                                     slot.lunas
-                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/85 cursor-default'
+                                      ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
                                       : isOfficer
-                                      ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer'
-                                      : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default'
+                                      ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
+                                      : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >
-                                  <span className="text-[10px] font-semibold">{slot.bulan} <span className="text-[8px] font-normal opacity-75">'{String(selectedBillingYear).slice(-2)}</span></span>
+                                  <span className="text-[10px] font-black">{slot.bulan} <span className={`text-[8px] font-normal ${slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
                                   {slot.lunas ? (
                                     <>
-                                      <span className="text-[8px] mt-0.5 block opacity-95 text-emerald-600 font-bold">Lunas ✓</span>
+                                      <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
                                       {slot.tanggalBayar && (
-                                        <span className="text-[7.5px] text-emerald-650 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88]">
+                                        <span className="text-[7.5px] text-emerald-100 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88]">
                                           {(() => {
                                             const p = slot.tanggalBayar.split('-');
                                             const datePart = p.length === 3 ? `${p[2]}/${p[1]}` : slot.tanggalBayar;
