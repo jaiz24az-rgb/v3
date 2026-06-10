@@ -707,6 +707,12 @@ export default function App() {
             if (settings.rtTitle !== undefined) setRtTitle(settings.rtTitle);
             if (settings.rtAddress !== undefined) setRtAddress(settings.rtAddress);
             if (settings.rtEmail !== undefined) setRtEmail(settings.rtEmail);
+            if (settings.appName !== undefined) setAppName(settings.appName);
+            if (settings.appLogo !== undefined) setAppLogo(settings.appLogo);
+            if (settings.labelWargaSingular !== undefined) setLabelWargaSingular(settings.labelWargaSingular);
+            if (settings.labelWargaPlural !== undefined) setLabelWargaPlural(settings.labelWargaPlural);
+            if (settings.labelRombongSingular !== undefined) setLabelRombongSingular(settings.labelRombongSingular);
+            if (settings.labelRombongPlural !== undefined) setLabelRombongPlural(settings.labelRombongPlural);
           } else {
             // Seed settings
             await upsertGeneralSettings({
@@ -717,7 +723,13 @@ export default function App() {
               rateRombong,
               rtTitle,
               rtAddress,
-              rtEmail
+              rtEmail,
+              appName,
+              appLogo,
+              labelWargaSingular,
+              labelWargaPlural,
+              labelRombongSingular,
+              labelRombongPlural
             });
           }
         }
@@ -1313,7 +1325,9 @@ export default function App() {
   const updateAppName = (newVal: string | ((prev: string) => string)) => {
     const nextVal = typeof newVal === 'function' ? newVal(appName) : newVal;
     setAppName(nextVal);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
+      upsertGeneralSettings({ appName: nextVal });
+    } else if (isFirebaseConfigured) {
       setDoc(doc(db, 'settings', 'general'), { appName: nextVal }, { merge: true })
         .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
     }
@@ -1322,7 +1336,9 @@ export default function App() {
   const updateAppLogo = (newVal: string | ((prev: string) => string)) => {
     const nextVal = typeof newVal === 'function' ? newVal(appLogo) : newVal;
     setAppLogo(nextVal);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
+      upsertGeneralSettings({ appLogo: nextVal });
+    } else if (isFirebaseConfigured) {
       setDoc(doc(db, 'settings', 'general'), { appLogo: nextVal }, { merge: true })
         .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
     }
@@ -1331,7 +1347,9 @@ export default function App() {
   const updateLabelWargaSingular = (newVal: string | ((prev: string) => string)) => {
     const nextVal = typeof newVal === 'function' ? newVal(labelWargaSingular) : newVal;
     setLabelWargaSingular(nextVal);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
+      upsertGeneralSettings({ labelWargaSingular: nextVal });
+    } else if (isFirebaseConfigured) {
       setDoc(doc(db, 'settings', 'general'), { labelWargaSingular: nextVal }, { merge: true })
         .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
     }
@@ -1340,7 +1358,9 @@ export default function App() {
   const updateLabelWargaPlural = (newVal: string | ((prev: string) => string)) => {
     const nextVal = typeof newVal === 'function' ? newVal(labelWargaPlural) : newVal;
     setLabelWargaPlural(nextVal);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
+      upsertGeneralSettings({ labelWargaPlural: nextVal });
+    } else if (isFirebaseConfigured) {
       setDoc(doc(db, 'settings', 'general'), { labelWargaPlural: nextVal }, { merge: true })
         .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
     }
@@ -1349,7 +1369,9 @@ export default function App() {
   const updateLabelRombongSingular = (newVal: string | ((prev: string) => string)) => {
     const nextVal = typeof newVal === 'function' ? newVal(labelRombongSingular) : newVal;
     setLabelRombongSingular(nextVal);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
+      upsertGeneralSettings({ labelRombongSingular: nextVal });
+    } else if (isFirebaseConfigured) {
       setDoc(doc(db, 'settings', 'general'), { labelRombongSingular: nextVal }, { merge: true })
         .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
     }
@@ -1358,7 +1380,9 @@ export default function App() {
   const updateLabelRombongPlural = (newVal: string | ((prev: string) => string)) => {
     const nextVal = typeof newVal === 'function' ? newVal(labelRombongPlural) : newVal;
     setLabelRombongPlural(nextVal);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
+      upsertGeneralSettings({ labelRombongPlural: nextVal });
+    } else if (isFirebaseConfigured) {
       setDoc(doc(db, 'settings', 'general'), { labelRombongPlural: nextVal }, { merge: true })
         .catch((err) => handleFirestoreError(err, OperationType.WRITE, 'settings/general'));
     }

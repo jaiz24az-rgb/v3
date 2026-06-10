@@ -61,6 +61,12 @@ export function mapGeneralSettingsToClient(dbData: any) {
     rtTitle: String(dbData.rt_title),
     rtAddress: String(dbData.rt_address),
     rtEmail: String(dbData.rt_email),
+    appName: dbData.app_name ? String(dbData.app_name) : undefined,
+    appLogo: dbData.app_logo ? String(dbData.app_logo) : undefined,
+    labelWargaSingular: dbData.label_warga_singular ? String(dbData.label_warga_singular) : undefined,
+    labelWargaPlural: dbData.label_warga_plural ? String(dbData.label_warga_plural) : undefined,
+    labelRombongSingular: dbData.label_rombong_singular ? String(dbData.label_rombong_singular) : undefined,
+    labelRombongPlural: dbData.label_rombong_plural ? String(dbData.label_rombong_plural) : undefined,
   };
 }
 
@@ -178,6 +184,12 @@ export async function upsertGeneralSettings(settings: Partial<any>) {
     if (settings.rtTitle !== undefined) dbPayload.rt_title = settings.rtTitle;
     if (settings.rtAddress !== undefined) dbPayload.rt_address = settings.rtAddress;
     if (settings.rtEmail !== undefined) dbPayload.rt_email = settings.rtEmail;
+    if (settings.appName !== undefined) dbPayload.app_name = settings.appName;
+    if (settings.appLogo !== undefined) dbPayload.app_logo = settings.appLogo;
+    if (settings.labelWargaSingular !== undefined) dbPayload.label_warga_singular = settings.labelWargaSingular;
+    if (settings.labelWargaPlural !== undefined) dbPayload.label_warga_plural = settings.labelWargaPlural;
+    if (settings.labelRombongSingular !== undefined) dbPayload.label_rombong_singular = settings.labelRombongSingular;
+    if (settings.labelRombongPlural !== undefined) dbPayload.label_rombong_plural = settings.labelRombongPlural;
 
     const { error } = await supabase
       .from('settings')

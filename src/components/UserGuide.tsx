@@ -34,7 +34,8 @@ import {
   Cloud,
   CalendarRange,
   ExternalLink,
-  Calendar
+  Calendar,
+  Github
 } from 'lucide-react';
 import { Balance, LedgerEntry, WargaBill, RombongBill, AppUser } from '../types';
 import {
@@ -1525,7 +1526,13 @@ CREATE TABLE IF NOT EXISTS public.settings (
     rate_rombong NUMERIC,
     rt_title TEXT,
     rt_address TEXT,
-    rt_email TEXT
+    rt_email TEXT,
+    app_name TEXT,
+    app_logo TEXT,
+    label_warga_singular TEXT,
+    label_warga_plural TEXT,
+    label_rombong_singular TEXT,
+    label_rombong_plural TEXT
 );
 
 -- 2. App Users Table
@@ -1817,6 +1824,139 @@ CREATE TABLE public.warga_bills (
                         <span>Pindahkan Seluruh Data Lokal Ke Supabase Sekarang</span>
                       </button>
                     )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Panduan Deployment Terpadu */}
+          <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-6 mt-8">
+            <div className="border-b border-slate-200 pb-3">
+              <h3 className="font-extrabold text-slate-900 text-sm md:text-base font-sans flex items-center gap-2">
+                <span className="p-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 rounded-lg text-white leading-none">
+                  <Github className="w-5 h-5 text-white" />
+                </span>
+                🚀 Panduan Produksi: Jadikan Website Live di Vercel &amp; Hubungkan Supabase Cloud
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-1 font-sans font-medium">
+                Sisa 2 langkah lagi agar aplikasi pengelolaan keuangan dan tagihan RT ini dapat diakses secara resmi dari HP &amp; laptop seluruh pengurus serta warga secara real-time 24/7.
+              </p>
+            </div>
+
+            <div className="space-y-6 text-xs leading-relaxed text-slate-700">
+              {/* Tahap 1: Hubungkan / Ekspor Kode */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex items-center justify-center text-[11px] font-black shrink-0">1</span>
+                  <strong className="text-slate-900 font-bold font-sans">Ekspor Kode ke GitHub</strong>
+                </div>
+                <div className="pl-7 space-y-2 text-slate-600 font-medium font-sans">
+                  <p>
+                    Supaya aplikasi ini dapat ditonton online, pertama kodenya harus di-upload ke akun <strong className="text-slate-800">GitHub</strong> Anda:
+                  </p>
+                  <ul className="list-disc pl-5 mt-1 space-y-1.5 leading-relaxed">
+                    <li>
+                      <strong className="text-slate-800">Opsi Cepat (Export to GitHub):</strong> Di sudut kiri bawah editor AI Studio ini (atau di menu Settings Workspace), Anda dapat mengklik tombol <strong className="text-slate-800">"Export to GitHub"</strong>. Platform akan memandu Anda login GitHub dan secara otomatis membuatkan satu repositori baru untuk aplikasi kas ini.
+                    </li>
+                    <li>
+                      <strong className="text-slate-800">Opsi Manual (Download ZIP):</strong> Jika ingin manual, buka menu pengaturan di AI Studio lalu klik <strong className="text-slate-800">"Download ZIP"</strong>. Ekstrak file zip tersebut di komputer Anda, lalu unggah repositori tersebut ke GitHub Anda.
+                    </li>
+                  </ul>
+                  
+                  <div className="bg-slate-950 p-3.5 rounded-xl text-[10px] sm:text-[10.5px] font-mono text-slate-300 border border-slate-800 mt-2 space-y-1 select-all overflow-x-auto">
+                    <div># Perintah setup repositori mandiri (jika pakai download ZIP):</div>
+                    <div>git init</div>
+                    <div>git add .</div>
+                    <div>git commit -m "Inisialisasi aplikasi kas RT 08"</div>
+                    <div>git branch -M main</div>
+                    <div>git remote add origin https://github.com/USERNAME_ANDA/NAMA_REPOSITORI_BARU.git</div>
+                    <div>git push -u origin main</div>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="border-slate-200" />
+
+              {/* Tahap 2: Hubungkan ke Vercel */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex items-center justify-center text-[11px] font-black shrink-0">2</span>
+                  <strong className="text-slate-900 font-bold font-sans">Deploy Situs Web Secara Gratis di Vercel</strong>
+                </div>
+                <div className="pl-7 space-y-2 text-slate-600 font-medium font-sans">
+                  <p>
+                    Vercel adalah platform cloud terbaik dan gratis yang digunakan untuk menayangkan website React modern. Lakukan deployment instan dalam 2 menit:
+                  </p>
+                  <ol className="list-decimal pl-5 mt-1 space-y-2 font-medium">
+                    <li>
+                      Buka situs resmi dan masuk di <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline font-bold inline-flex items-center gap-0.5">vercel.com <ExternalLink className="w-3.5 h-3.5" /></a> (sangat disarankan login menggunakan akun <strong className="text-slate-800">GitHub</strong> Anda).
+                    </li>
+                    <li>
+                      Di halaman beranda Dashboard Vercel Anda, klik tombol <strong className="text-slate-800 bg-slate-200/85 px-1.5 py-0.5 rounded text-[10.5px]">Add New &gt; Project</strong>.
+                    </li>
+                    <li>
+                      Cari nama repositori GitHub aplikasi Kas RT Anda yang telah diunggah di Langkah 1, lalu klik tombol <strong className="text-white bg-slate-900 hover:bg-slate-800 px-3 py-1 rounded-lg font-bold">Import</strong>.
+                    </li>
+                    <li>
+                      Di bagian setelan konfigurasi, biarkan framework terpilih sebagai <strong className="text-slate-800">Vite (React)</strong> secara default.
+                    </li>
+                    <li>
+                      Buka menu lipat <strong className="text-slate-800">"Environment Variables"</strong> untuk memasukkan kunci sinkronisasi database agar aplikasi dapat membaca &amp; menyimpan data real-time milik RT Anda:
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-2 bg-white border border-slate-250 p-4 rounded-xl">
+                        <div>
+                          <span className="text-[9px] text-slate-400 block font-mono">NAMA KUNCI VARIABEL 1:</span>
+                          <code className="text-[10.5px] font-bold text-sky-700 font-mono">VITE_SUPABASE_URL</code>
+                          <span className="text-[9.5px] text-slate-500 block leading-relaxed mt-1">Salin nilai URL Supabase Anda yang tertera di Langkah 3 di atas</span>
+                        </div>
+                        <div className="border-t sm:border-t-0 sm:border-l border-slate-150 pt-2.5 sm:pt-0 sm:pl-3.5">
+                          <span className="text-[9px] text-slate-400 block font-mono">NAMA KUNCI VARIABEL 2:</span>
+                          <code className="text-[10.5px] font-bold text-sky-700 font-mono">VITE_SUPABASE_ANON_KEY</code>
+                          <span className="text-[9.5px] text-slate-500 block leading-relaxed mt-1">Salin nilai API Anon Key Anda yang tertera di Langkah 3 di atas</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="pt-2">
+                      Klik tombol biru/hitam <strong className="text-white bg-sky-600 hover:bg-sky-700 px-4 py-2 rounded-xl font-extrabold shadow-sm transition">Deploy</strong>! Vercel akan otomatis menyusun kode aplikasi ini dalam waktu kurang dari 90 detik.
+                    </li>
+                  </ol>
+                  <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl text-[11px] text-amber-900 mt-3 flex items-start gap-2">
+                    <Info className="w-4 h-4 text-amber-650 shrink-0 mt-0.5" />
+                    <p className="font-sans font-medium leading-relaxed">
+                      <strong className="font-bold">Info Terpadu Routing:</strong> Kami sudah menyisipkan lembar berkas setelan <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[10px] text-amber-950 font-bold">vercel.json</code> konfigurasi rewrites ke dalam kode sumber aplikasi Anda. Berkas ini berfungsi khusus untuk mengamankan navigasi url (routing SPA), sehingga halaman tidak akan memicu error 404 ketika pengguna melakukan refresh halaman di broswer saat website sudah live.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="border-slate-200" />
+
+              {/* Tahap 3: Publikasikan & Sebarluaskan */}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex items-center justify-center text-[11px] font-black shrink-0">3</span>
+                  <strong className="text-slate-900 font-bold font-sans">Aplikasi Siap Digunakan Bersama (Saling Sinkron)</strong>
+                </div>
+                <div className="pl-7 space-y-2.5 text-slate-600 font-medium font-sans">
+                  <p>
+                    Begitu Vercel menyelesaikan deployment, Anda akan mendapatkan alamat link website yang cantik dan profesional (contoh: <code className="bg-slate-150 px-1 py-0.5 rounded font-mono text-[10.5px]">https://buku-kas-rt08.vercel.app</code>):
+                  </p>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>
+                      <strong className="text-slate-800">Saling Sinkron Otomatis:</strong> Bagikan salah satu link website Vercel tersebut kepada segenap jajaran pengurus RT (Ketua RT, Sekretaris, Bendahara, maupun Kolektor Lapangan). Saat satu pengurus mengisi iuran warga, nilainya akan silih berganti tersimpan dalam database Supabase Cloud dan tampil seketika di semua HP pengurus lain secara instan tanpa tumpang tindih.
+                    </li>
+                    <li>
+                      <strong className="text-slate-800">Aman untuk HP Warga:</strong> Berikan link ini kepada warga agar mereka bisa mengakses data secara mandiri melalui browser HP masing-masing! Warga tinggal login dengan Akun Warga yang sudah didaftarkan untuk memantau buku keuangan kas, download surat resmi, dan melihat tagihannya dengan transparan.
+                    </li>
+                  </ul>
+                  <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-xl text-emerald-950 flex items-start gap-2.5 font-sans mt-3">
+                    <CheckCircle className="w-5 h-5 text-emerald-650 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="font-extrabold text-xs">Semuanya 100% Gratis &amp; Sangat Kuat Untuk RT</strong>
+                      <p className="text-[11px] text-emerald-800 mt-1 leading-relaxed font-semibold">
+                        GitHub, Vercel, dan Supabase memiliki skema paket gratis (Free Tier Level) yang sangat berlimpah untuk skala kepengurusan rukun tetangga. Anda tidak akan dibebani biaya layanan bulanan apa pun selamanya, menjadikannya sarana yang andal dan ramah anggaran bagi modernisasi pelayanan RT Anda!
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
