@@ -290,6 +290,37 @@ export default function App() {
   const [cloudStatus, setCloudStatus] = useState<'connected' | 'offline' | 'error'>('connected');
   const [cloudErrorMsg, setCloudErrorMsg] = useState<string>('');
 
+  // Real-time dynamic calendar date formatting (id-ID)
+  const [currentDateString, setCurrentDateString] = useState<string>(() => {
+    try {
+      return new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(new Date());
+    } catch {
+      return 'Selasa, 26 Mei 2026';
+    }
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      try {
+        const formatted = new Intl.DateTimeFormat('id-ID', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }).format(new Date());
+        setCurrentDateString(formatted);
+      } catch (err) {
+        console.error(err);
+      }
+    }, 1000); // Check and update every second so it reacts instantly
+    return () => clearInterval(timer);
+  }, []);
+
   // Track browser connection status
   useEffect(() => {
     const handleOnline = () => setCloudStatus(prev => prev === 'offline' ? 'connected' : prev);
@@ -1537,7 +1568,7 @@ export default function App() {
             {/* Real-time formatted date */}
             <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 font-mono">
               <Calendar className="w-3.5 h-3.5 text-sky-600" />
-              <span>Selasa, 26 Mei 2026</span>
+              <span>{currentDateString}</span>
             </div>
 
 
