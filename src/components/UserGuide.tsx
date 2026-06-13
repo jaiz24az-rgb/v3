@@ -1279,6 +1279,46 @@ export default function UserGuide({
                 </p>
               </div>
             )}
+
+            {/* Info Tambahan & Troubleshooting Google + Supabase */}
+            <div className="bg-slate-100 border border-slate-250 p-4.5 rounded-xl space-y-3.5 mt-2 text-slate-800 font-sans">
+              <div className="flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-sky-650 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-[11.5px] text-slate-900 leading-tight">
+                    Mengapa Tombol Google Bisa Terhubung di AI Studio tapi "Gagal/Tidak Beraksi" di Vercel?
+                  </h4>
+                  <p className="text-[10.5px] text-slate-650 leading-relaxed font-medium">
+                    Ini adalah perilaku keamanan standar dari Google & Firebase. Lingkungan AI Studio dinilai sebagai kawasan developer aman, sedangkan situs publik Anda di Vercel (misal: <code className="bg-white/80 px-1 py-0.5 rounded text-[9.5px] font-mono text-indigo-900">buku-kas08.vercel.app</code>) belum terdaftar secara sah sebagai domain tepercaya Anda.
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 pt-3 pl-6.5 space-y-2 text-[10.5px] text-slate-700 font-medium leading-relaxed">
+                <span className="font-extrabold text-[11px] text-slate-900 block mb-1">🔧 3 Langkah Mudah Mengaktifkan Google Login di Website Live (Vercel):</span>
+                <ol className="list-decimal pl-4.5 space-y-1.5 list-outside">
+                  <li>
+                    <strong className="text-slate-900">Salin Alamat Vercel Anda:</strong> Dapatkan alamat domain website Anda di Vercel (seperti <code className="bg-white/80 px-1 py-0.5 rounded font-mono text-[9.5px]">nama-rt-kamu.vercel.app</code>, rapikan tanpa awalan <code className="text-slate-400">https://</code>).
+                  </li>
+                  <li>
+                    <strong className="text-slate-900">Tambahkan Authorized Domains di Firebase:</strong> Buka <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-sky-600 font-bold hover:underline">Firebase Console</a> &rarr; Masuk ke menu <strong className="text-slate-805">Authentication</strong> &rarr; Tab <strong className="text-slate-805">Settings</strong> &rarr; Pilih <strong className="text-slate-805">Authorized Domains</strong> &rarr; Klik <strong className="text-slate-900">"Add Domain"</strong>, lalu masukkan alamat domain Vercel Anda tersebut dan simpan.
+                  </li>
+                  <li>
+                    <strong className="text-slate-900">Otorisasi OAuth di Google Cloud Console:</strong> Buka <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-sky-600 font-bold hover:underline">Google Cloud Console</a> &rarr; Pilih proyek Anda &rarr; Pilih menu <strong className="text-slate-805">APIs & Services &gt; Credentials</strong> &rarr; Cari dan edit <strong className="text-slate-805">ID Klien OAuth 2.0</strong>, lalu di bagian bawah tepatnya di <strong className="text-slate-900">"Authorized redirect URIs"</strong> tambahkan tautan rujukan arah: <code className="bg-white px-1 py-0.5 rounded text-indigo-900 font-mono text-[9.5px]">https://DOMAIN_VERCEL_ANDA/__/auth/handler</code>.
+                  </li>
+                </ol>
+              </div>
+
+              <div className="bg-sky-50 border border-sky-150 p-3.5 rounded-xl text-sky-950 mt-1 space-y-1.5">
+                <span className="font-extrabold text-[11px] text-sky-950 block">🛡️ Apakah Masalah Ini Juga Bisa Terjadi pada Database Cloud Supabase?</span>
+                <p className="text-[10.5px] text-sky-850 leading-relaxed font-semibold">
+                  <strong className="text-emerald-700">Jawabannya: TIDAK SAMA SEKALI.</strong> Sinkronisasi database utama RT Anda di Supabase dikomunikasikan secara murni dengan kunci API aman (<code className="font-mono text-[9.5px] bg-sky-100 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> dan <code className="font-mono text-[9.5px] bg-sky-100 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>) yang telah Anda masukkan pada halaman setelan variabel lingkungan Vercel saat deployment. 
+                </p>
+                <p className="text-[10.5px] text-sky-850 leading-relaxed font-semibold">
+                  Supabase tidak terkena pembatasan popup domain Google. Sehingga, selama kabel konfigurasi variabel Supabase di Vercel diatur seperti panduan kami, seluruh catatan mutasi keuangan kas, rincian pembayaran, dan download PDF warga akan selalu <strong className="text-emerald-750">tersimpan aman, tersinkronisasi Instan, dan aktif 24 Jam non-stop</strong> di handphone seluruh warga dan pengurus tanpa terhambat masalah Google OAuth ini!
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* 3. SETELAN SINKRONISASI TRANSMISI WI-FI LOKAL */}
