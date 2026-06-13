@@ -2030,6 +2030,29 @@ export default function App() {
               <div className="bg-sky-50 text-sky-950 p-3 rounded-2xl text-[11px] font-medium leading-relaxed border border-sky-100">
                 💡 **Saran Praktis**: Jika saat bertugas keliling menagih warga terjadi kendala koneksi Wi-Fi server, Anda tidak perlu cemas atau menunda penagihan. **Kolektor tetap dapat mencatat iuran warga secara offline di HP**. Begitu Anda kembali pulang ke rumah / dekat dengan laptop server, nyalakan kembali sinkronisasi Wi-Fi untuk mengunggah otomatis data Anda ke laptop pembukuan dalam hitungan detik.
               </div>
+
+              {localSyncEnabled && (
+                <div className="bg-rose-50 border-2 border-rose-200 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 text-slate-800 animate-bounce">
+                  <div className="space-y-1">
+                    <strong className="text-xs text-rose-950 font-black flex items-center gap-1.5">
+                      ⚠️ Sedang Membuka Aplikasi di Vercel / Internet?
+                    </strong>
+                    <p className="text-[11px] leading-relaxed text-rose-805 font-medium">
+                      Bila aplikasi ditayangkan di web publik seperti Vercel, HP Anda tidak bisa langsung menyambung ke IP Laptop lokal rumah. Nonaktifkan Wi-Fi lokal ini sehingga sistem seutuhnya dialihkan ke sinkronisasi database awan cloud Supabase yang stabil!
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocalSyncEnabled(false);
+                      setShowConnectionGuidelinesModal(false);
+                    }}
+                    className="shrink-0 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] px-4 py-2.5 rounded-xl cursor-pointer shadow-md active:scale-95 transition text-center"
+                  >
+                    Matikan Wi-Fi Lokal Sekarang
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end mt-6 pt-4 border-t border-slate-150">
