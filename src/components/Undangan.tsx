@@ -163,6 +163,59 @@ export default function Undangan({
     }
   };
 
+  const handleApplyNewRatesToUnpaid = () => {
+    // 1. Confirm with the user
+    const confirmUpdate = window.confirm(
+      `Apakah Anda yakin ingin menyinkronkan seluruh iuran/tagihan yang berstatus "Belum Lunas" agar disesuaikan dengan besar acuan iuran baru?\n\n` +
+      `- Acuan Iuran RT Baru: Rp ${rateRT.toLocaleString('id-ID')}\n` +
+      `- Acuan Iuran Rombong Baru: Rp ${rateRombong.toLocaleString('id-ID')}\n\n` +
+      `Perubahan ini akan mengubah semua nominal tagihan belum lunas pada buku tagihan seluruh warga dan lapak rombong.`
+    );
+    if (!confirmUpdate) return;
+
+    // 2. Update wargaList
+    const updatedWargaList = wargaList.map(w => {
+      const updatedIuranRT = w.iuranRT.map(b => {
+        if (!b.lunas) {
+          return {
+            ...b,
+            nominal: getDefaultRtRate(b.tahun || 2026, b.bulan, rateRT)
+          };
+        }
+        return b;
+      });
+      return {
+        ...w,
+        iuranRT: updatedIuranRT
+      };
+    });
+
+    // 3. Update rombongList
+    const updatedRombongList = rombongList.map(r => {
+      const updatedIuranRombong = r.iuranRombong.map(b => {
+        if (!b.lunas) {
+          return {
+            ...b,
+            nominal: getDefaultRombongRate(b.tahun || 2026, b.bulan, rateRombong)
+          };
+        }
+        return b;
+      });
+      return {
+        ...r,
+        iuranRombong: updatedIuranRombong
+      };
+    });
+
+    // 4. Update states & database
+    updateWargaList(updatedWargaList);
+    if (updateRombongList) {
+      updateRombongList(updatedRombongList);
+    }
+
+    alert('Berhasil! Seluruh tagihan yang belum lunas di buku tagihan warga & lapak rombong telah diperbarui sesuai acuan besaran iuran baru.');
+  };
+
   // Main Tab control
   const [activeTab, setActiveTab] = useState<'buku' | 'undangan' | 'registrasi'>('registrasi');
   const [newBlockInput, setNewBlockInput] = useState('');
@@ -3603,6 +3656,25 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-100 disabled:text-slate-400 font-bold focus:bg-white transition"
                   />
                   <p className="text-[10px] text-slate-400 mt-1 bg-transparent">Diterapkan secara otomatis saat mendaftarkan rombong baru / menghitung sewa rombong.</p>
+                </div>
+
+                <div className="md:col-span-2 mt-2 bg-emerald-50 border border-emerald-250 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-sans text-slate-800">
+                  <div className="space-y-1">
+                    <strong className="text-xs text-emerald-950 font-black flex items-center gap-1.5">
+                      💾 Terapkan Perubahan Acuan ke Semua Buku Tagihan?
+                    </strong>
+                    <p className="text-[10.5px] text-emerald-850 leading-relaxed font-semibold">
+                      Jika Anda telah mengubah acuan iuran di atas, klik tombol <span className="text-emerald-950 font-black font-sans">"Selesai &amp; Sinkronkan Tagihan"</span> untuk memperbarui seluruh tagihan warga dan lapak rombong yang berstatus <span className="text-emerald-900 font-extrabold font-sans">"Belum Lunas"</span> di buku tagihan agar langsung menyelaraskan diri ke acuan baru yang Anda setel.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={currentUser?.role !== 'admin'}
+                    onClick={handleApplyNewRatesToUnpaid}
+                    className="shrink-0 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-[11px] px-4 py-2.5 rounded-xl cursor-pointer shadow-md active:scale-95 transition-all text-center"
+                  >
+                    Selesai &amp; Sinkronkan Tagihan
+                  </button>
                 </div>
               </div>
             </div>

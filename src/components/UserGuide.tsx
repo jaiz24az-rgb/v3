@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Verified line endings
 import { 
   isSupabaseConfigured, 
   supabase, 
@@ -944,341 +944,316 @@ export default function UserGuide({
 
       {/* 3. PUSAT BACKUP & RESTORE DATA TAB */}
       <div className={`space-y-6 animate-in fade-in duration-300 ${isAdmin && effectiveTab === 'backup' ? 'block' : 'hidden'}`}>
-          <div className="bg-sky-50 border border-sky-100 p-4 rounded-2xl flex items-start gap-3 text-sky-900 text-xs">
-            <Info className="w-5 h-5 shrink-0 mt-0.5 text-sky-600" />
-            <div className="space-y-1 leading-relaxed">
-              <strong className="text-sky-950 font-bold">Mengapa Backup Data Rutin Itu Penting?</strong>
-              <p className="text-sky-800 font-medium">
-                Sistem ini menyimpan semua pencatatan secara offline di browser HP/Laptop Anda dan di Cloud Database (jika terhubung). Melakukan ekspor data cadangan berkala menjamin kas warga terlindungi dari kerusakan gawai, terhapusnya cache browser, atau kendala server secara permanen.
+        
+        {/* Banner Penjelasan Utama */}
+        <div className="bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-150 p-4.5 rounded-2xl flex items-start gap-3.5 text-slate-800 text-xs shadow-xs font-sans">
+          <Info className="w-5 h-5 shrink-0 mt-0.5 text-sky-600" />
+          <div className="space-y-1 leading-relaxed">
+            <strong className="text-slate-900 font-extrabold text-[12.5px] block">
+              Siklus Aliran Data: Integrasi Penyimpanan Mandiri & Transmisi Jaringan
+            </strong>
+            <p className="text-slate-650 font-medium leading-relaxed">
+              Selamat datang di Pusat Pemetaan Data RT-08. Di halaman ini, Anda dapat mengelola <strong className="text-slate-900 font-bold">Data Penyimpanan (Storage)</strong> agar tersimpan aman di Cloud maupun Lokal, serta mengatur <strong className="text-slate-900 font-bold">Sambungan Internet &amp; Transmisi Jaringan</strong> menggunakan provider seluler atau Wi-Fi untuk menghubungkan gawai antar-pengurus.
+            </p>
+          </div>
+        </div>
+
+          {/* Grid Utama: Pembagian Dua Jalur yang Jelas (Agar Tidak Bingung) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start font-sans text-xs">
+          
+          {/* =========================================================================
+              KOLOM A: JALUR PENYIMPANAN DATA (DATA STORAGE) - Warna Dominan: Slate & Indigo
+             ========================================================================= */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 border-b border-indigo-200 pb-2.5">
+              <span className="bg-indigo-100 text-indigo-700 p-1.5 rounded-lg">
+                <Database className="w-4 h-4" />
+              </span>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-sm font-sans uppercase tracking-tight">💾 JALUR PENYIMPANAN DATA (STORAGE)</h3>
+                 <p className="text-[10.5px] text-slate-500 font-medium">Sistem utama memprioritaskan penyimpanan Cloud real-time &amp; cadangan Lokal aman.</p>
+              </div>
+            </div>
+
+            {/* Sub-Tile 1: Cloud Storage Utama (Supabase RT) */}
+            <div className="bg-white border border-slate-205 p-4.5 rounded-2xl space-y-3 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full font-bold uppercase font-mono border border-sky-200">System Priority 1</span>
+                  <h4 className="font-extrabold text-slate-900 text-xs">Penyimpanan Utama: Awan Cloud RT 08</h4>
+                </div>
+                <span className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9.5px] px-2 py-0.5 rounded-full font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Aktif (Real-time)
+                </span>
+              </div>
+              <p className="text-slate-500 text-[10.5px] leading-relaxed font-sans font-medium">
+                Setiap mutasi keuangan, daftar warga baru, dan riwayat pembayaran otomatis tersimpan aman di database utama Cloud RT 08. Anda tidak wajib mencadangkan secara manual bila memiliki jaringan internet aktif.
               </p>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-            {/* Download section */}
-            <div className="bg-white border border-slate-250 p-5 rounded-2xl flex flex-col justify-between text-xs space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-slate-900 font-extrabold text-sm border-b border-slate-100 pb-2">
-                  <Download className="w-4 h-4 text-sky-600" />
-                  <span>1. Unduh File Cadangan (.json)</span>
-                </div>
-                <p className="text-slate-500 leading-relaxed font-sans font-medium">
-                  Unduh seluruh database saat ini (iuran, blok, kas, mutasi, akun pengurus) ke dalam satu file file cadangan. Simpan file ini di flashdisk, email, atau kirimkan via WhatsApp ke pengurus RT lainnya.
-                </p>
+            {/* Sub-Tile 2: Cadangan Google Cloud Workspace (Google Drive & Sheets) */}
+            <div className="bg-slate-50/70 border border-slate-250 p-4.5 rounded-2xl space-y-4 font-sans shadow-xs">
+              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                <Cloud className="w-4 h-4 text-sky-600" />
+                <h4 className="font-extrabold text-slate-900 text-xs">Integrasi Google Workspace Backup &amp; Laporan</h4>
               </div>
 
-              <button
-                type="button"
-                onClick={handleExportBackup}
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-extrabold py-2.5 rounded-xl cursor-pointer transition shadow-md flex items-center justify-center gap-1.5"
-              >
-                <Download className="w-4 h-4" />
-                <span>Ekspor &amp; Unduh Database RT 08</span>
-              </button>
-            </div>
+              {googleConnected ? (
+                <div className="grid grid-cols-1 gap-4 animate-in fade-in duration-300">
+                  {/* Sheets Sync Card */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between gap-3 shadow-xs font-sans">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-mono">Google Sheets Laporan</span>
+                      <h5 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Salin Kas RT ke Spreadsheet
+                      </h5>
+                      <p className="text-[10px] text-slate-500 leading-normal font-sans font-medium">
+                        Buat spreadsheet pelunasan iuran warga, iuran lapak, dan ledger RT.
+                      </p>
+                    </div>
 
-            {/* Upload section */}
-            <div className="bg-white border border-slate-250 p-5 rounded-2xl flex flex-col justify-between text-xs space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-slate-900 font-extrabold text-sm border-b border-slate-100 pb-2">
-                  <Upload className="w-4 h-4 text-emerald-600" />
-                  <span>2. Unggah &amp; Pulihkan Database</span>
-                </div>
-                <p className="text-slate-500 leading-relaxed font-sans font-medium">
-                  Menimpa data sistem saat ini dengan file `.json` cadangan yang sudah disimpan sebelumnya. Cocok digunakan saat mengganti laptop pimpinan bendahara atau pemulihan darurat pasca ganti HP.
-                </p>
+                    <div className="space-y-2">
+                      {sheetsSyncStatus.type !== 'idle' && (
+                        <div className={`p-2 rounded-lg text-[10px] font-bold ${
+                          sheetsSyncStatus.type === 'loading' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
+                          sheetsSyncStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-250' :
+                          'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {sheetsSyncStatus.message}
+                        </div>
+                      )}
 
-                {restoreStatus.type === 'success' && (
-                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold rounded-xl">
-                    ✓ {restoreStatus.message}
-                  </div>
-                )}
+                      {spreadsheetUrl && (
+                        <a
+                          href={spreadsheetUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2 px-3 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition text-[10px] text-center"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Membuka Spreadsheet Baru</span>
+                        </a>
+                      )}
 
-                {restoreStatus.type === 'error' && (
-                  <div className="p-2.5 bg-rose-50 border border-rose-250 text-rose-700 text-[11px] font-semibold rounded-xl">
-                    ⚠️ {restoreStatus.message}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <input
-                  type="file"
-                  accept=".json"
-                  className="hidden"
-                  onChange={handleImportBackup}
-                  ref={fileInputRef}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-2.5 rounded-xl cursor-pointer transition shadow-md flex items-center justify-center gap-1.5"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>Unggah &amp; Timpa Data Sekarang</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. INTEGRASI GOOGLE WORKSPACE (CLOUD SINKRONISASI) */}
-          <div className="bg-slate-50 border border-slate-250 p-5 rounded-2xl space-y-4 text-xs">
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-1">
-              <Cloud className="w-5 h-5 text-sky-600" />
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-sm font-sans">2. Integrasi Google Cloud Workspace (Google Drive, Sheets &amp; Calendar)</h3>
-                <p className="text-[11px] text-slate-500 font-medium">Cadangkan keuangan ke Drive, ekspor mutasi ke Sheets, dan buat agenda RT di Google Calendar.</p>
-              </div>
-            </div>
-
-            {/* Status Koneksi Akun Google */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block font-mono">Status Koneksi Google</span>
-                {googleConnected ? (
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <p className="text-slate-800 font-black text-xs">
-                      Terhubung ({googleUser?.email || 'Akun Google Pengurus'})
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-450 bg-rose-500"></span>
-                    <p className="text-slate-500 font-black text-xs">Akun Google Belum Terhubung</p>
-                  </div>
-                )}
-                <p className="text-[10px] text-slate-500 leading-normal font-sans font-medium">
-                  Hubungkan akun sekali untuk membuka akses sinkronisasi data cloud real-time dengan hak akses resmi Anda.
-                </p>
-              </div>
-
-              <div className="w-full md:w-auto">
-                {googleConnected ? (
-                  <button
-                    type="button"
-                    onClick={handleDisconnectGoogle}
-                    className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-black py-2 px-4 rounded-xl cursor-pointer transition text-[11px] active:scale-95 flex items-center justify-center gap-1"
-                  >
-                    Putuskan Akun Google
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={isConnectingGoogle}
-                    onClick={handleConnectGoogle}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-2.5 px-4 rounded-xl cursor-pointer transition text-[11px] active:scale-95 flex items-center justify-center gap-2 shadow-sm disabled:opacity-55"
-                  >
-                    {isConnectingGoogle ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Mengaitkan Akun...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" width="100%" height="100%">
-                          <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.277 1.341-1.08 2.477-2.287 3.245l3.52 2.73C22.42 18.54 24 15.13 24 11.24a12 12 0 0 0-.25-2.24H12.24z"/>
-                          <path fill="#4285F4" d="M12.24 24c3.24 0 5.95-1.08 7.93-2.91l-3.52-2.73c-.98.66-2.23 1.06-3.66 1.06-2.82 0-5.2-1.91-6.05-4.48L2.94 18.2C4.93 21.64 8.54 24 12.24 24z"/>
-                          <path fill="#FBBC05" d="M6.19 14.94a7.16 7.16 0 0 1 0-4.52l-3.52-2.73a11.96 11.96 0 0 0 0 10l3.52-2.75z"/>
-                          <path fill="#34A853" d="M12.24 4.79c1.76 0 3.34.6 4.58 1.79l3.43-3.41C18.17 1.25 15.48 0 12.24 0 8.54 0 4.93 2.36 2.94 5.8l3.52 2.73c.85-2.57 3.23-4.48 6.05-4.48z"/>
-                        </svg>
-                        <span>Sambungkan Akun Google</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Opsi Sinkronisasi jika sudah terhubung */}
-            {googleConnected ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                
-                {/* SHEETS SYNC BLOCK */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3 shadow-xs">
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Google Sheets</span>
-                    <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Ekspor Laporan Keuangan
-                    </h4>
-                    <p className="text-[10.5px] text-slate-500 leading-normal font-sans font-medium">
-                      Buat spreadsheet berkas pelunasan iuran warga, iuran rombong, dan mutasi kas ledger RT.
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {sheetsSyncStatus.type !== 'idle' && (
-                      <div className={`p-2 rounded-lg text-[10.5px] font-bold ${
-                        sheetsSyncStatus.type === 'loading' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
-                        sheetsSyncStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-250' :
-                        'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {sheetsSyncStatus.message}
-                      </div>
-                    )}
-
-                    {spreadsheetUrl && (
-                      <a
-                        href={spreadsheetUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition text-[10.5px]"
+                      <button
+                        type="button"
+                        disabled={sheetsSyncStatus.type === 'loading'}
+                        onClick={handleSyncToSheets}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-xl cursor-pointer transition text-[10px] shadow-sm disabled:opacity-55 active:scale-95 duration-100"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Buka Spreadsheet Baru</span>
-                      </a>
-                    )}
-
-                    <button
-                      type="button"
-                      disabled={sheetsSyncStatus.type === 'loading'}
-                      onClick={handleSyncToSheets}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-1.5 rounded-lg cursor-pointer transition text-[10.5px] active:scale-95 shadow-xs"
-                    >
-                      {sheetsSyncStatus.type === 'loading' ? 'Sedang Menyinkronkan...' : 'Buat & Sinkronkan Sheets'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* DRIVE BACKUP BLOCK */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3 shadow-xs">
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Google Drive</span>
-                    <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                      Cadangan Otomatis Cloud
-                    </h4>
-                    <p className="text-[10.5px] text-slate-500 leading-normal font-sans font-medium">
-                      Simpan berkas salinan cadangan `.json` lengkap RT 08 Anda langsung di Google Drive secara aman.
-                    </p>
+                        {sheetsSyncStatus.type === 'loading' ? 'Sedang Menyalin...' : 'Mencadangkan &amp; Ekspor ke Sheets'}
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    {driveSyncStatus.type !== 'idle' && (
-                      <div className={`p-2 rounded-lg text-[10.5px] font-bold ${
-                        driveSyncStatus.type === 'loading' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
-                        driveSyncStatus.type === 'success' ? 'bg-sky-50 text-sky-800 border border-sky-250' :
-                        'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {driveSyncStatus.message}
-                      </div>
-                    )}
+                  {/* Drive Backup Card */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between gap-3 shadow-xs font-sans">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-mono">Google Drive Backup</span>
+                      <h5 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                        Simpan Cadangan Sistem di Drive
+                      </h5>
+                      <p className="text-[10px] text-slate-505 leading-normal font-sans font-medium">
+                        Unggah salinan cadangan berkas RT lengkap langsung ke dalam folder akun Google Drive pengurus.
+                      </p>
+                    </div>
 
-                    <button
-                      type="button"
-                      disabled={driveSyncStatus.type === 'loading'}
-                      onClick={handleBackupToDrive}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-1.5 rounded-lg cursor-pointer transition text-[10.5px] active:scale-95 shadow-xs"
-                    >
-                      {driveSyncStatus.type === 'loading' ? 'Sedang Mengunggah...' : 'Unggah Cadangan ke Drive'}
-                    </button>
+                    <div className="space-y-2">
+                      {driveSyncStatus.type !== 'idle' && (
+                        <div className={`p-2 rounded-lg text-[10px] font-bold ${
+                          driveSyncStatus.type === 'loading' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
+                          driveSyncStatus.type === 'success' ? 'bg-sky-50 text-sky-800 border border-sky-250' :
+                          'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {driveSyncStatus.message}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={driveSyncStatus.type === 'loading'}
+                        onClick={handleBackupToDrive}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-xl cursor-pointer transition text-[10px] shadow-sm disabled:opacity-55 active:scale-95 duration-100"
+                      >
+                        {driveSyncStatus.type === 'loading' ? 'Sedang Mengunggah...' : 'Mencadangkan ke Google Drive'}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* CALENDAR AGENDA BLOCK */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-between space-y-3 shadow-xs">
-                  <div className="space-y-1.5 font-sans">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Google Calendar</span>
-                    <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                      Penjadwalan Agenda RT
-                    </h4>
-                    <p className="text-[10.5px] text-slate-500 leading-normal font-medium">
-                      Agenda rapat pengurus, kerja bakti, penagihan keliling, atau kegiatan rapat warga.
-                    </p>
+                  {/* Calendar Agenda Card */}
+                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col justify-between gap-3 shadow-xs font-sans">
+                    <div className="space-y-1 font-sans">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-mono">Google Calendar</span>
+                      <h5 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-555 bg-indigo-500"></span>
+                        Penjadwalan Agenda RT
+                      </h5>
+                      <p className="text-[10px] text-slate-500 leading-normal font-medium">
+                        Agenda rapat pengurus, kerja bakti, penagihan keliling, atau kegiatan rapat warga.
+                      </p>
 
-                    {/* Form agenda mini */}
-                    <div className="pt-2 space-y-2 border-t border-slate-100">
-                      <div>
-                        <label className="text-[9.5px] font-bold text-slate-600 block mb-0.5">Judul Kegiatan:</label>
-                        <input
-                          type="text"
-                          value={calTitle}
-                          onChange={(e) => setCalTitle(e.target.value)}
-                          placeholder="Nama rapat/sidang/kegiatan..."
-                          className="w-full bg-slate-50 border border-slate-300 p-1.5 rounded font-sans text-[10px] font-bold hover:bg-slate-100 focus:outline-none focus:border-indigo-500"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      {/* Form agenda mini */}
+                      <div className="pt-2 space-y-2 border-t border-slate-100">
                         <div>
-                          <label className="text-[9.5px] font-bold text-slate-600 block mb-0.5">Tanggal:</label>
+                          <label className="text-[9.5px] font-bold text-slate-600 block mb-0.5">Judul Kegiatan:</label>
                           <input
-                            type="date"
-                            value={calDate}
-                            onChange={(e) => setCalDate(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-300 p-1.5 rounded font-sans text-[10px] focus:outline-none"
+                            type="text"
+                            value={calTitle}
+                            onChange={(e) => setCalTitle(e.target.value)}
+                            placeholder="Nama rapat/sidang/kegiatan..."
+                            className="w-full bg-slate-50 border border-slate-300 p-1.5 rounded font-sans text-[10px] font-bold hover:bg-slate-100 focus:outline-none focus:border-indigo-500"
                           />
                         </div>
-                        <div>
-                          <label className="text-[9.5px] font-bold text-slate-600 block mb-0.5">Jam Mulai - Selesai:</label>
-                          <div className="flex gap-1 items-center">
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="text-[9.5px] font-bold text-slate-600 block mb-0.5">Tanggal:</label>
                             <input
-                              type="text"
-                              value={calStart}
-                              onChange={(e) => setCalStart(e.target.value)}
-                              placeholder="08:00"
-                              className="w-1/2 bg-slate-50 border border-slate-300 p-1 rounded font-mono text-[10px] text-center focus:outline-none"
+                              type="date"
+                              value={calDate}
+                              onChange={(e) => setCalDate(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-300 p-1.5 rounded font-sans text-[10px] focus:outline-none"
                             />
-                            <span className="text-[9px] text-slate-400">-</span>
-                            <input
-                              type="text"
-                              value={calEnd}
-                              onChange={(e) => setCalEnd(e.target.value)}
-                              placeholder="10:00"
-                              className="w-1/2 bg-slate-50 border border-slate-300 p-1 rounded font-mono text-[10px] text-center focus:outline-none"
-                            />
+                          </div>
+                          <div>
+                            <label className="text-[9.5px] font-bold text-slate-600 block mb-0.5">Jam:</label>
+                            <div className="flex gap-1 items-center">
+                              <input
+                                type="text"
+                                value={calStart}
+                                onChange={(e) => setCalStart(e.target.value)}
+                                placeholder="08:00"
+                                className="w-1/2 bg-slate-50 border border-slate-300 p-1 rounded font-mono text-[10px] text-center focus:outline-none"
+                              />
+                              <span className="text-[9px] text-slate-400">-</span>
+                              <input
+                                type="text"
+                                value={calEnd}
+                                onChange={(e) => setCalEnd(e.target.value)}
+                                placeholder="10:00"
+                                className="w-1/2 bg-slate-50 border border-slate-300 p-1 rounded font-mono text-[10px] text-center focus:outline-none"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
+
+                    <div className="space-y-2 font-sans">
+                      {calendarSyncStatus.type !== 'idle' && (
+                        <div className={`p-2 rounded-lg text-[10px] font-bold leading-normal ${
+                          calendarSyncStatus.type === 'loading' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
+                          calendarSyncStatus.type === 'success' ? 'bg-indigo-50 text-indigo-700 border border-indigo-250' :
+                          'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {calendarSyncStatus.message}
+                        </div>
+                      )}
+
+                      {calendarEventLink && (
+                        <a
+                          href={calendarEventLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition text-[10px] text-center"
+                        >
+                          <Calendar className="w-3.5 h-3.5 animate-bounce" />
+                          <span>Buka Agenda di Calendar</span>
+                        </a>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={calendarSyncStatus.type === 'loading'}
+                        onClick={handlePushToCalendar}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-xl cursor-pointer transition text-[10px] shadow-sm disabled:opacity-55 active:scale-95 duration-100"
+                      >
+                        {calendarSyncStatus.type === 'loading' ? 'Sedang Menjadwalkan...' : 'Jadwalkan di Calendar'}
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    {calendarSyncStatus.type !== 'idle' && (
-                      <div className={`p-2 rounded-lg text-[10.5px] font-bold leading-normal ${
-                        calendarSyncStatus.type === 'loading' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
-                        calendarSyncStatus.type === 'success' ? 'bg-indigo-50 text-indigo-805 text-indigo-700 border border-indigo-250' :
-                        'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {calendarSyncStatus.message}
+                </div>
+              ) : (
+                <div className="bg-amber-50 p-3.5 rounded-xl border border-amber-200/60 text-amber-805 font-sans">
+                  <p className="text-[11px] font-bold text-amber-850">
+                    ⚠️ Layanan Sinkronisasi Cloud Tersedia setelah Login:
+                  </p>
+                  <p className="text-[10px] text-amber-750 leading-normal mt-1 font-medium select-none">
+                    Untuk mengaktifkan sinkronisasi cadangan Google Drive, pelaporan bulanan otomatis Google Sheets, dan koordinasi agenda warga Google Calendar, silakan gunakan tombol "Sambungkan Akun Google" di atas terlebih dahulu.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Sub-Tile 3: Penyimpanan Darurat Manual (.json File Backup) */}
+            <div className="bg-white border border-slate-205 p-4.5 rounded-2xl space-y-4 font-sans shadow-xs">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                <FileText className="w-4 h-4 text-slate-600" />
+                <h4 className="font-extrabold text-slate-900 text-xs">Penyimpanan Manual: Backup Berkas Database (.JSON)</h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Download panel */}
+                <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl flex flex-col justify-between gap-3">
+                  <div className="space-y-1">
+                    <span className="font-extrabold text-[11px] text-slate-800 block">Ekspor Database (.json)</span>
+                    <p className="text-[10px] text-slate-500 leading-normal font-sans font-medium">
+                      Unduh seluruh isi pembukuan, data iuran, lapak kuliner, dan mutasi kas ledger RT 08 ke HP/Laptop Anda saat ini.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExportBackup}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-2 px-3 rounded-lg cursor-pointer transition text-[10px] shadow-xs flex items-center justify-center gap-1.5 active:scale-95 duration-100"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Unduh Cadangan .Json</span>
+                  </button>
+                </div>
+
+                {/* Upload panel */}
+                <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl flex flex-col justify-between gap-3 font-sans">
+                  <div className="space-y-1">
+                    <span className="font-extrabold text-[11px] text-slate-800 block">Impor Database (.json)</span>
+                    <p className="text-[10px] text-slate-505 leading-normal font-sans font-medium">
+                      Ganti seluruh data saat ini menggunakan berkas cadangan `.json`. Bermanfaat saat ganti HP / serah-terima kepengurusan.
+                    </p>
+                  </div>
+
+                  <div>
+                    {restoreStatus.type === 'success' && (
+                      <div className="p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold rounded-lg mb-1.5">
+                        ✓ {restoreStatus.message}
                       </div>
                     )}
-
-                    {calendarEventLink && (
-                      <a
-                        href={calendarEventLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full bg-indigo-600 hover:bg-indigo-750 text-white font-extrabold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition text-[10.5px]"
-                      >
-                        <Calendar className="w-3.5 h-3.5 animate-bounce" />
-                        <span>Buka Agenda di Calendar</span>
-                      </a>
+                    {restoreStatus.type === 'error' && (
+                      <div className="p-2 bg-rose-50 border border-rose-250 text-rose-750 text-[10px] font-bold rounded-lg mb-1.5 font-sans">
+                        ⚠️ {restoreStatus.message}
+                      </div>
                     )}
-
+                    
+                    <input
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={handleImportBackup}
+                      ref={fileInputRef}
+                    />
                     <button
                       type="button"
-                      disabled={calendarSyncStatus.type === 'loading'}
-                      onClick={handlePushToCalendar}
-                      className="w-full bg-indigo-500 hover:bg-indigo-650 text-white font-bold py-1.5 rounded-lg cursor-pointer transition text-[10.5px] active:scale-95 shadow-xs"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-2 px-3 rounded-lg cursor-pointer transition text-[10px] shadow-xs flex items-center justify-center gap-1.5 active:scale-95 duration-100"
                     >
-                      {calendarSyncStatus.type === 'loading' ? 'Sedang Menjadwalkan...' : 'Jadwalkan di Calendar'}
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Impor Berkas .Json</span>
                     </button>
                   </div>
                 </div>
-
               </div>
-            ) : (
-              <div className="bg-amber-50 p-3.5 rounded-xl border border-amber-200/60 text-amber-800 font-sans">
-                <p className="text-[11px] font-bold text-amber-850">
-                  ⚠️ Layanan Sinkronisasi Cloud Tersedia setelah Login:
-                </p>
-                <p className="text-[10px] text-amber-700 leading-normal mt-1 font-medium select-none">
-                  Untuk mengaktifkan sinkronisasi cadangan Google Drive, pelaporan bulanan otomatis Google Sheets, dan koordinasi agenda warga Google Calendar, silakan gunakan tombol "Sambungkan Akun Google" di atas terlebih dahulu.
-                </p>
-              </div>
-            )}
+            </div>
 
             {/* Info Tambahan & Troubleshooting Google + Supabase */}
             <div className="bg-slate-100 border border-slate-250 p-4.5 rounded-xl space-y-3.5 mt-2 text-slate-800 font-sans">
@@ -1446,6 +1421,8 @@ export default function UserGuide({
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
           {/* Quick Stats of local storage backup capability */}
           <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans">
@@ -1469,7 +1446,6 @@ export default function UserGuide({
               )}
             </div>
           </div>
-        </div>
 
       {/* 4. INTEGRASI SUPABASE CLOUD TAB */}
       <div className={`space-y-6 animate-in fade-in duration-300 ${isAdmin && effectiveTab === 'supabase' ? 'block' : 'hidden'}`}>
