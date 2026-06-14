@@ -1284,18 +1284,6 @@ export default function UserGuide({
                 {wargaList.length} Warga | {rombongList.length} Lapak | {ledger.length} Transaksi Ledger
               </span>
             </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={onTriggerReset}
-                  className="text-rose-600 bg-rose-50 hover:bg-rose-100/60 border border-rose-200 px-3 py-1.5 rounded-xl font-bold cursor-pointer transition text-[11px] active:scale-95"
-                >
-                  Kosongkan Pembukuan RT (Reset)
-                </button>
-              )}
-            </div>
           </div>
 
       {/* 4. INTEGRASI SUPABASE CLOUD TAB */}
