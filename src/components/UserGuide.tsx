@@ -117,7 +117,7 @@ export default function UserGuide({
   localSyncMessage = '',
   onRetryLocalCheck
 }: UserGuideProps) {
-  const [activeTab, setActiveTab] = useState<'peran' | 'troubleshoot' | 'backup' | 'supabase'>('peran');
+  const [activeTab, setActiveTab] = useState<'peran' | 'troubleshoot' | 'backup'>('peran');
   const isAdmin = currentUser?.role === 'admin';
   const effectiveTab = isAdmin ? activeTab : 'peran';
 
@@ -583,19 +583,7 @@ export default function UserGuide({
           </button>
         )}
 
-        {isAdmin && (
-          <button
-            onClick={() => setActiveTab('supabase')}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black cursor-pointer transition-all ${
-              effectiveTab === 'supabase'
-                ? 'bg-white text-sky-600 shadow-sm border border-slate-200/50'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Cloud className="w-4 h-4" />
-            <span>Integrasi Supabase Cloud</span>
-          </button>
-        )}
+        {/* Supabase integration removed as it's fully connected to Firebase Cloud */}
       </div>
 
       {/* CONDITIONAL RENDERING OF THE TABS */}
@@ -962,13 +950,8 @@ export default function UserGuide({
           </div>
         </div>
 
-          {/* Grid Utama: Pembagian Dua Jalur yang Jelas (Agar Tidak Bingung) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start font-sans text-xs">
-          
-          {/* =========================================================================
-              KOLOM A: JALUR PENYIMPANAN DATA (DATA STORAGE) - Warna Dominan: Slate & Indigo
-              ========================================================================= */}
-          <div className="space-y-5">
+          {/* Jalur Penyimpanan yang Jelas */}
+        <div className="max-w-4xl mx-auto space-y-5 font-sans text-xs">
             <div className="flex items-center gap-2 border-b border-indigo-200 pb-2.5">
               <span className="bg-emerald-100 text-emerald-700 p-1.5 rounded-lg">
                 <Cloud className="w-4 h-4" />
@@ -1288,152 +1271,9 @@ export default function UserGuide({
                 </ol>
               </div>
 
-              <div className="bg-sky-50 border border-sky-150 p-3.5 rounded-xl text-sky-950 mt-1 space-y-1.5">
-                <span className="font-extrabold text-[11px] text-sky-950 block">🛡️ Apakah Masalah Ini Juga Bisa Terjadi pada Database Cloud Supabase?</span>
-                <p className="text-[10.5px] text-sky-850 leading-relaxed font-semibold">
-                  <strong className="text-emerald-700">Jawabannya: TIDAK SAMA SEKALI.</strong> Sinkronisasi database utama RT Anda di Supabase dikomunikasikan secara murni dengan kunci API aman (<code className="font-mono text-[9.5px] bg-sky-100 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> dan <code className="font-mono text-[9.5px] bg-sky-100 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>) yang telah Anda masukkan pada halaman setelan variabel lingkungan Vercel saat deployment. 
-                </p>
-                <p className="text-[10.5px] text-sky-850 leading-relaxed font-semibold">
-                  Supabase tidak terkena pembatasan popup domain Google. Sehingga, selama kabel konfigurasi variabel Supabase di Vercel diatur seperti panduan kami, seluruh catatan mutasi keuangan kas, rincian pembayaran, dan download PDF warga akan selalu <strong className="text-emerald-750">tersimpan aman, tersinkronisasi Instan, dan aktif 24 Jam non-stop</strong> di handphone seluruh warga dan pengurus tanpa terhambat masalah Google OAuth ini!
-                </p>
               </div>
             </div>
           </div>
-
-          {/* 3. SETELAN SINKRONISASI TRANSMISI WI-FI LOKAL */}
-          <div className="bg-slate-50 border border-slate-250 p-5 rounded-2xl space-y-4 text-xs">
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-1">
-              <Wifi className="w-5 h-5 text-indigo-600" />
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-sm">3. Jaringan Wi-Fi Lokal Tanpa Internet (OPSIONAL - CADANGAN SAJA)</h3>
-                <p className="text-[11px] text-slate-500 font-medium">Hanya digunakan apabila lingkungan RT Anda sama sekali tidak memiliki jaringan internet/seluler.</p>
-              </div>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl text-amber-950 space-y-1.5 leading-relaxed font-sans">
-              <p className="text-[11px] font-extrabold">⚠️ Pemberitahuan Penting:</p>
-              <p className="text-[10.5px] font-medium text-amber-900">
-                Karena aplikasi Anda saat ini <strong className="text-emerald-800">sudah dihubungkan secara otomatis ke internet cloud real-time Firebase</strong>, Anda <strong className="text-amber-950 font-bold">tidak perlu lagi menyetel Wi-Fi lokal ini</strong> untuk penggunaan sehari-hari. Cukup hubungkan HP Anda ke internet biasa (Wifi rumah atau kuota data seluler biasa), data warga dan iuran akan otomatis tersinkronisasi instan ke seluruh HP pengurus lain!
-              </p>
-            </div>
-
-            <p className="text-slate-600 leading-relaxed font-sans">
-              Namun, sebagai alternatif darurat apabila internet padam total, salah satu laptop atau HP dapat dijalankan sebagai <strong>Pusat Server (Host)</strong> lokal, dan perangkat pengurus lainnya cukup dihubungkan lewat Wi-Fi offline yang sama tanpa perlu kuota internet.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-              {/* Petunjuk Server IP */}
-              <div className="bg-emerald-50/55 border border-emerald-100 p-4 rounded-xl flex flex-col justify-between space-y-3">
-                <div className="space-y-1.5">
-                  <span className="font-extrabold text-emerald-950 text-[12px] block">📢 Alamat Akses Server Saat Ini:</span>
-                  <p className="text-emerald-800 leading-relaxed text-[11px]">
-                    Jika perangkat ini adalah pusat server utama yang Anda jalankan, beritahukan Alamat IP lokal di bawah ini ke pengurus lain agar mereka dapat mengakses dan mengedit data yang sama secara langsung:
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  {serverDiscoveredIps.length > 0 ? (
-                    serverDiscoveredIps.map((ip, idx) => (
-                      <div key={idx} className="flex items-center justify-between gap-2 bg-white border border-emerald-200/60 p-2 rounded-lg font-mono text-[11px] font-bold text-emerald-805">
-                        <span className="text-emerald-800 select-all">http://{ip}:3000</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(`http://${ip}:3000`);
-                            alert(`Alamat IP http://${ip}:3000 berhasil disalin ke clipboard!`);
-                          }}
-                          className="text-[9px] bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-700 cursor-pointer"
-                        >
-                          Salin
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-white border border-slate-200 p-2.5 rounded-lg text-slate-500 text-center font-medium italic">
-                      IP lokal tidak terdeteksi. Hubungkan perangkat Anda ke jaringan Wi-Fi yang sama terlebih dahulu.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Form Input Alamat IP Server Wi-Fi */}
-              <div className="bg-white border border-slate-250 p-4 rounded-xl flex flex-col justify-between space-y-3">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="font-extrabold text-slate-800 text-[11px] flex items-center gap-1">
-                      <span>Aktifkan Sinkronisasi Jaringan Lokal</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => updateLocalSyncEnabled && updateLocalSyncEnabled(!localSyncEnabled)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        localSyncEnabled ? 'bg-emerald-500' : 'bg-slate-300'
-                      }`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                        localSyncEnabled ? 'translate-x-4' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-
-                  {localSyncEnabled && (
-                    <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-200">
-                      <span className="text-[11px] font-extrabold text-slate-700 block">Alamat IP Server Utama (Host):</span>
-                      <div className="flex gap-1">
-                        <input
-                          type="text"
-                          value={localServerIp}
-                          onChange={(e) => updateLocalServerIp && updateLocalServerIp(e.target.value)}
-                          placeholder="Contoh: http://192.168.1.50:3000"
-                          className="w-full bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-lg font-mono text-[11px] font-bold text-slate-800 focus:outline-none focus:border-emerald-500"
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-500 leading-normal font-medium">
-                        Masukkan IP PC/HP Server utama untuk mengakses database bersama secara real-time.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-[11px]">
-                    <span className="font-bold text-slate-500">Status Koneksi Wi-Fi:</span>
-                    {localServerStatus === 'connected' ? (
-                      <span className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-705 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-555 bg-emerald-500 animate-pulse"></span>
-                        Terhubung
-                      </span>
-                    ) : localServerStatus === 'scanning' ? (
-                      <span className="flex items-center gap-1 bg-sky-50 border border-sky-100 text-sky-700 text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">
-                        Mengecek...
-                      </span>
-                    ) : localServerStatus === 'error' ? (
-                      <span className="flex items-center gap-1 bg-rose-50 border border-rose-200 text-rose-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                        Gagal (Menyimpan di HP saja)
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                        Mati (Lokal HP Saja)
-                      </span>
-                    )}
-                  </div>
-
-                  {localSyncEnabled && (
-                    <button
-                      type="button"
-                      onClick={onRetryLocalCheck}
-                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold py-1.5 rounded-lg cursor-pointer transition text-[11px] flex items-center justify-center gap-1 active:scale-95"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 text-slate-600 ${localServerStatus === 'scanning' ? 'animate-spin' : ''}`} />
-                      <span>Hubungkan Ulang &amp; Tarik Data Server</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
           {/* Quick Stats of local storage backup capability */}
           <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans">
@@ -1461,77 +1301,8 @@ export default function UserGuide({
       {/* 4. INTEGRASI SUPABASE CLOUD TAB */}
       <div className={`space-y-6 animate-in fade-in duration-300 ${isAdmin && effectiveTab === 'supabase' ? 'block' : 'hidden'}`}>
         
-        <div className="bg-emerald-50 border border-emerald-200 p-4.5 rounded-2xl flex items-start gap-3.5 text-emerald-900 text-xs font-sans">
-          <CheckCircle className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600 animate-pulse" />
-          <div className="space-y-1.5 leading-relaxed">
-            <strong className="text-emerald-950 font-extrabold text-[12px] block">
-              💡 ANDA TIDAK PERLU SETUP SUPABASE: FIREBASE CLOUD SEBELUMNYA SUDAH AKTIF OTOMATIS!
-            </strong>
-            <p className="text-emerald-850 font-medium">
-              Sistem Buku Kas RT 08 ini <strong className="text-emerald-950 font-extrabold">sudah langsung aktif menggunakan real-time database Firebase Cloud bawaan yang aman</strong>. Data yang di-input di HP Anda akan sinkron otomatis ke HP pengurus lain cukup dengan menyalakan paket data internet atau Wifi.
-            </p>
-            <p className="text-emerald-850 font-medium border-t border-emerald-200/60 pt-1.5 mt-1.5 text-[11px]">
-              Langkah-langkah di bawah ini hanya bersifat <strong className="text-emerald-950">opsional (untuk developer/pengurus tingkat lanjut)</strong> apabila Anda di kemudian hari ingin memindahkan server ke pangkalan data PostgreSQL milik Supabase pribadi Anda. Jika tidak, abaikan halaman ini, sambungkan HP ke internet, dan gunakan aplikasi dengan nyaman!
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-sky-50 border border-sky-100 p-4 rounded-2xl flex items-start gap-3 text-sky-900 text-xs">
-          <Cloud className="w-5 h-5 shrink-0 mt-0.5 text-sky-600 font-bold" />
-          <div className="space-y-1 leading-relaxed">
-            <strong className="text-sky-950 font-bold">Mengapa Beralih Ke Server Supabase? (Opsional)</strong>
-            <p className="text-sky-850 font-medium font-sans">
-              Supabase adalah platform database PostgreSQL real-time modern yang efisien, handal, dan gratis untuk skala RT. Dengan memindahkan data ke Supabase, seluruh pengurus dapat mengakses, menginput iuran warga, dan menyinkronkan saldo kas RT secara instan dari perangkat manapun dengan kestabilan penuh.
-            </p>
-          </div>
-        </div>
-
-        {/* Supabase status header card */}
-        <div className="bg-white border border-slate-250 p-5 rounded-2xl shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="p-2 bg-slate-100 rounded-xl leading-none text-slate-800">
-                <Cloud className="w-5 h-5 text-sky-600" />
-              </span>
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-sm font-sans">Status Sinkronisasi Supabase</h3>
-                <p className="text-[10px] text-slate-500 font-mono">Sistem Deteksi Lingkungan Server</p>
-              </div>
-            </div>
-
-            {isSupabaseConfigured ? (
-              <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-250 text-emerald-700 text-xs px-3.5 py-1.5 rounded-xl font-bold font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                TERKONEKSI &amp; CLOUD AKTIF
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs px-3.5 py-1.5 rounded-xl font-bold font-mono">
-                <span className="w-2 h-2 rounded-full bg-amber-550 bg-amber-500 animate-pulse"></span>
-                OFFLINE (LOKAL ONLY)
-              </span>
-            )}
-          </div>
-
-          <div className="text-xs leading-relaxed text-slate-600 font-sans font-medium">
-            {isSupabaseConfigured ? (
-              <p>
-                🟢 <strong className="text-slate-800 font-semibold">Tersambung ke Server Cloud!</strong> Aplikasi ini berhasil mendeteksi kredensial Supabase. Seluruh penyimpanan iuran dan mutasi kas RT saat ini disimpan langsung secara permanen di database PostgreSQL cloud Anda dan disinkronkan ke HP/Laptop seluruh pengurus RT secara real-time.
-              </p>
-            ) : (
-              <p>
-                ⚠️ <strong className="text-slate-800 font-semibold font-sans">Belum Terdeteksi:</strong> Aplikasi saat ini beroperasi pada model penyimpanan aman berbasis lokal di browser (Local Storage) / database Firebase default yang disediakan. Silakan ikuti langkah-langkah di bawah untuk menghubungkan sistem keuangan ke server akun Supabase milik Anda sendiri.
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Steps configuration panels */}
-        <div className="space-y-6">
-          <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-150 pb-2 font-sans">
-            <span>📖 Langkah Demi Langkah Migrasi Ke Supabase</span>
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Supabase description removed */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Step 1 & 2 */}
             <div className="bg-white border border-slate-250 p-5 rounded-2xl space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
@@ -2006,7 +1777,6 @@ CREATE TABLE public.warga_bills (
             </div>
           </div>
         </div>
-      </div>
 
       {/* Print Warning Modal for iFrame */}
       {printWarning && (
