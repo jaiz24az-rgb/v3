@@ -1538,25 +1538,25 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                   Ekspor Excel
                 </button>
 
-                <div className="relative w-full md:w-auto">
-                  <input
-                    type="file"
-                    accept=".xlsx, .xls"
-                    onChange={importWargaFromExcel}
-                    className="hidden"
-                    id="excel-import-file-warga"
-                  />
-                  <label
-                    htmlFor="excel-import-file-warga"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-3 rounded-xl transition duration-150 text-xs whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 shadow-xs w-full active:scale-95 text-center"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    Impor Excel
-                  </label>
-                </div>
-
-                {(currentUser?.role === 'admin' || currentUser?.role === 'sekretaris') && (
+                {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                   <>
+                    <div className="relative w-full md:w-auto">
+                      <input
+                        type="file"
+                        accept=".xlsx, .xls"
+                        onChange={importWargaFromExcel}
+                        className="hidden"
+                        id="excel-import-file-warga"
+                      />
+                      <label
+                        htmlFor="excel-import-file-warga"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-3 rounded-xl transition duration-150 text-xs whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 shadow-xs w-full active:scale-95 text-center cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        Impor Excel
+                      </label>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => setShowAddWargaModal(true)}
@@ -1574,16 +1574,18 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                       <Store className="w-3.5 h-3.5" />
                       Tambah Rombong Baru
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowSettingsModal(true)}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold p-3.5 rounded-xl transition duration-150 text-xs cursor-pointer flex items-center justify-center shadow-xs w-full md:w-auto active:scale-95"
-                      title="Pengaturan Parameter RT"
-                    >
-                      <Settings className="w-4 h-4 text-slate-500" />
-                    </button>
                   </>
+                )}
+
+                {(currentUser?.role === 'admin' || currentUser?.role === 'sekretaris' || currentUser?.role === 'bendahara') && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSettingsModal(true)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold p-3.5 rounded-xl transition duration-150 text-xs cursor-pointer flex items-center justify-center shadow-xs w-full md:w-auto active:scale-95"
+                    title="Pengaturan Parameter RT"
+                  >
+                    <Settings className="w-4 h-4 text-slate-500" />
+                  </button>
                 )}
               </div>
             </div>

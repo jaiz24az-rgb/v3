@@ -1634,7 +1634,7 @@ export default function App() {
             </div>
             
             <div className="flex items-center gap-2 self-end sm:self-center">
-              {isLoggedIn && (
+              {isLoggedIn && currentUser?.role === 'admin' && (
                 <button
                   onClick={() => setShowUserManagement(true)}
                   className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer shadow-sm active:scale-95"
@@ -1856,7 +1856,7 @@ export default function App() {
           </button>
 
           {/* Buku Kas Ledger Button */}
-          {(!currentUser || (currentUser.role !== 'warga' && currentUser.role !== 'rombong' && currentUser.role !== 'kolektor')) && (
+          {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris') && (
             <button 
               onClick={() => setActiveTab('buku_kas')}
               className={`flex-1 py-1.5 px-1 sm:py-3 sm:px-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer ${
@@ -1872,8 +1872,8 @@ export default function App() {
             </button>
           )}
 
-          {/* ADM (Administrasi) Button for Secretary & Admin */}
-          {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris') && (
+          {/* ADM (Administrasi) Button for Secretary, Bendahara & Admin */}
+          {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris' || currentUser?.role === 'bendahara') && (
             <button 
               onClick={() => setActiveTab('undangan')}
               className={`flex-1 py-1.5 px-1 sm:py-3 sm:px-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer ${

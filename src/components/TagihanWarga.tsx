@@ -6930,7 +6930,7 @@ export default function TagihanWarga({
                       <th className="p-4 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-4 text-center">Cetak PDF</th>
                       {isOfficer && <th className="p-4 text-center">Tagihan WA</th>}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris') && <th className="p-4 text-center">Aksi Pengurus</th>}
+                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && <th className="p-4 text-center">Aksi Pengurus</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -7081,8 +7081,8 @@ export default function TagihanWarga({
                         </td>
                       )}
 
-                      {/* Admin/Sekretaris Management Actions: Edit and Delete */}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris') && (
+                      {/* Admin/Bendahara Management Actions: Edit and Delete */}
+                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                         <td className="p-4 text-center align-middle">
                           <div className="flex items-center justify-center gap-2">
                             <button
@@ -7135,7 +7135,7 @@ export default function TagihanWarga({
                       <th className="p-4 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-4 text-center">Cetak PDF</th>
                       {isOfficer && <th className="p-4 text-center">Rincian WA</th>}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris') && <th className="p-4 text-center">Aksi Pengurus</th>}
+                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && <th className="p-4 text-center">Aksi Pengurus</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -7280,8 +7280,8 @@ export default function TagihanWarga({
                         </td>
                       )}
 
-                      {/* Admin/Sekretaris Options */}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris') && (
+                      {/* Admin/Bendahara Options */}
+                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                         <td className="p-4 text-center align-middle">
                           <div className="flex items-center justify-center gap-2">
                             <button

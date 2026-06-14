@@ -384,7 +384,7 @@ export default function UserManagementModal({
               {users.map(u => {
                 const isActiveUser = u.id === currentUser?.id;
                 const canDelete = currentUser?.role === 'admin' && !isActiveUser && u.id !== 'usr-1';
-                const canEdit = currentUser?.role === 'admin' || isActiveUser;
+                const canEdit = currentUser?.role === 'admin';
                 return (
                   <tr key={u.id} className={`border-b border-slate-100 hover:bg-slate-50/50 ${isActiveUser ? 'bg-sky-50/15' : ''}`}>
                     <td className="p-3">
