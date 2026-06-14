@@ -170,16 +170,21 @@ export default function TagihanWarga({
   const adminNameFormatted = adminUser ? formatGreetingName(cleanSignatureName(adminUser.nama), 'Bapak') : 'Bapak Sutriadi';
   const bendaharaNameFormatted = bendaharaUser ? formatGreetingName(cleanSignatureName(bendaharaUser.nama), 'Bapak') : 'Bapak Heri';
 
+  const isKolektor2 = isLoggedIn && currentUser && (
+    currentUser.username.toLowerCase().includes('kolektor2') || 
+    currentUser.nama.toLowerCase().includes('kolektor2')
+  );
+
   // Sub-tab selection: 'warga' (resident) or 'rombong' (food stalls)
   const [activeSubTab, setActiveSubTab] = useState<'warga' | 'rombong'>('warga');
 
   React.useEffect(() => {
-    if (currentUser?.role === 'rombong') {
+    if (currentUser?.role === 'rombong' || isKolektor2) {
       setActiveSubTab('rombong');
     } else if (currentUser?.role === 'warga') {
       setActiveSubTab('warga');
     }
-  }, [currentUser]);
+  }, [currentUser, isKolektor2]);
 
   const handleApplyNewRatesToUnpaid = () => {
     // 1. Confirm with the user
@@ -3381,7 +3386,9 @@ export default function TagihanWarga({
     setCorrectionRombongInfo(null);
   };
 
+  // Officer classifications
   const isOfficer = isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'kolektor');
+  const isWargaOfficer = isOfficer && !isKolektor2;
 
   // Helper to count overdue / unpaid months for a citizen up to current date or active system configuration
   const getUnpaidMonthsCountWarga = (w: WargaBill) => {
@@ -6226,7 +6233,7 @@ export default function TagihanWarga({
                   )}
                 </div>
 
-                {!selectedWargaHistory.ktpBase64 && !selectedWargaHistory.kkBase64 && isOfficer && (
+                {!selectedWargaHistory.ktpBase64 && !selectedWargaHistory.kkBase64 && isWargaOfficer && (
                   <p className="text-[10px] text-amber-600 font-medium italic mt-2 text-center">
                     Petunjuk: Anda dapat mengunggah berkas KTP & KK ini dengan mengklik tombol "Edit" pada baris data warga di tabel utama.
                   </p>
@@ -6438,7 +6445,7 @@ export default function TagihanWarga({
                               </div>
                             ) : (
                               <div className="flex flex-col items-end gap-1 font-sans">
-                                {isOfficer ? (
+                                {isWargaOfficer ? (
                                   <button
                                     onClick={() => {
                                       openPaymentModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
@@ -6517,7 +6524,7 @@ export default function TagihanWarga({
                 * Sinkronisasi data real-time dengan Buku Kas & Keamanan RT
               </span>
               <div className="flex gap-2">
-                {isOfficer && (
+                {isWargaOfficer && (
                   <button
                     onClick={() => {
                       const rawMsg = getWhatsAppHistoryMessageText(selectedWargaHistory, historyYear);
@@ -6929,7 +6936,7 @@ export default function TagihanWarga({
                       <th className="p-4 min-w-[220px]">Warga &amp; Rumah</th>
                       <th className="p-4 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-4 text-center">Cetak PDF</th>
-                      {isOfficer && <th className="p-4 text-center">Tagihan WA</th>}
+                      {isWargaOfficer && <th className="p-4 text-center">Tagihan WA</th>}
                       {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && <th className="p-4 text-center">Aksi Pengurus</th>}
                     </tr>
                   </thead>
@@ -7016,12 +7023,12 @@ export default function TagihanWarga({
                               return (
                                 <button
                                   key={m}
-                                  onClick={() => !slot.lunas && isOfficer && openPaymentModal(w, 'Iuran RT', slot.bulan, slot.nominal, 'iuranRT', selectedBillingYear)}
-                                  disabled={slot.lunas || !isOfficer}
+                                  onClick={() => !slot.lunas && isWargaOfficer && openPaymentModal(w, 'Iuran RT', slot.bulan, slot.nominal, 'iuranRT', selectedBillingYear)}
+                                  disabled={slot.lunas || !isWargaOfficer}
                                   className={`px-2 py-1 rounded-lg text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[72px] ${
                                     slot.lunas
                                       ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
-                                      : isOfficer
+                                      : isWargaOfficer
                                       ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
                                       : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
@@ -7065,7 +7072,7 @@ export default function TagihanWarga({
                       </td>
 
                       {/* Action whatsapp billing helper */}
-                      {isOfficer && (
+                      {isWargaOfficer && (
                         <td className="p-4 text-center align-middle">
                           <button
                             onClick={() => {

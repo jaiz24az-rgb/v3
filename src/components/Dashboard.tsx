@@ -50,8 +50,12 @@ export default function Dashboard({
   rombongList = []
 }: DashboardProps) {
   const isKolektor = currentUser?.role === 'kolektor';
+  const isKolektor2 = isKolektor && currentUser && (
+    currentUser.username.toLowerCase().includes('kolektor2') || 
+    currentUser.nama.toLowerCase().includes('kolektor2')
+  );
 
-  const totalRT = isKolektor ? kas.rtTunai : (kas.rtTunai + kas.rtPettyCash + kas.rtBank);
+  const totalRT = isKolektor2 ? 0 : (isKolektor ? kas.rtTunai : (kas.rtTunai + kas.rtPettyCash + kas.rtBank));
   const totalRombong = isKolektor ? kas.rombongTunai : (kas.rombongTunai + kas.rombongBank);
   const totalKeseluruhan = totalRT + totalRombong;
 
@@ -318,8 +322,8 @@ export default function Dashboard({
     .reduce((sum, e) => sum + e.jumlah, 0);
 
   // Percent proportions for beautiful modern bar chart
-  const rtProportion = totalKeseluruhan > 0 ? (totalRT / totalKeseluruhan) * 100 : 0;
-  const rombongProportion = totalKeseluruhan > 0 ? (totalRombong / totalKeseluruhan) * 100 : 0;
+  const rtProportion = isKolektor2 ? 0 : (totalKeseluruhan > 0 ? (totalRT / totalKeseluruhan) * 100 : 0);
+  const rombongProportion = isKolektor2 ? 100 : (totalKeseluruhan > 0 ? (totalRombong / totalKeseluruhan) * 100 : 0);
 
   return (
     <div className="space-y-6">
@@ -333,7 +337,7 @@ export default function Dashboard({
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              {isKolektor ? 'Total Saldo Tunai Kolektif (Warga & Rombong)' : 'Total Saldo Terkonsolidasi'}
+              {isKolektor2 ? 'Total Saldo Sewa Rombong (Tunai)' : isKolektor ? 'Total Saldo Tunai Kolektif (Warga & Rombong)' : 'Total Saldo Terkonsolidasi'}
             </span>
             <h2 className="text-4xl md:text-5xl font-extrabold text-white mt-2 tracking-tight">
               Rp {totalKeseluruhan.toLocaleString('id-ID')}
@@ -355,11 +359,13 @@ export default function Dashboard({
               }`} />
               <div>
                 <span className="font-extrabold block">
-                  {currentUser?.role === 'sekretaris' ? 'Akses Khusus Sekretaris (Baca-Saja)' : 'Akses Khusus Kolektor'}
+                  {currentUser?.role === 'sekretaris' ? 'Akses Khusus Sekretaris (Baca-Saja)' : isKolektor2 ? 'Akses Khusus Kolektor Sewa Rombong' : 'Akses Khusus Kolektor'}
                 </span>
                 <span className="opacity-95 block text-[11px] mt-0.5 leading-relaxed">
                   {currentUser?.role === 'sekretaris'
                     ? 'Peran Sekretaris diizinkan untuk melihat rekap buku kas & keuangan RT secara menyeluruh. Namun, kewenangan menambah kas, mencatatkan mutasi, dan penyesuaian saldo dinonaktifkan.'
+                    : isKolektor2
+                    ? 'Peran Kolektor Sewa Rombong diizinkan untuk melihat, menampung, dan menyerahkan uang setoran Sewa Rombong. Akses pada iuran warga RT dinonaktifkan.'
                     : 'Peran Kolektor diizinkan untuk melihat saldo tunai hasil iuran warga/rombong sebelum/sesudah disetor ke bank. Pencatatan ledger umum & buku kas dinonaktifkan.'}
                 </span>
               </div>
@@ -413,11 +419,13 @@ export default function Dashboard({
             />
           </div>
           <div className="flex flex-wrap justify-start gap-x-6 gap-y-2 mt-4 text-xs font-medium">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-sky-400 shrink-0" />
-              <span className="text-slate-300">{isKolektor ? 'Saldo Tunai RT:' : 'Total Sektor RT:'}</span>
-              <span className="text-sky-300 font-mono">Rp {totalRT.toLocaleString('id-ID')}</span>
-            </div>
+            {!isKolektor2 && (
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-sky-400 shrink-0" />
+                <span className="text-slate-300">{isKolektor ? 'Saldo Tunai RT:' : 'Total Sektor RT:'}</span>
+                <span className="text-sky-300 font-mono">Rp {totalRT.toLocaleString('id-ID')}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-400 shrink-0" />
               <span className="text-slate-300">{isKolektor ? 'Saldo Tunai Rombong:' : 'Total Sektor Rombong:'}</span>

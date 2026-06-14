@@ -107,7 +107,21 @@ export default function BukuKolektor({
   };
 
   // 1. Filter ledger entries by selected year and month
-  const monthlyLedger = ledger.filter(entry => {
+  const isKolektor2 = isLoggedIn && currentUser && (
+    currentUser.username.toLowerCase().includes('kolektor2') || 
+    currentUser.nama.toLowerCase().includes('kolektor2')
+  );
+
+  const allowedLedger = ledger.filter(entry => {
+    if (isKolektor2) {
+      const isRombongKas = entry.sumberKas === 'rombongTunai' || entry.sumberKas === 'rombongBank';
+      const isRombongDesc = entry.deskripsi.toLowerCase().includes('rombong') || entry.deskripsi.toLowerCase().includes('lapak') || entry.kategori.toLowerCase().includes('rombong');
+      return isRombongKas || isRombongDesc;
+    }
+    return true;
+  });
+
+  const monthlyLedger = allowedLedger.filter(entry => {
     const { year, month } = parseEntryDate(entry.tanggal);
     const matchesYear = year === selectedYear;
     const matchesMonth = selectedMonth === 'semua' || month === selectedMonth;
