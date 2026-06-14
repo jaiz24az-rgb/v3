@@ -18,18 +18,20 @@ service cloud.firestore {
 
     // 1. Settings Collection Validator
     function isValidSettings(data) {
-      return data.keys().hasAll(['kas', 'blocksList', 'yearsList', 'rateRT', 'rateRombong', 'rtTitle', 'rtAddress', 'rtEmail'])
-        && data.kas is map
-        && data.blocksList is list
-        && data.yearsList is list
-        && data.rateRT is int
-        && data.rateRombong is int
-        && data.rtTitle is string
-        && data.rtTitle.size() <= 500
-        && data.rtAddress is string
-        && data.rtAddress.size() <= 1000
-        && data.rtEmail is string
-        && data.rtEmail.size() <= 200;
+      return (!('kas' in data) || data.kas is map)
+        && (!('blocksList' in data) || data.blocksList is list)
+        && (!('yearsList' in data) || data.yearsList is list)
+        && (!('rateRT' in data) || data.rateRT is int || data.rateRT is float)
+        && (!('rateRombong' in data) || data.rateRombong is int || data.rateRombong is float)
+        && (!('rtTitle' in data) || (data.rtTitle is string && data.rtTitle.size() <= 1000))
+        && (!('rtAddress' in data) || (data.rtAddress is string && data.rtAddress.size() <= 2000))
+        && (!('rtEmail' in data) || (data.rtEmail is string && data.rtEmail.size() <= 500))
+        && (!('appName' in data) || (data.appName is string && data.appName.size() <= 500))
+        && (!('appLogo' in data) || (data.appLogo is string && data.appLogo.size() <= 10000))
+        && (!('labelWargaSingular' in data) || (data.labelWargaSingular is string && data.labelWargaSingular.size() <= 100))
+        && (!('labelWargaPlural' in data) || (data.labelWargaPlural is string && data.labelWargaPlural.size() <= 100))
+        && (!('labelRombongSingular' in data) || (data.labelRombongSingular is string && data.labelRombongSingular.size() <= 100))
+        && (!('labelRombongPlural' in data) || (data.labelRombongPlural is string && data.labelRombongPlural.size() <= 100));
     }
 
     // Settings collection rules
@@ -40,17 +42,16 @@ service cloud.firestore {
 
     // 2. Ledger entries Validator
     function isValidLedger(data) {
-      return data.keys().hasAll(['id', 'tanggal', 'deskripsi', 'jumlah', 'tipe', 'sumberKas', 'kategori', 'petugas'])
-        && data.id is string
-        && data.tanggal is string
-        && data.deskripsi is string
-        && data.deskripsi.size() <= 1000
-        && (data.jumlah is int || data.jumlah is float)
-        && data.tipe is string
-        && (data.tipe == 'pemasukan' || data.tipe == 'pengeluaran')
-        && data.sumberKas is string
-        && data.kategori is string
-        && data.petugas is string;
+      return (!('id' in data) || data.id is string)
+        && (!('tanggal' in data) || data.tanggal is string)
+        && (!('deskripsi' in data) || (data.deskripsi is string && data.deskripsi.size() <= 2000))
+        && (!('jumlah' in data) || data.jumlah is int || data.jumlah is float)
+        && (!('tipe' in data) || (data.tipe is string && (data.tipe == 'pemasukan' || data.tipe == 'pengeluaran')))
+        && (!('sumberKas' in data) || data.sumberKas is string)
+        && (!('kategori' in data) || data.kategori is string)
+        && (!('petugas' in data) || data.petugas is string)
+        && (!('fotoBase64' in data) || data.fotoBase64 is string)
+        && (!('fotoNamaFile' in data) || data.fotoNamaFile is string);
     }
 
     // Ledger entries collection rules
@@ -61,13 +62,22 @@ service cloud.firestore {
 
     // 3. Warga bills Validator
     function isValidWarga(data) {
-      return data.keys().hasAll(['id', 'nama', 'blok', 'noRumah', 'iuranRT'])
-        && data.id is string
-        && data.nama is string
-        && data.nama.size() <= 200
-        && data.blok is string
-        && data.noRumah is string
-        && data.iuranRT is list;
+      return (!('id' in data) || data.id is string)
+        && (!('nama' in data) || (data.nama is string && data.nama.size() <= 500))
+        && (!('blok' in data) || data.blok is string)
+        && (!('noRumah' in data) || data.noRumah is string)
+        && (!('noWa' in data) || data.noWa is string)
+        && (!('isDeleted' in data) || data.isDeleted is bool)
+        && (!('noKtp' in data) || data.noKtp is string)
+        && (!('noKk' in data) || data.noKk is string)
+        && (!('alamatKtpAsal' in data) || data.alamatKtpAsal is string)
+        && (!('ktpBase64' in data) || data.ktpBase64 is string)
+        && (!('kkBase64' in data) || data.kkBase64 is string)
+        && (!('ktpNamaFile' in data) || data.ktpNamaFile is string)
+        && (!('kkNamaFile' in data) || data.kkNamaFile is string)
+        && (!('fotoBase64' in data) || data.fotoBase64 is string)
+        && (!('fotoNamaFile' in data) || data.fotoNamaFile is string)
+        && (!('iuranRT' in data) || data.iuranRT is list);
     }
 
     // Warga bills collection rules
@@ -78,13 +88,15 @@ service cloud.firestore {
 
     // 4. Rombong bills Validator
     function isValidRombong(data) {
-      return data.keys().hasAll(['id', 'namaPemilik', 'lokasi', 'noLapak', 'iuranRombong'])
-        && data.id is string
-        && data.namaPemilik is string
-        && data.namaPemilik.size() <= 200
-        && data.lokasi is string
-        && data.noLapak is string
-        && data.iuranRombong is list;
+      return (!('id' in data) || data.id is string)
+        && (!('namaPemilik' in data) || (data.namaPemilik is string && data.namaPemilik.size() <= 500))
+        && (!('lokasi' in data) || data.lokasi is string)
+        && (!('noLapak' in data) || data.noLapak is string)
+        && (!('noWa' in data) || data.noWa is string)
+        && (!('isDeleted' in data) || data.isDeleted is bool)
+        && (!('fotoBase64' in data) || data.fotoBase64 is string)
+        && (!('fotoNamaFile' in data) || data.fotoNamaFile is string)
+        && (!('iuranRombong' in data) || data.iuranRombong is list);
     }
 
     // Rombong bills collection rules
@@ -95,15 +107,11 @@ service cloud.firestore {
 
     // 5. App User Validator
     function isValidAppUser(data) {
-      return data.keys().hasAll(['id', 'username', 'pin', 'role', 'nama'])
-        && data.id is string
-        && data.username is string
-        && data.pin is string
-        && data.pin.size() <= 50
-        && data.role is string
-        && (data.role == 'admin' || data.role == 'bendahara' || data.role == 'kolektor' || data.role == 'warga' || data.role == 'rombong' || data.role == 'sekretaris')
-        && data.nama is string
-        && data.nama.size() <= 100
+      return (!('id' in data) || data.id is string)
+        && (!('username' in data) || data.username is string)
+        && (!('pin' in data) || (data.pin is string && data.pin.size() <= 100))
+        && (!('role' in data) || (data.role is string && (data.role == 'admin' || data.role == 'bendahara' || data.role == 'kolektor' || data.role == 'warga' || data.role == 'rombong' || data.role == 'sekretaris')))
+        && (!('nama' in data) || (data.nama is string && data.nama.size() <= 200))
         && (!('wargaId' in data) || data.wargaId is string)
         && (!('rombongId' in data) || data.rombongId is string);
     }
@@ -116,21 +124,16 @@ service cloud.firestore {
 
     // 6. Official Letter Validator
     function isValidOfficialLetter(data) {
-      return data.keys().hasAll(['id', 'nomorSurat', 'tanggalSurat', 'jenisSurat', 'perihal', 'penerima', 'createdAt', 'createdBy'])
-        && data.id is string
-        && data.nomorSurat is string
-        && data.nomorSurat.size() <= 100
-        && data.tanggalSurat is string
-        && data.jenisSurat is string
-        && (data.jenisSurat == 'undangan_rapat' || data.jenisSurat == 'undangan_kerja_bakti' || data.jenisSurat == 'undangan_khusus' || data.jenisSurat == 'custom')
-        && data.perihal is string
-        && data.perihal.size() <= 500
-        && data.penerima is string
-        && data.penerima.size() <= 200
-        && (!('keperluan' in data) || (data.keperluan is string && data.keperluan.size() <= 1000))
+      return (!('id' in data) || data.id is string)
+        && (!('nomorSurat' in data) || (data.nomorSurat is string && data.nomorSurat.size() <= 200))
+        && (!('tanggalSurat' in data) || data.tanggalSurat is string)
+        && (!('jenisSurat' in data) || (data.jenisSurat is string && (data.jenisSurat == 'undangan_rapat' || data.jenisSurat == 'undangan_kerja_bakti' || data.jenisSurat == 'undangan_khusus' || data.jenisSurat == 'custom')))
+        && (!('perihal' in data) || (data.perihal is string && data.perihal.size() <= 1000))
+        && (!('penerima' in data) || (data.penerima is string && data.penerima.size() <= 500))
+        && (!('keperluan' in data) || (data.keperluan is string && data.keperluan.size() <= 2000))
         && (!('wargaId' in data) || data.wargaId is string)
-        && data.createdAt is string
-        && data.createdBy is string;
+        && (!('createdAt' in data) || data.createdAt is string)
+        && (!('createdBy' in data) || data.createdBy is string);
     }
 
     // Official letters collection rules
