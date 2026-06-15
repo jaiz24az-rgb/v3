@@ -314,6 +314,11 @@ export default function TagihanWarga({
     tahun: number;
   } | null>(null);
 
+  // States for custom Rombong payment with admin approval
+  const [customRombongPayNominal, setCustomRombongPayNominal] = useState<number>(0);
+  const [isRombongCustomActive, setIsRombongCustomActive] = useState<boolean>(false);
+  const [adminApprovalPin, setAdminApprovalPin] = useState<string>('');
+
   const [paymentTargetKas, setPaymentTargetKas] = useState<keyof Balance>('rtTunai');
   
   // Sukses Pembayaran State untuk Modal Notifikasi WhatsApp & Google Workspace Sync
@@ -424,6 +429,25 @@ export default function TagihanWarga({
            m.slice(0, 3).toLowerCase() === monthName.slice(0, 3).toLowerCase()
     );
     return monthIdx !== -1 && monthIdx <= currentMonthIdx;
+  };
+
+  const isRombongMacet = (r: RombongBill, curYear: number, curMonth: string): boolean => {
+    // Unpaid prior billing slots in years before curYear
+    const unpaidPrior = r.iuranRombong.some(b => b.tahun && b.tahun < curYear && !b.lunas);
+    
+    // Unpaid prior billing slots in the current year, before curMonth
+    const monthIndex = fullMonths.findIndex(m => m.toLowerCase() === curMonth.toLowerCase());
+    
+    const unpaidCurrent = fullMonths.slice(0, monthIndex === -1 ? 0 : monthIndex).some(m => {
+      const slot = r.iuranRombong.find(b => 
+        b.bulan.toLowerCase() === m.toLowerCase() && 
+        (b.tahun === curYear || (!b.tahun && curYear === 2026))
+      );
+      const isLunas = slot ? slot.lunas : false;
+      return !isLunas && isMonthDue(m, curYear);
+    });
+
+    return unpaidPrior || unpaidCurrent;
   };
 
   const isCitizenTx = (entry: LedgerEntry, citizenName: string, block: string, noRumah: string) => {
@@ -2664,6 +2688,12 @@ export default function TagihanWarga({
     setPaymentTime(`${hh}:${mm}`);
     setPaymentReceiptBase64('');
     setPaymentReceiptNamaFile('');
+    
+    // Initialize custom rombong settings
+    setCustomRombongPayNominal(nominal);
+    setIsRombongCustomActive(false);
+    setAdminApprovalPin('');
+    
     setPayingRombongInfo({ rombong, category, bulan, nominal, billingType, tahun });
   };
 
@@ -2756,6 +2786,31 @@ export default function TagihanWarga({
 
     const { rombong, category, bulan, nominal, billingType, tahun } = payingRombongInfo;
 
+    const finalNominal = isRombongCustomActive ? customRombongPayNominal : nominal;
+    const isCustom = isRombongCustomActive && finalNominal !== nominal;
+
+    if (isCustom) {
+      if (finalNominal <= 0) {
+        alert('Proses Ditolak: Nominal custom harus lebih besar dari Rp 0!');
+        return;
+      }
+      const macet = isRombongMacet(rombong, tahun, bulan);
+      if (macet) {
+        // Needs admin approval
+        if (currentUser?.role !== 'admin') {
+          if (!adminApprovalPin) {
+            alert('Proses Ditolak: Rombong ini memiliki catatan sewa yang macet/tertunggak. Kustomisasi nominal membutuhkan persetujuan Admin (PIN)!');
+            return;
+          }
+          const validAdmin = usersList.find(u => u.role === 'admin' && u.pin === adminApprovalPin);
+          if (!validAdmin) {
+            alert('Otorisasi Gagal: PIN Admin yang dimasukkan salah!');
+            return;
+          }
+        }
+      }
+    }
+
     const updatedRombongList = rombongList.map(r => {
       if (r.id === rombong.id) {
         const index = r[billingType].findIndex(b => b.bulan.toLowerCase() === bulan.toLowerCase() && (b.tahun === tahun || (!b.tahun && tahun === 2026)));
@@ -2766,6 +2821,7 @@ export default function TagihanWarga({
               return { 
                 ...b, 
                 lunas: true, 
+                nominal: finalNominal,
                 tanggalBayar: paymentDate, 
                 jamBayar: paymentTime,
                 fotoBase64: paymentReceiptBase64 || undefined,
@@ -2778,7 +2834,7 @@ export default function TagihanWarga({
           updatedBillings.push({
             bulan: bulan,
             lunas: true,
-            nominal: nominal,
+            nominal: finalNominal,
             tahun: tahun,
             tanggalBayar: paymentDate,
             jamBayar: paymentTime,
@@ -2799,13 +2855,13 @@ export default function TagihanWarga({
     updateRombongList(updatedRombongList);
 
     const nextKas = { ...kas };
-    nextKas[paymentTargetKas] += nominal;
+    nextKas[paymentTargetKas] += finalNominal;
     updateKas(nextKas);
 
     addLedgerEntry({
       tanggal: paymentDate,
       deskripsi: `${category} Bulan ${bulan} ${tahun} - ${rombong.namaPemilik} (${rombong.noLapak})`,
-      jumlah: nominal,
+      jumlah: finalNominal,
       tipe: 'pemasukan',
       sumberKas: paymentTargetKas,
       kategori: 'Pendapatan Rombong',
@@ -2823,13 +2879,17 @@ export default function TagihanWarga({
       category,
       bulan,
       tahun,
-      nominal,
+      nominal: finalNominal,
       tanggalBayar: paymentDate,
       jamBayar: paymentTime,
       kasPenerima: paymentTargetKas,
       petugas: currentUser?.nama || 'Petugas RT',
       catatan: paymentReceiptNamaFile ? `Gambar struk: ${paymentReceiptNamaFile}` : ''
     });
+
+    // Reset custom/approval states
+    setAdminApprovalPin('');
+    setIsRombongCustomActive(false);
 
     setPayingRombongInfo(null);
   };
@@ -5181,6 +5241,73 @@ export default function TagihanWarga({
             </div>
 
             <div className="space-y-4">
+              {/* Kustomisasi Nominal */}
+              <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="enable-custom-rombong"
+                    checked={isRombongCustomActive}
+                    onChange={(e) => {
+                      setIsRombongCustomActive(e.target.checked);
+                      if (!e.target.checked) {
+                        setCustomRombongPayNominal(payingRombongInfo.nominal);
+                        setAdminApprovalPin('');
+                      }
+                    }}
+                    className="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer w-4 h-4"
+                  />
+                  <label htmlFor="enable-custom-rombong" className="text-xs font-bold text-slate-700 cursor-pointer">
+                    Kustomisasi Nominal Pembayaran (Custom Tagihan)
+                  </label>
+                </div>
+
+                {isRombongCustomActive && (
+                  <div className="space-y-3 pl-6 animate-in slide-in-from-top-1 duration-150">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nominal Custom (Rp)</label>
+                      <input
+                        type="number"
+                        min="100"
+                        step="100"
+                        value={customRombongPayNominal}
+                        onChange={(e) => setCustomRombongPayNominal(Number(e.target.value))}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    {isRombongMacet(payingRombongInfo.rombong, payingRombongInfo.tahun, payingRombongInfo.bulan) && customRombongPayNominal !== payingRombongInfo.nominal && (
+                      <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 space-y-2">
+                        <div className="text-[10px] text-rose-700 font-semibold leading-relaxed flex items-start gap-1.5">
+                          <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-rose-500 mt-0.5" />
+                          <span>
+                            Sistem mendeteksi lapak rombong ini memiliki catatan <strong>sewa macet</strong> pada bulan-bulan sebelumnya. Kustomisasi nominal memerlukan persetujuan Admin!
+                          </span>
+                        </div>
+                        
+                        {currentUser?.role === 'admin' ? (
+                          <div className="text-[10px] text-emerald-600 font-bold bg-emerald-50/75 border border-emerald-100 px-2.5 py-1 rounded-lg">
+                            ✓ Anda login sebagai Admin. Otorisasi disetujui otomatis.
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-[10px] font-bold text-rose-800 mb-1">Masukkan PIN Admin untuk Approval:</label>
+                            <input
+                              type="password"
+                              maxLength={6}
+                              placeholder="PIN Admin"
+                              value={adminApprovalPin}
+                              onChange={(e) => setAdminApprovalPin(e.target.value)}
+                              className="w-full bg-white border border-rose-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-rose-400"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-605 mb-1.5 font-mono">Target Penerimaan Akun Kas (Rekomendasi: Bank)</label>
                 <select

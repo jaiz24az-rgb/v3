@@ -287,6 +287,17 @@ export default function BukuKolektor({
       return;
     }
 
+    const collectorBal = getSelectedCollectorBalanceInfo();
+    if (collectorBal.remaining <= 0) {
+      alert('Proses Ditolak: Sisa hasil iuran/tagihan untuk Kolektor ini sudah ditarik oleh Bendahara/Admin atau bernilai Rp 0!');
+      return;
+    }
+
+    if (amountNum > collectorBal.remaining) {
+      alert(`Proses Ditolak: Jumlah yang ditarik (Rp ${amountNum.toLocaleString('id-ID')}) melebihi sisa dana hasil tagihan di Kolektor (Maksimal Rp ${collectorBal.remaining.toLocaleString('id-ID')})!`);
+      return;
+    }
+
     const matchedUser = collectorsList.find(u => u.username === drawCollectorId);
     const collectorName = matchedUser ? matchedUser.nama : drawCollectorId;
 
@@ -650,13 +661,24 @@ export default function BukuKolektor({
                   <input
                     type="number"
                     required
-                    min="100"
+                    min={collectorBal.remaining <= 0 ? "0" : "100"}
                     step="100"
-                    placeholder="e.g. 150000"
+                    placeholder={collectorBal.remaining <= 0 ? "Saldo sudah Rp 0" : "e.g. 150000"}
                     value={drawAmount}
+                    disabled={collectorBal.remaining <= 0}
                     onChange={(e) => setDrawAmount(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
+                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-purple-400 ${
+                      collectorBal.remaining <= 0
+                        ? 'bg-slate-800/40 border-slate-800 text-slate-500 cursor-not-allowed'
+                        : 'bg-slate-800 border-slate-700 text-white placeholder-slate-500'
+                    }`}
                   />
+                  {collectorBal.remaining <= 0 && (
+                    <p className="mt-1.5 text-[10px] text-rose-400 font-semibold flex items-center gap-1 leading-normal font-sans">
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-450 shrink-0" />
+                      Hasil iuran Kolektor ini sudah habis ditarik / bernilai Rp 0. Tidak ada iuran yang dapat ditarik kembali!
+                    </p>
+                  )}
                   {collectorBal.remaining > 0 && drawAmount !== collectorBal.remaining.toString() && (
                     <button
                       type="button"
@@ -697,10 +719,15 @@ export default function BukuKolektor({
                 <div className="flex items-end justify-center">
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-xs py-3 px-4 rounded-xl transition shadow-md shadow-emerald-950/20 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                    disabled={collectorBal.remaining <= 0}
+                    className={`w-full font-extrabold text-xs py-3 px-4 rounded-xl transition shadow-md flex items-center justify-center gap-1.5 ${
+                      collectorBal.remaining <= 0
+                        ? 'bg-slate-700 border border-slate-650 text-slate-500 cursor-not-allowed opacity-50'
+                        : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-emerald-950/20 active:scale-95 cursor-pointer'
+                    }`}
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    Catat Serah Terima Tunai
+                    <span>{collectorBal.remaining <= 0 ? 'Sisa Hasil Rp 0 (Tidak Bisa Ditarik)' : 'Catat Serah Terima Tunai'}</span>
                   </button>
                 </div>
               </>

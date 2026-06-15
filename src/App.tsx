@@ -195,6 +195,85 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
   });
 };
 
+// Help helper functions to safely transmit data to the local server, stripping large photos if payload sizes are exceeded.
+const stripPayloadImages = (p: any): any => {
+  return {
+    ...p,
+    wargaList: p.wargaList?.map((w: any) => {
+      // Create a shallow copy without large profile photos
+      const newW = { ...w };
+      if (newW.fotoBase64) delete newW.fotoBase64;
+      if (newW.iuranWarga) {
+        newW.iuranWarga = newW.iuranWarga.map((i: any) => {
+          if (i.fotoBase64) {
+            const newI = { ...i };
+            delete newI.fotoBase64;
+            return newI;
+          }
+          return i;
+        });
+      }
+      return newW;
+    }),
+    rombongList: p.rombongList?.map((r: any) => {
+      // Create a shallow copy without large lapak photos
+      const newR = { ...r };
+      if (newR.fotoBase64) delete newR.fotoBase64;
+      if (newR.iuranRombong) {
+        newR.iuranRombong = newR.iuranRombong.map((i: any) => {
+          if (i.fotoBase64) {
+            const newI = { ...i };
+            delete newI.fotoBase64;
+            return newI;
+          }
+          return i;
+        });
+      }
+      return newR;
+    }),
+    ledger: p.ledger?.map((l: any) => {
+      if (l.fotoBase64) {
+        const newL = { ...l };
+        delete newL.fotoBase64;
+        return newL;
+      }
+      return l;
+    })
+  };
+};
+
+const safeFetchSaveLocalSync = async (baseUrl: string, payload: any): Promise<any> => {
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}/api/local-sync/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (netErr) {
+    throw new Error(`Koneksi terputus atau server tidak dapat dijangkau: ${netErr instanceof Error ? netErr.message : String(netErr)}`);
+  }
+
+  if (!response.ok) {
+    if (response.status === 413) {
+      throw new Error('413: Ukuran data terlalu besar untuk dikirim melalui jaringan ini');
+    }
+    throw new Error(`HTTP Error ${response.status}: Silakan hubungi admin`);
+  }
+
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    throw new Error('Server mengembalikan respon non-JSON (Kemungkinan limit transmisi nirkabel/proxy terlampaui)');
+  }
+
+  try {
+    const data = await response.json();
+    return data;
+  } catch (jsonErr) {
+    throw new Error('Gagal mengurai respon JSON dari server');
+  }
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'tagihan' | 'buku_kas' | 'buku_kolektor' | 'undangan' | 'panduan'>('dashboard');
   const [usersList, setUsersList] = useState<AppUser[]>(() => {
@@ -286,6 +365,7 @@ export default function App() {
   const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
   const [resetConfirmInput, setResetConfirmInput] = useState<string>('');
+  const [resetDataMode, setResetDataMode] = useState<'transaksi' | 'warga' | 'semua'>('transaksi');
   const [cloudStatus, setCloudStatus] = useState<'connected' | 'offline' | 'error'>('connected');
   const [cloudErrorMsg, setCloudErrorMsg] = useState<string>('');
 
@@ -555,12 +635,15 @@ export default function App() {
             lettersList
           };
           
-          await fetch(`${baseUrl}/api/local-sync/save`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          console.log('✓ Berhasil melakukan seeding awal ke server lokal.');
+          try {
+            await safeFetchSaveLocalSync(baseUrl, payload);
+            console.log('✓ Berhasil melakukan seeding awal ke server lokal.');
+          } catch (seedErr) {
+            console.warn('Seeding awal penuh gagal karena limit ukuran/jaringan. Mencoba seeding data inti tanpa foto...', seedErr);
+            const strippedPayload = stripPayloadImages(payload);
+            await safeFetchSaveLocalSync(baseUrl, strippedPayload);
+            console.log('✓ Berhasil melakukan seeding awal (tanpa foto) ke server lokal.');
+          }
         }
       } else {
         throw new Error('Respon server tidak valid.');
@@ -582,48 +665,50 @@ export default function App() {
     if (!localSyncEnabled || localServerStatus !== 'connected') return;
 
     const delayDebounceFn = setTimeout(async () => {
-      try {
-        let baseUrl = localServerIp.trim();
-        if (baseUrl.endsWith('/')) {
-          baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      let baseUrl = localServerIp.trim();
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
+      if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        if (!baseUrl.includes(':')) {
+          baseUrl = `http://${baseUrl}:3000`;
+        } else {
+          baseUrl = `http://${baseUrl}`;
         }
-        if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-          if (!baseUrl.includes(':')) {
-            baseUrl = `http://${baseUrl}:3000`;
-          } else {
-            baseUrl = `http://${baseUrl}`;
-          }
-        }
+      }
 
-        const payload = {
-          kas,
-          ledger,
-          wargaList,
-          rombongList,
-          usersList,
-          blocksList,
-          yearsList,
-          rateRT,
-          rateRombong,
-          rtTitle,
-          rtAddress,
-          rtEmail,
-          lettersList
-        };
-        
-        const res = await fetch(`${baseUrl}/api/local-sync/save`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          console.log('✓ Pembaruan data terunggah otomatis ke penyimpanan bersama lokal.');
+      const payload = {
+        kas,
+        ledger,
+        wargaList,
+        rombongList,
+        usersList,
+        blocksList,
+        yearsList,
+        rateRT,
+        rateRombong,
+        rtTitle,
+        rtAddress,
+        rtEmail,
+        lettersList
+      };
+
+      try {
+        const data = await safeFetchSaveLocalSync(baseUrl, payload);
+        if (data && data.success) {
+          console.log('✓ Pembaruan data lengkap terunggah otomatis ke penyimpanan bersama lokal.');
         }
       } catch (err) {
-        console.error('Gagal mengirim pembaruan otomatis ke server lokal:', err);
+        console.warn('Pembaruan data lengkap gagal, mencoba mengirim data inti tanpa foto...', err);
+        try {
+          const strippedPayload = stripPayloadImages(payload);
+          const data = await safeFetchSaveLocalSync(baseUrl, strippedPayload);
+          if (data && data.success) {
+            console.log('✓ Pembaruan data inti (tanpa foto) terunggah otomatis ke penyimpanan bersama lokal.');
+          }
+        } catch (strippedErr) {
+          console.error('Gagal mengirim pembaruan otomatis ke server lokal:', strippedErr);
+        }
       }
     }, 1200);
 
@@ -2012,43 +2097,96 @@ export default function App() {
       {/* Reset Confirmation Modal */}
       {showResetConfirmModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white border border-rose-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-150 text-slate-800 max-w-md w-full">
+          <div className="bg-white border border-rose-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-150 text-slate-800 max-w-lg w-full">
             <div className="flex items-center gap-3 border-b border-rose-100 pb-3 mb-4">
-              <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl animate-pulse">
-                <ShieldAlert className="w-6 h-6 animate-pulse text-rose-600" />
+              <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl">
+                <ShieldAlert className="w-5 h-5 text-rose-600 animate-pulse" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 text-base">Konfirmasi Pengosongan Data</h3>
-                <p className="text-[11px] text-slate-400 font-semibold font-mono tracking-wide uppercase">Peringatan Kritis Keamanan</p>
+                <h3 className="font-extrabold text-slate-900 text-sm">Opsi Pengosongan & Reset Data</h3>
+                <p className="text-[10px] text-rose-500 font-semibold font-mono tracking-wide uppercase">Pilih Tingkat Format Data</p>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                Tindakan ini akan <strong className="text-rose-600">menghapus seluruh data secara permanen</strong> termasuk:
+            <div className="space-y-4">
+              <p className="text-xs text-slate-705 font-semibold">
+                Silakan pilih cakupan data yang ingin di-reset/dikosongkan:
               </p>
-              <ul className="text-xs text-slate-500 space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-150 font-medium">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                  <span>Seluruh mutasi mutasi masuk/keluar buku kas RT</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                  <span>Seluruh riwayat pembayaran & tagihan warga</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                  <span>Seluruh riwayat iuran & sewa rombong pedagang</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                  <span>Pengaturan Blok Rumah & parameter tarif iuran default</span>
-                </li>
-              </ul>
+
+              <div className="space-y-2">
+                {/* Opsi 1 */}
+                <button
+                  type="button"
+                  onClick={() => setResetDataMode('transaksi')}
+                  className={`w-full text-left p-3.5 rounded-2xl border text-xs transition flex flex-col gap-1 cursor-pointer ${
+                    resetDataMode === 'transaksi'
+                      ? 'bg-amber-50 border-amber-300 text-amber-950 shadow-sm'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold">
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                      resetDataMode === 'transaksi' ? 'border-amber-600 bg-amber-600' : 'border-slate-350'
+                    }`}>
+                      {resetDataMode === 'transaksi' && <span className="w-1.5 h-1.5 bg-white rounded-full"></span>}
+                    </span>
+                    <span>1. Reset Data Transaksi (Mutasi Kas &amp; Iuran)</span>
+                  </div>
+                  <p className="text-[10px] pl-5.5 leading-relaxed text-slate-500">
+                    Menghapus seluruh riwayat mutasi masuk/keluar buku kas RT &amp; rombong. Saldo kas kembali ke Rp 0, dan semua status iuran warga/lapak diatur ulang ke <strong>"Belum Lunas"</strong>. Daftar nama warga &amp; lapak tetap utuh.
+                  </p>
+                </button>
+
+                {/* Opsi 2 */}
+                <button
+                  type="button"
+                  onClick={() => setResetDataMode('warga')}
+                  className={`w-full text-left p-3.5 rounded-2xl border text-xs transition flex flex-col gap-1 cursor-pointer ${
+                    resetDataMode === 'warga'
+                      ? 'bg-amber-50 border-amber-300 text-amber-955 shadow-sm'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold">
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                      resetDataMode === 'warga' ? 'border-amber-600 bg-amber-600' : 'border-slate-350'
+                    }`}>
+                      {resetDataMode === 'warga' && <span className="w-1.5 h-1.5 bg-white rounded-full"></span>}
+                    </span>
+                    <span>2. Reset Data Warga &amp; Lapak Rombong</span>
+                  </div>
+                  <p className="text-[10px] pl-5.5 leading-relaxed text-slate-500">
+                    Menghapus seluruh database daftar nama warga, data KTP/KK, dan pendaftaran lapak rombong secara permanen. Pengaturan kas dan mutasi buku kas ledger tetap utuh.
+                  </p>
+                </button>
+
+                {/* Opsi 3 */}
+                <button
+                  type="button"
+                  onClick={() => setResetDataMode('semua')}
+                  className={`w-full text-left p-3.5 rounded-2xl border text-xs transition flex flex-col gap-1 cursor-pointer ${
+                    resetDataMode === 'semua'
+                      ? 'bg-rose-50 border-rose-300 text-rose-955 shadow-sm'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-bold text-rose-800">
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                      resetDataMode === 'semua' ? 'border-rose-600 bg-rose-600' : 'border-slate-350'
+                    }`}>
+                      {resetDataMode === 'semua' && <span className="w-1.5 h-1.5 bg-white rounded-full"></span>}
+                    </span>
+                    <span className="font-extrabold">3. Reset Ke Awal Semuanya (Factory Reset)</span>
+                  </div>
+                  <p className="text-[10px] pl-5.5 leading-relaxed text-slate-500">
+                    Format total sistem. Menghapus seluruh data mutasi kas, data warga, lapak rombong, kuitansi bayar, dokumen digital, dan memicu pemulihan parameter nilai iuran default.
+                  </p>
+                </button>
+              </div>
 
               <div className="pt-2">
                 <label className="block text-xs font-bold text-slate-500 mb-1.5">
-                  Untuk meminimalkan kesalahan, silakan ketik kata <strong className="text-rose-650 font-extrabold bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded font-mono">HAPUS</strong> di bawah ini:
+                  Ketik kata kunci konfirmasi <strong className="text-rose-650 font-extrabold bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded font-mono">HAPUS</strong> untuk melanjutkan aksi ini:
                 </label>
                 <input
                   type="text"
@@ -2078,84 +2216,276 @@ export default function App() {
                   if (resetConfirmInput.trim().toUpperCase() === 'HAPUS') {
                     try {
                       if (isSupabaseConfigured) {
-                        // 1. Reset Settings General Document
-                        await upsertGeneralSettings({
-                          kas: INITIAL_BALANCES,
-                          blocksList: ['A4', 'A3', 'C5', 'C3'],
-                          yearsList: [2024, 2025, 2026, 2027, 2028],
-                          rateRT: 110000,
-                          rateRombong: 130000,
-                          rtTitle: 'PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04',
-                          rtAddress: 'PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.',
-                          rtEmail: ''
-                        });
+                        if (resetDataMode === 'transaksi') {
+                          // 1. Reset settings General with refreshed Balance
+                          await upsertGeneralSettings({
+                            kas: INITIAL_BALANCES,
+                            blocksList,
+                            yearsList,
+                            rateRT,
+                            rateRombong,
+                            rtTitle,
+                            rtAddress,
+                            rtEmail
+                          });
 
-                        // 2. Delete all ledger entries
-                        for (const entry of ledger) {
-                          await deleteLedgerEntry(entry.id);
+                          // 2. Delete all ledger entries
+                          for (const entry of ledger) {
+                            await deleteLedgerEntry(entry.id);
+                          }
+
+                          // 3. Mark all citizen bills in Supabase as unpaid
+                          const updatedWargaList = wargaList.map(w => ({
+                            ...w,
+                            iuranRT: w.iuranRT.map(slot => ({ 
+                              ...slot, 
+                              lunas: false, 
+                              tanggalBayar: undefined, 
+                              jamBayar: undefined, 
+                              fotoBase64: undefined, 
+                              fotoNamaFile: undefined 
+                            }))
+                          }));
+                          for (const w of updatedWargaList) {
+                            await saveWargaBill(w);
+                          }
+
+                          // 4. Mark all rombong bills in Supabase as unpaid
+                          const updatedRombongList = rombongList.map(r => ({
+                            ...r,
+                            iuranRombong: r.iuranRombong.map(slot => ({ 
+                              ...slot, 
+                              lunas: false, 
+                              tanggalBayar: undefined, 
+                              jamBayar: undefined, 
+                              fotoBase64: undefined, 
+                              fotoNamaFile: undefined 
+                            }))
+                          }));
+                          for (const r of updatedRombongList) {
+                            await saveRombongBill(r);
+                          }
+
+                          // Sync local states
+                          setKas(INITIAL_BALANCES);
+                          setLedger([]);
+                          setWargaList(updatedWargaList);
+                          setRombongList(updatedRombongList);
+                          alert('Data seluruh Transaksi, Buku Kas, dan Iuran berhasil dikosongkan!');
+
+                        } else if (resetDataMode === 'warga') {
+                          // Delete all warga bills
+                          for (const w of wargaList) {
+                            await deleteWargaBill(w.id);
+                          }
+                          // Delete all rombong bills
+                          for (const r of rombongList) {
+                            await deleteRombongBill(r.id);
+                          }
+
+                          setWargaList([]);
+                          setRombongList([]);
+                          alert('Seluruh data pendaftaran Warga & Lapak Rombong berhasil dihapus secara permanen!');
+
+                        } else {
+                          // resetDataMode === 'semua'
+                          await upsertGeneralSettings({
+                            kas: INITIAL_BALANCES,
+                            blocksList: ['A4', 'A3', 'C5', 'C3'],
+                            yearsList: [2024, 2025, 2026, 2027, 2028],
+                            rateRT: 110000,
+                            rateRombong: 130000,
+                            rtTitle: 'PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04',
+                            rtAddress: 'PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.',
+                            rtEmail: ''
+                          });
+
+                          for (const entry of ledger) {
+                            await deleteLedgerEntry(entry.id);
+                          }
+                          for (const w of wargaList) {
+                            await deleteWargaBill(w.id);
+                          }
+                          for (const r of rombongList) {
+                            await deleteRombongBill(r.id);
+                          }
+
+                          setKas(INITIAL_BALANCES);
+                          setBlocksList(['A4', 'A3', 'C5', 'C3']);
+                          setYearsList([2024, 2025, 2026, 2027, 2028]);
+                          setRateRT(110000);
+                          setRateRombong(130000);
+                          setRtTitle('PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04');
+                          setRtAddress('PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.');
+                          setRtEmail('tas3.rt.08@gmail.com');
+                          setLedger([]);
+                          setWargaList([]);
+                          setRombongList([]);
+                          alert('Sistem berhasil pulih total (Factory Reset) ke data awal!');
                         }
-                        // 3. Delete all warga bills
-                        for (const w of wargaList) {
-                          await deleteWargaBill(w.id);
-                        }
-                        // 4. Delete all rombong bills
-                        for (const r of rombongList) {
-                          await deleteRombongBill(r.id);
-                        }
+
                       } else if (isFirebaseConfigured) {
-                        // 1. Reset Settings General Document
-                        const settingsRef = doc(db, 'settings', 'general');
-                        await setDoc(settingsRef, {
-                          kas: INITIAL_BALANCES,
-                          blocksList: ['A4', 'A3', 'C5', 'C3'],
-                          yearsList: [2024, 2025, 2026, 2027, 2028],
-                          rateRT: 110000,
-                          rateRombong: 130000,
-                          rtTitle: 'PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04',
-                          rtAddress: 'PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.',
-                          rtEmail: ''
-                        });
+                        if (resetDataMode === 'transaksi') {
+                          // 1. Reset Settings General Document in Firestore
+                          const settingsRef = doc(db, 'settings', 'general');
+                          await setDoc(settingsRef, {
+                            kas: INITIAL_BALANCES,
+                            blocksList,
+                            yearsList,
+                            rateRT,
+                            rateRombong,
+                            rtTitle,
+                            rtAddress,
+                            rtEmail
+                          });
 
-                        // 2. Delete all ledger entries
-                        for (const entry of ledger) {
-                          await deleteDoc(doc(db, 'ledger_entries', entry.id));
+                          // 2. Delete all ledger entries
+                          for (const entry of ledger) {
+                            await deleteDoc(doc(db, 'ledger_entries', entry.id));
+                          }
+
+                          // 3. Mark all citizen bills in Firestore as unpaid
+                          const updatedWargaList = wargaList.map(w => ({
+                            ...w,
+                            iuranRT: w.iuranRT.map(slot => ({ 
+                              ...slot, 
+                              lunas: false, 
+                              tanggalBayar: undefined, 
+                              jamBayar: undefined, 
+                              fotoBase64: undefined, 
+                              fotoNamaFile: undefined 
+                            }))
+                          }));
+                          for (const w of updatedWargaList) {
+                            await setDoc(doc(db, 'warga_bills', w.id), w);
+                          }
+
+                          // 4. Mark all rombong bills in Firestore as unpaid
+                          const updatedRombongList = rombongList.map(r => ({
+                            ...r,
+                            iuranRombong: r.iuranRombong.map(slot => ({ 
+                              ...slot, 
+                              lunas: false, 
+                              tanggalBayar: undefined, 
+                              jamBayar: undefined, 
+                              fotoBase64: undefined, 
+                              fotoNamaFile: undefined 
+                            }))
+                          }));
+                          for (const r of updatedRombongList) {
+                            await setDoc(doc(db, 'rombong_bills', r.id), r);
+                          }
+
+                          // Sync local states
+                          setKas(INITIAL_BALANCES);
+                          setLedger([]);
+                          setWargaList(updatedWargaList);
+                          setRombongList(updatedRombongList);
+                          alert('Data seluruh Transaksi, Buku Kas, dan Iuran berhasil dikosongkan!');
+
+                        } else if (resetDataMode === 'warga') {
+                          // Delete all warga bills
+                          for (const w of wargaList) {
+                            await deleteDoc(doc(db, 'warga_bills', w.id));
+                          }
+                          // Delete all rombong bills
+                          for (const r of rombongList) {
+                            await deleteDoc(doc(db, 'rombong_bills', r.id));
+                          }
+
+                          setWargaList([]);
+                          setRombongList([]);
+                          alert('Seluruh data pendaftaran Warga & Lapak Rombong berhasil dihapus secara permanen!');
+
+                        } else {
+                          // resetDataMode === 'semua'
+                          const settingsRef = doc(db, 'settings', 'general');
+                          await setDoc(settingsRef, {
+                            kas: INITIAL_BALANCES,
+                            blocksList: ['A4', 'A3', 'C5', 'C3'],
+                            yearsList: [2024, 2025, 2026, 2027, 2028],
+                            rateRT: 110000,
+                            rateRombong: 130000,
+                            rtTitle: 'PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04',
+                            rtAddress: 'PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.',
+                            rtEmail: ''
+                          });
+
+                          for (const entry of ledger) {
+                            await deleteDoc(doc(db, 'ledger_entries', entry.id));
+                          }
+                          for (const w of wargaList) {
+                            await deleteDoc(doc(db, 'warga_bills', w.id));
+                          }
+                          for (const r of rombongList) {
+                            await deleteDoc(doc(db, 'rombong_bills', r.id));
+                          }
+
+                          setKas(INITIAL_BALANCES);
+                          setBlocksList(['A4', 'A3', 'C5', 'C3']);
+                          setYearsList([2024, 2025, 2026, 2027, 2028]);
+                          setRateRT(110000);
+                          setRateRombong(130000);
+                          setRtTitle('PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04');
+                          setRtAddress('PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.');
+                          setRtEmail('tas3.rt.08@gmail.com');
+                          setLedger([]);
+                          setWargaList([]);
+                          setRombongList([]);
+                          alert('Sistem berhasil pulih total (Factory Reset) ke data awal!');
                         }
-                        // 3. Delete all warga bills
-                        for (const w of wargaList) {
-                          await deleteDoc(doc(db, 'warga_bills', w.id));
-                        }
-                        // 4. Delete all rombong bills
-                        for (const r of rombongList) {
-                          await deleteDoc(doc(db, 'rombong_bills', r.id));
-                        }
+
                       } else {
                         // Direct Local state reset
-                        setKas(INITIAL_BALANCES);
-                        setBlocksList(['A4', 'A3', 'C5', 'C3']);
-                        setYearsList([2024, 2025, 2026, 2027, 2028]);
-                        setRateRT(110000);
-                        setRateRombong(130000);
-                        setRtTitle('PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04');
-                        setRtAddress('PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.');
-                        setRtEmail('tas3.rt.08@gmail.com');
-                        setLedger([]);
-                        setWargaList([]);
-                        setRombongList([]);
+                        if (resetDataMode === 'transaksi') {
+                          setKas(INITIAL_BALANCES);
+                          setLedger([]);
+                          const updatedWargaList = wargaList.map(w => ({
+                            ...w,
+                            iuranRT: w.iuranRT.map(slot => ({ ...slot, lunas: false, tanggalBayar: undefined, jamBayar: undefined, fotoBase64: undefined, fotoNamaFile: undefined }))
+                          }));
+                          setWargaList(updatedWargaList);
+                          const updatedRombongList = rombongList.map(r => ({
+                            ...r,
+                            iuranRombong: r.iuranRombong.map(slot => ({ ...slot, lunas: false, tanggalBayar: undefined, jamBayar: undefined, fotoBase64: undefined, fotoNamaFile: undefined }))
+                          }));
+                          setRombongList(updatedRombongList);
+                          alert('Data seluruh Transaksi, Buku Kas, dan Iuran berhasil dikosongkan!');
+
+                        } else if (resetDataMode === 'warga') {
+                          setWargaList([]);
+                          setRombongList([]);
+                          alert('Seluruh data pendaftaran Warga & Lapak Rombong berhasil dihapus!');
+
+                        } else {
+                          // 'semua'
+                          setKas(INITIAL_BALANCES);
+                          setBlocksList(['A4', 'A3', 'C5', 'C3']);
+                          setYearsList([2024, 2025, 2026, 2027, 2028]);
+                          setRateRT(110000);
+                          setRateRombong(130000);
+                          setRtTitle('PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04');
+                          setRtAddress('PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.');
+                          setRtEmail('tas3.rt.08@gmail.com');
+                          setLedger([]);
+                          setWargaList([]);
+                          setRombongList([]);
+                          alert('Sistem berhasil di-reset total ke kondisi awal!');
+                        }
                       }
 
                       setActiveTab('dashboard');
                       setShowResetConfirmModal(false);
                       setResetConfirmInput('');
-                      alert('Seluruh data pembukuan, warga, dan rombong berhasil dikosongkan.');
                     } catch (err) {
                       handleFirestoreError(err, OperationType.DELETE, 'multiple collections reset');
                     }
                   }
                 }}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-750 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-250 text-white font-extrabold rounded-xl text-xs cursor-pointer transition flex-1 active:scale-95 flex items-center justify-center gap-1.5"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-250 text-white font-extrabold rounded-xl text-xs cursor-pointer transition flex-1 active:scale-95 flex items-center justify-center gap-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Kosongkan Seluruh Data</span>
+                <span>Kosongkan Sesuai Pilihan</span>
               </button>
             </div>
           </div>
