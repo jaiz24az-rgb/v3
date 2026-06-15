@@ -65,6 +65,9 @@ export default function BukuKolektor({
   const [activeSubTab, setActiveSubTab] = useState<'tunai' | 'bank' | 'penarikan_kolektor' | 'setor_bank'>('tunai');
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Filter officers list
+  const collectorsList = users.filter(u => u.role === 'kolektor' || u.role === 'admin' || u.role === 'bendahara');
+  
   // Penarikan Form State
   const [showDrawForm, setShowDrawForm] = useState(false);
   const [drawCollectorId, setDrawCollectorId] = useState('');
@@ -264,8 +267,7 @@ export default function BukuKolektor({
     entry.petugas.toLowerCase().includes(query)
   );
 
-  // Filter officers list
-  const collectorsList = users.filter(u => u.role === 'kolektor' || u.role === 'admin' || u.role === 'bendahara');
+  // Filter officers list is declared at the top of the component
 
   const handleFormSubmitPenarikan = (e: React.FormEvent) => {
     e.preventDefault();
