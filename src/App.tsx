@@ -344,6 +344,7 @@ export default function App() {
   const ledgerInitCheckDone = useRef(false);
   const usersInitCheckDone = useRef(false);
   const lettersInitCheckDone = useRef(false);
+  const hasAutoBackedUpRef = useRef(false);
 
   useEffect(() => {
     const handleFocusIn = (e: Event) => {
@@ -1436,6 +1437,68 @@ export default function App() {
     window.location.reload();
   };
 
+  // Restore snapshot data (Admin ONLY)
+  const handleRestoreSnapshot = async (snapData: {
+    kas: Balance;
+    ledger: LedgerEntry[];
+    wargaList: WargaBill[];
+    rombongList: RombongBill[];
+  }) => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      alert('Akses Ditolak: Hanya Admin yang dapat memulihkan snapshot data.');
+      return;
+    }
+    // Update state variables (which internally triggers Supabase/Firestore real-time sync automatically!)
+    updateKas(snapData.kas);
+    await handleSetLedger(snapData.ledger);
+    await handleUpdateWargaList(snapData.wargaList);
+    await handleUpdateRombongList(snapData.rombongList);
+  };
+
+  // Run once when admin logged-in / loaded to capture daily auto snapshot backup in localStorage
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'admin' || hasAutoBackedUpRef.current) return;
+    if (wargaList.length === 0 && ledger.length === 0) return; // avoid backup of empty states before fully loaded
+
+    hasAutoBackedUpRef.current = true;
+    try {
+      const savedSnaps = localStorage.getItem('perumtas_rt08_snapshots');
+      let snapshots: any[] = savedSnaps ? JSON.parse(savedSnaps) : [];
+
+      const now = Date.now();
+      const SIXTEEN_HOURS = 16 * 60 * 60 * 1000;
+      const latestAuto = snapshots.find(s => s.type === 'auto');
+
+      if (!latestAuto || (now - Number(latestAuto.id.split('-')[1])) > SIXTEEN_HOURS) {
+        const timeStr = new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(new Date());
+
+        const newSnap = {
+          id: `snap-${now}`,
+          timestamp: new Date().toISOString(),
+          dateString: timeStr,
+          label: 'Backup Harian Otomatis',
+          type: 'auto',
+          kas,
+          ledger,
+          wargaList,
+          rombongList
+        };
+
+        const updated = [newSnap, ...snapshots].slice(0, 20); // Keep last 20 elements
+        localStorage.setItem('perumtas_rt08_snapshots', JSON.stringify(updated));
+        console.info('✓ Captured daily auto snapshot backup in localStorage.');
+      }
+    } catch (e) {
+      console.warn('Error during auto snapshot:', e);
+    }
+  }, [currentUser, wargaList.length, ledger.length]);
+
   if (!isLoggedIn) {
     return (
       <LandingPage 
@@ -1725,6 +1788,7 @@ export default function App() {
 
           {activeTab === 'undangan' && (
             <Undangan 
+              kas={kas}
               rtTitle={rtTitle}
               rtAddress={rtAddress}
               rtEmail={rtEmail}
@@ -1743,6 +1807,8 @@ export default function App() {
               rateRombong={rateRombong}
               updateRateRombong={updateRateRombong}
               onTriggerReset={handleResetData}
+              onRestoreSnapshot={handleRestoreSnapshot}
+              updateLedger={handleSetLedger}
               updateRtTitle={updateRtTitle}
               updateRtAddress={updateRtAddress}
               updateRtEmail={updateRtEmail}

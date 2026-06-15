@@ -42,12 +42,13 @@ import {
   Store,
   Camera
 } from 'lucide-react';
-import { AppUser, OfficialLetter, WargaBill, LedgerEntry, FamilyMember, RombongBill } from '../types';
+import { AppUser, OfficialLetter, WargaBill, LedgerEntry, FamilyMember, RombongBill, Balance } from '../types';
 import * as XLSX from 'xlsx';
 import { compressImage } from '../utils/fileCompressor';
 import { getDefaultRtRate, getDefaultRombongRate } from './TagihanWarga';
 
 interface UndanganProps {
+  kas: Balance;
   rtTitle: string;
   rtAddress: string;
   rtEmail: string;
@@ -66,6 +67,8 @@ interface UndanganProps {
   rateRombong: number;
   updateRateRombong: (rate: number) => void;
   onTriggerReset: () => void;
+  onRestoreSnapshot?: (snapData: { kas: Balance, ledger: LedgerEntry[], wargaList: WargaBill[], rombongList: RombongBill[] }) => void;
+  updateLedger?: (newLedger: LedgerEntry[] | ((prev: LedgerEntry[]) => LedgerEntry[])) => void;
   updateRtTitle: (title: string) => void;
   updateRtAddress: (address: string) => void;
   updateRtEmail: (email: string) => void;
@@ -96,6 +99,7 @@ const getRomanMonth = (mString: string): string => {
 };
 
 export default function Undangan({
+  kas,
   rtTitle,
   rtAddress,
   rtEmail,
@@ -114,6 +118,8 @@ export default function Undangan({
   rateRombong,
   updateRateRombong,
   onTriggerReset,
+  onRestoreSnapshot,
+  updateLedger,
   updateRtTitle,
   updateRtAddress,
   updateRtEmail,
@@ -221,6 +227,25 @@ export default function Undangan({
   const [newBlockInput, setNewBlockInput] = useState('');
   const [newYearInput, setNewYearInput] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [snapshots, setSnapshots] = useState<any[]>([]);
+  const [manualSnapLabel, setManualSnapLabel] = useState('');
+
+  // Load snapshots from localStorage when Admin settings modal is opened
+  useEffect(() => {
+    if (showSettingsModal) {
+      try {
+        const saved = localStorage.getItem('perumtas_rt08_snapshots');
+        if (saved) {
+          setSnapshots(JSON.parse(saved));
+        } else {
+          setSnapshots([]);
+        }
+      } catch (e) {
+        console.warn('Gagal memuat snaps:', e);
+      }
+    }
+  }, [showSettingsModal]);
+
   const [showAddRombongModal, setShowAddRombongModal] = useState(false);
   const [newRombong, setNewRombong] = useState({
     namaPemilik: '',
@@ -240,6 +265,195 @@ export default function Undangan({
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
+  };
+
+  // --- ADMINISTRATOR SNAPSHOT & UNDO FUNCTIONS ---
+  const handleCreateManualSnapshot = () => {
+    const label = manualSnapLabel.trim();
+    if (!label) {
+      alert('Harap masukkan nama/label snapshot!');
+      return;
+    }
+    try {
+      const now = Date.now();
+      const timeStr = new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date());
+
+      const newSnap = {
+        id: `snap-${now}`,
+        timestamp: new Date().toISOString(),
+        dateString: timeStr,
+        label: label,
+        type: 'manual',
+        kas,
+        ledger,
+        wargaList,
+        rombongList
+      };
+
+      const updated = [newSnap, ...snapshots].slice(0, 20); // Keep last 20
+      setSnapshots(updated);
+      localStorage.setItem('perumtas_rt08_snapshots', JSON.stringify(updated));
+      setManualSnapLabel('');
+      showToast(`Snapshot "${label}" berhasil disimpan!`);
+    } catch (e) {
+      alert('Gagal membuat snapshot: ' + String(e));
+    }
+  };
+
+  const handleUndoOneDay = () => {
+    if (snapshots.length === 0) {
+      alert('Tidak ada data backup/snapshot yang tersedia untuk digulirkan kembali!');
+      return;
+    }
+    
+    const now = Date.now();
+    const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+    
+    // Look for any backup that is older than 12 hours (could be auto or manual)
+    const olderSnaps = snapshots.filter(s => {
+      const snapTime = Number(s.id.split('-')[1]);
+      return (now - snapTime) > TWELVE_HOURS;
+    });
+    
+    let targetSnap = null;
+    if (olderSnaps.length > 0) {
+      // Take the newest of the older backups (i.e. first element of the already sorted olderSnaps)
+      targetSnap = olderSnaps[0];
+    } else {
+      // If none is older than 12 hours, take the oldest available backup (e.g. initial backup of this session)
+      targetSnap = snapshots[snapshots.length - 1];
+    }
+
+    if (!targetSnap) {
+      alert('Tidak menemukan titik backup yang sesuai!');
+      return;
+    }
+
+    const confirmRestore = window.confirm(
+      `Apakah Anda yakin ingin memulihkan pembukuan ke keadaan: "${targetSnap.label}" (${targetSnap.dateString})?\n\n` +
+      `Tindakan ini akan membatalkan semua perubahan data warga, lapak rombong, kas, dan buku catatan keuangan sesudah waktu tersebut.`
+    );
+
+    if (!confirmRestore) return;
+
+    if (onRestoreSnapshot) {
+      onRestoreSnapshot({
+        kas: targetSnap.kas,
+        ledger: targetSnap.ledger,
+        wargaList: targetSnap.wargaList,
+        rombongList: targetSnap.rombongList
+      });
+      showToast(`Sistem berhasil di-undo ke titik: ${targetSnap.label}`);
+      setShowSettingsModal(false);
+    }
+  };
+
+  const handleRestoreSpecific = (snap: any) => {
+    const confirmRestore = window.confirm(
+      `Apakah Anda yakin ingin MEMULIHKAN SYSTEM ke snapshot: "${snap.label}"?\n\n` +
+      `Waktu Pembuatan: ${snap.dateString}\n\n` +
+      `Semua data Warga, Rombong, Kas, dan Kas Buku akan digantikan dengan data snapshot ini secara saksama.`
+    );
+    if (!confirmRestore) return;
+
+    if (onRestoreSnapshot) {
+      onRestoreSnapshot({
+        kas: snap.kas,
+        ledger: snap.ledger,
+        wargaList: snap.wargaList,
+        rombongList: snap.rombongList
+      });
+      showToast(`Sistem sukses dipulihkan ke: ${snap.label}`);
+      setShowSettingsModal(false);
+    }
+  };
+
+  const handleDeleteSnapshot = (id: string, label: string) => {
+    if (!confirm(`Hapus snapshot "${label}" dari daftar backup?`)) return;
+    const updated = snapshots.filter(s => s.id !== id);
+    setSnapshots(updated);
+    localStorage.setItem('perumtas_rt08_snapshots', JSON.stringify(updated));
+    showToast(`Snapshot "${label}" dihapus.`);
+  };
+
+  const handleExportPhysicalBackup = () => {
+    try {
+      const payload = {
+        rt08_backup_ver: "1.0",
+        timestamp: new Date().toISOString(),
+        dateString: new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(new Date()),
+        kas,
+        ledger,
+        wargaList,
+        rombongList
+      };
+
+      const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+        JSON.stringify(payload, null, 2)
+      )}`;
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", jsonString);
+      downloadAnchor.setAttribute("download", `BACKUP_KAS_RT08_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Ekspor berkas backup JSON sukses diunduh.");
+    } catch (e) {
+      alert("Gagal mengekspor data: " + String(e));
+    }
+  };
+
+  const handleImportPhysicalBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+        
+        // Verify basic structure of RT08 backup
+        if (!parsed.kas || !parsed.ledger || !parsed.wargaList || !parsed.rombongList) {
+          alert("Format berkas backup JSON tidak valid! Pastikan berkas berasal dari ekspor sistem Kas RT08.");
+          return;
+        }
+
+        const infoStr = parsed.dateString ? `(Dibuat pada: ${parsed.dateString})` : '';
+        const confirmImport = window.confirm(
+          `Apakah Anda yakin ingin memulihkan pembukuan dari berkas backup eksternal ini?\n${infoStr}\n\n` +
+          `⚠️ PERINGATAN: Semua data warga, rombong, mutasi kas, dan kuitansi saat ini akan diganti sepenuhnya.`
+        );
+
+        if (!confirmImport) return;
+
+        if (onRestoreSnapshot) {
+          onRestoreSnapshot({
+            kas: parsed.kas,
+            ledger: parsed.ledger,
+            wargaList: parsed.wargaList,
+            rombongList: parsed.rombongList
+          });
+          showToast("Pembukuan & database warga sukses dipulihkan dari berkas JSON!");
+          setShowSettingsModal(false);
+        }
+      } catch (err) {
+        alert("Gagal membaca berkas: format JSON rusak atau tidak valid.");
+      }
+    };
+    reader.readAsText(file);
   };
 
   // -----------------------------------------------------
@@ -3928,6 +4142,164 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Kosongkan Seluruh Data</span>
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Section 6: Sistem Backup & Gulirkan Kembali / Undo (Admin Only) */}
+            {currentUser?.role === 'admin' && (
+              <div className="border border-slate-200 bg-slate-50/50 p-5 rounded-3xl mt-5 space-y-5">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-sky-700 font-extrabold text-xs uppercase tracking-wider">
+                    <RotateCcw className="w-4 h-4 text-sky-600 shrink-0" />
+                    <span>6. Sistem Backup &amp; Undo Pemulihan</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-sans">
+                    Fungsi pemulihan pembukuan tanpa harus mengedit mutasi kas atau data warga satu per satu. Menggunakan data titik backup (Snapshot) di gawai ataupun dari berkas eksternal.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left sub-panel: Undo 1-Day & Manual Backup */}
+                  <div className="bg-white p-4 rounded-2xl border border-slate-150 space-y-4">
+                    <h5 className="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                      Prosedur Undo &amp; Snapshot Baru
+                    </h5>
+                    
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={handleUndoOneDay}
+                        className="w-full bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-black px-4 py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 cursor-pointer transition duration-150"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        <span>Gulirkan Mundur Data / Undo Sehari</span>
+                      </button>
+                      <p className="text-[10px] text-slate-400 italic leading-relaxed text-center font-sans font-medium">
+                        Mencari backup harian terdekat (&gt;12 jam) untuk digulirkan mundur secara otomatis.
+                      </p>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-3 space-y-2">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none font-sans">Simpan Snapshot Manual</label>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={manualSnapLabel}
+                          onChange={(e) => setManualSnapLabel(e.target.value)}
+                          placeholder="Contoh: Sebelum Tarik Kas Juni / Migrasi"
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-medium text-slate-950 focus:outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-400 font-sans"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCreateManualSnapshot}
+                          className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-3 py-2 rounded-xl text-[11px] whitespace-nowrap cursor-pointer transition active:scale-95"
+                        >
+                          Simpan
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right sub-panel: JSON Physical Backup File */}
+                  <div className="bg-white p-4 rounded-2xl border border-slate-150 flex flex-col justify-between gap-4">
+                    <div className="space-y-3">
+                      <h5 className="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Arsip Eksternal Fisik (JSON)
+                      </h5>
+                      <p className="text-[10px] text-slate-400 leading-relaxed font-sans mt-1">
+                        Disarankan mengunduh berkas backup fisik secara periodik agar memori iuran RT 08 Anda 100% aman tersimpan di arsip laptop/HP Anda.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onClick={handleExportPhysicalBackup}
+                        className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-extrabold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition active:scale-95"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Unduh File .json</span>
+                      </button>
+
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="import-backup-json"
+                          accept=".json"
+                          onChange={handleImportPhysicalBackup}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="import-backup-json"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition active:scale-95 text-center"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Pulihkan File .json</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sub-panel Bottom: Snaps list history */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-150 space-y-3 font-sans">
+                  <h5 className="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span>Daftar Riwayat Titik Backup Gawai (Lokal)</span>
+                    <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg text-[9px] font-mono lowercase">
+                      Maks. 20 Slot
+                    </span>
+                  </h5>
+
+                  {snapshots.length === 0 ? (
+                    <div className="text-center py-6 text-slate-400 italic text-[11px] bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+                      Belum terdapat titik backup otomatis ataupun kustom yang tersimpan di memori perangkat ini.
+                    </div>
+                  ) : (
+                    <div className="overflow-y-auto max-h-48 divide-y divide-slate-100 pr-1 select-none">
+                      {snapshots.map((snap: any) => (
+                        <div key={snap.id} className="flex items-center justify-between py-2.5 gap-4">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${
+                                snap.type === 'auto'
+                                  ? 'bg-sky-50 border border-sky-100/55 text-sky-700'
+                                  : 'bg-indigo-50 border border-indigo-100/55 text-indigo-700'
+                              }`}>
+                                {snap.type === 'auto' ? 'Otomatis' : 'Kustom'}
+                              </span>
+                              <span className="text-[11px] font-extrabold text-slate-800 tracking-tight leading-tight shrink-0 font-sans">
+                                {snap.dateString}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 mt-1 truncate font-medium font-sans">
+                              {snap.label}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleRestoreSpecific(snap)}
+                              className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-extrabold px-2.5 py-1.5 rounded-lg text-[10px] cursor-pointer transition active:scale-95 font-sans"
+                            >
+                              Pulihkan
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSnapshot(snap.id, snap.label)}
+                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition shrink-0 cursor-pointer"
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
