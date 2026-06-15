@@ -63,6 +63,9 @@
         "blok": { "type": "string" },
         "noRumah": { "type": "string" },
         "noWa": { "type": "string" },
+        "statusRumah": { "type": "string", "enum": ["milik_sendiri", "sewa_kontrak", "lainnya"] },
+        "tglAwalSewa": { "type": "string" },
+        "tglAkhirSewa": { "type": "string" },
         "iuranRT": {
           "type": "array"
         }

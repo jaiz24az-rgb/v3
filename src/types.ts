@@ -45,6 +45,9 @@ export interface WargaBill {
   kkNamaFile?: string;  // KK original file name
   fotoBase64?: string; // Profile photo Base64 data code
   fotoNamaFile?: string; // Profile photo original file name
+  statusRumah?: 'milik_sendiri' | 'sewa_kontrak' | 'lainnya'; // Status kepemilikan rumah (keluarga vs sewa/kontrak)
+  tglAwalSewa?: string; // Tanggal awal kontrak (optional)
+  tglAkhirSewa?: string; // Tanggal akhir kontrak (optional)
   iuranRT: { 
     bulan: string; 
     lunas: boolean; 

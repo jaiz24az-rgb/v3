@@ -77,6 +77,9 @@ service cloud.firestore {
         && (!('kkNamaFile' in data) || data.kkNamaFile is string)
         && (!('fotoBase64' in data) || data.fotoBase64 is string)
         && (!('fotoNamaFile' in data) || data.fotoNamaFile is string)
+        && (!('statusRumah' in data) || (data.statusRumah is string && (data.statusRumah == 'milik_sendiri' || data.statusRumah == 'sewa_kontrak' || data.statusRumah == 'lainnya')))
+        && (!('tglAwalSewa' in data) || data.tglAwalSewa is string)
+        && (!('tglAkhirSewa' in data) || data.tglAkhirSewa is string)
         && (!('iuranRT' in data) || data.iuranRT is list);
     }
 
