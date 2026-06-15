@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Balance, LedgerEntry, AppUser, WargaBill, RombongBill } from '../types';
 import { calculateStorageFootprint, formatFileSize } from '../utils/fileSizeUtils';
 import { compressImage } from '../utils/fileCompressor';
+import { getCollectorBalancesForPeriod } from '../utils/collectorUtils';
 import { 
   Coins, 
   TrendingUp, 
@@ -55,8 +56,11 @@ export default function Dashboard({
     currentUser.nama.toLowerCase().includes('kolektor2')
   );
 
-  const totalRT = isKolektor2 ? 0 : (isKolektor ? kas.rtTunai : (kas.rtTunai + kas.rtPettyCash + kas.rtBank));
-  const totalRombong = isKolektor ? kas.rombongTunai : (kas.rombongTunai + kas.rombongBank);
+  const colBalancesRT = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rtTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
+  const colBalancesRombong = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rombongTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
+
+  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (kas.rtTunai + kas.rtPettyCash + kas.rtBank));
+  const totalRombong = isKolektor ? colBalancesRombong.remaining : (kas.rombongTunai + kas.rombongBank);
   const totalKeseluruhan = totalRT + totalRombong;
 
   // Manual Balance Editing state
@@ -312,13 +316,23 @@ export default function Dashboard({
     }
   };
 
-  // Aggregation calculations for stats cards
+  // Aggregation calculations for stats cards (excluding internal transfers)
   const totalPemasukan = ledger
-    .filter(e => e.tipe === 'pemasukan')
+    .filter(e => 
+      e.tipe === 'pemasukan' && 
+      e.kategori !== 'Setor Bank' && 
+      e.kategori !== 'Mutasi Bank-Petty' && 
+      e.kategori !== 'Penarikan Dana Kolektor'
+    )
     .reduce((sum, e) => sum + e.jumlah, 0);
 
   const totalPengeluaran = ledger
-    .filter(e => e.tipe === 'pengeluaran')
+    .filter(e => 
+      e.tipe === 'pengeluaran' && 
+      e.kategori !== 'Setor Bank' && 
+      e.kategori !== 'Mutasi Bank-Petty' && 
+      e.kategori !== 'Penarikan Dana Kolektor'
+    )
     .reduce((sum, e) => sum + e.jumlah, 0);
 
   // Percent proportions for beautiful modern bar chart

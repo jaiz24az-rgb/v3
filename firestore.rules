@@ -51,7 +51,13 @@ service cloud.firestore {
         && (!('kategori' in data) || data.kategori is string)
         && (!('petugas' in data) || data.petugas is string)
         && (!('fotoBase64' in data) || data.fotoBase64 is string)
-        && (!('fotoNamaFile' in data) || data.fotoNamaFile is string);
+        && (!('fotoNamaFile' in data) || data.fotoNamaFile is string)
+        && (!('isCustomRombong' in data) || data.isCustomRombong is bool)
+        && (!('approvedByAdmin' in data) || data.approvedByAdmin is bool)
+        && (!('needApproval' in data) || data.needApproval is bool)
+        && (!('rombongId' in data) || data.rombongId is string)
+        && (!('bulan' in data) || data.bulan is string)
+        && (!('tahun' in data) || data.tahun is int);
     }
 
     // Ledger entries collection rules

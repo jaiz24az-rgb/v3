@@ -19,6 +19,12 @@ export interface LedgerEntry {
   petugas: string;
   fotoBase64?: string; // Transaction receipt photo
   fotoNamaFile?: string; // Transaction receipt filename
+  isCustomRombong?: boolean; // Flag to indicate custom payment
+  approvedByAdmin?: boolean; // Approved by admin
+  needApproval?: boolean; // Needs admin approval to count
+  rombongId?: string; // Links to rombong
+  bulan?: string; // Links to billing month
+  tahun?: number; // Links to billing year
 }
 
 export interface FamilyMember {

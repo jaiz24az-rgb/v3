@@ -286,11 +286,21 @@ export default function Ledger({
   });
 
   const totalPemasukan = filteredLedger
-    .filter(e => e.tipe === 'pemasukan')
+    .filter(e => 
+      e.tipe === 'pemasukan' && 
+      e.kategori !== 'Setor Bank' && 
+      e.kategori !== 'Mutasi Bank-Petty' && 
+      e.kategori !== 'Penarikan Dana Kolektor'
+    )
     .reduce((sum, e) => sum + e.jumlah, 0);
 
   const totalPengeluaran = filteredLedger
-    .filter(e => e.tipe === 'pengeluaran')
+    .filter(e => 
+      e.tipe === 'pengeluaran' && 
+      e.kategori !== 'Setor Bank' && 
+      e.kategori !== 'Mutasi Bank-Petty' && 
+      e.kategori !== 'Penarikan Dana Kolektor'
+    )
     .reduce((sum, e) => sum + e.jumlah, 0);
 
   const saldoBersih = totalPemasukan - totalPengeluaran;

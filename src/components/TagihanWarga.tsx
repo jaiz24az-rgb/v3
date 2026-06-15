@@ -2790,6 +2790,10 @@ export default function TagihanWarga({
     const isCustom = isRombongCustomActive && finalNominal !== nominal;
 
     if (isCustom) {
+      if (!isKolektor2) {
+        alert('Proses Ditolak: Nominal custom untuk Sewa Rombong hanya bisa dicatatkan oleh petugas Kolektor Rombong (kolektor2)!');
+        return;
+      }
       if (finalNominal <= 0) {
         alert('Proses Ditolak: Nominal custom harus lebih besar dari Rp 0!');
         return;
@@ -2825,7 +2829,9 @@ export default function TagihanWarga({
                 tanggalBayar: paymentDate, 
                 jamBayar: paymentTime,
                 fotoBase64: paymentReceiptBase64 || undefined,
-                fotoNamaFile: paymentReceiptNamaFile || undefined
+                fotoNamaFile: paymentReceiptNamaFile || undefined,
+                isCustom: isCustom,
+                approved: !isCustom
               };
             }
             return b;
@@ -2839,7 +2845,9 @@ export default function TagihanWarga({
             tanggalBayar: paymentDate,
             jamBayar: paymentTime,
             fotoBase64: paymentReceiptBase64 || undefined,
-            fotoNamaFile: paymentReceiptNamaFile || undefined
+            fotoNamaFile: paymentReceiptNamaFile || undefined,
+            isCustom: isCustom,
+            approved: !isCustom
           });
         }
         const updatedRombong = { ...r, [billingType]: updatedBillings };
@@ -2854,9 +2862,11 @@ export default function TagihanWarga({
 
     updateRombongList(updatedRombongList);
 
-    const nextKas = { ...kas };
-    nextKas[paymentTargetKas] += finalNominal;
-    updateKas(nextKas);
+    if (!isCustom) {
+      const nextKas = { ...kas };
+      nextKas[paymentTargetKas] += finalNominal;
+      updateKas(nextKas);
+    }
 
     addLedgerEntry({
       tanggal: paymentDate,
@@ -2867,7 +2877,13 @@ export default function TagihanWarga({
       kategori: 'Pendapatan Rombong',
       petugas: currentUser?.nama || 'Petugas RT',
       fotoBase64: paymentReceiptBase64 || undefined,
-      fotoNamaFile: paymentReceiptNamaFile || undefined
+      fotoNamaFile: paymentReceiptNamaFile || undefined,
+      isCustomRombong: isCustom,
+      approvedByAdmin: !isCustom,
+      needApproval: isCustom,
+      rombongId: rombong.id,
+      bulan: bulan,
+      tahun: tahun
     });
 
     setReceiptSuccessInfo({
@@ -5243,11 +5259,12 @@ export default function TagihanWarga({
             <div className="space-y-4">
               {/* Kustomisasi Nominal */}
               <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-slate-400">
                   <input
                     type="checkbox"
                     id="enable-custom-rombong"
                     checked={isRombongCustomActive}
+                    disabled={!isKolektor2}
                     onChange={(e) => {
                       setIsRombongCustomActive(e.target.checked);
                       if (!e.target.checked) {
@@ -5255,12 +5272,17 @@ export default function TagihanWarga({
                         setAdminApprovalPin('');
                       }
                     }}
-                    className="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer w-4 h-4"
+                    className={`rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 ${isKolektor2 ? 'cursor-pointer' : 'cursor-not-allowed text-slate-305'}`}
                   />
-                  <label htmlFor="enable-custom-rombong" className="text-xs font-bold text-slate-700 cursor-pointer">
+                  <label htmlFor="enable-custom-rombong" className={`text-xs font-bold ${isKolektor2 ? 'text-slate-700 cursor-pointer' : 'text-slate-400 cursor-not-allowed'}`}>
                     Kustomisasi Nominal Pembayaran (Custom Tagihan)
                   </label>
                 </div>
+                {!isKolektor2 && (
+                  <p className="text-[10px] text-amber-600 pl-6 leading-relaxed font-semibold">
+                    ⚠️ Kustomisasi nominal pembayaran sewa rombong hanya dapat diinput oleh Kolektor Rombong.
+                  </p>
+                )}
 
                 {isRombongCustomActive && (
                   <div className="space-y-3 pl-6 animate-in slide-in-from-top-1 duration-150">
@@ -6811,6 +6833,7 @@ export default function TagihanWarga({
                     );
 
                     const isLunas = matchedSlot ? matchedSlot.lunas : false;
+                    const isPendingApp = isLunas && (matchedSlot as any).isCustom && !(matchedSlot as any).approved;
                     const nominalValue = matchedSlot ? matchedSlot.nominal : getDefaultRombongRate(historyYear, IndoMonth, rateRombong);
                     const displayBulan = matchedSlot ? matchedSlot.bulan : IndoMonth;
 
@@ -6818,14 +6841,16 @@ export default function TagihanWarga({
                       <div 
                         key={IndoMonth}
                         className={`p-3 rounded-xl border flex flex-col justify-between min-h-[5.5rem] h-auto pb-1.5 transition duration-150 ${
-                          isLunas
+                          isPendingApp
+                            ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-350/20 shadow-sm animate-pulse'
+                            : isLunas
                             ? 'bg-emerald-50 border-emerald-300 ring-1 ring-emerald-350/20 shadow-sm'
                             : 'bg-amber-50/30 border-amber-200'
                         }`}
                       >
                         <div>
                           <div className="flex justify-between items-start">
-                            <span className={`text-xs font-extrabold ${isLunas ? 'text-emerald-900 font-black' : 'text-slate-705'}`}>{IndoMonth}</span>
+                            <span className={`text-xs font-extrabold ${isPendingApp ? 'text-amber-900 font-extrabold' : isLunas ? 'text-emerald-900 font-black' : 'text-slate-705'}`}>{IndoMonth}</span>
                             <span className="text-[9px] text-slate-400 font-mono">#{String(idx + 1).padStart(2, '0')}</span>
                           </div>
                           {matchedSlot?.catatan && (
@@ -6836,16 +6861,22 @@ export default function TagihanWarga({
                         </div>
 
                         <div className="mt-1 flex justify-between items-end bg-transparent">
-                          <div className={`text-[10px] font-mono self-end ${isLunas ? 'text-emerald-705 font-bold' : 'text-slate-500'}`}>
+                          <div className={`text-[10px] font-mono self-end ${isPendingApp ? 'text-amber-705 font-bold' : isLunas ? 'text-emerald-705 font-bold' : 'text-slate-500'}`}>
                             Rp {nominalValue.toLocaleString('id-ID')}
                           </div>
                           
                           {/* Payment status badge */}
                           {isLunas ? (
                             <div className="flex flex-col items-end gap-0.5 bg-transparent">
-                              <span className="text-[9.5px] text-white bg-emerald-600 border border-emerald-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
-                                Lunas ✓
-                              </span>
+                              {isPendingApp ? (
+                                <span className="text-[9.5px] text-white bg-amber-500 border border-amber-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
+                                  Pending ⌛
+                                </span>
+                              ) : (
+                                <span className="text-[9.5px] text-white bg-emerald-600 border border-emerald-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
+                                  Lunas ✓
+                                </span>
+                              )}
                               {matchedSlot?.tanggalBayar && (
                                 <span className="text-[7.5px] text-slate-500 font-mono text-right leading-none scale-[0.9] origin-right">
                                   {(() => {
@@ -7346,25 +7377,33 @@ export default function TagihanWarga({
                                 (b.tahun === selectedBillingYear || (!b.tahun && selectedBillingYear === 2026))
                               ) || { bulan: m, lunas: false, nominal: getDefaultRombongRate(selectedBillingYear, m, rateRombong), tahun: selectedBillingYear };
 
+                              const isPendingApp = slot.lunas && (slot as any).isCustom && !(slot as any).approved;
+
                               return (
                                 <button
                                   key={m}
                                   onClick={() => !slot.lunas && isOfficer && openRombongPaymentModal(r, 'Iuran Rombong', slot.bulan, slot.nominal, 'iuranRombong', selectedBillingYear)}
                                   disabled={slot.lunas || !isOfficer}
                                   className={`px-2 py-1 rounded-lg text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[72px] ${
-                                    slot.lunas
+                                    isPendingApp
+                                      ? 'bg-amber-500 text-white border border-amber-600 shadow-sm cursor-default animate-pulse'
+                                      : slot.lunas
                                       ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
                                       : isOfficer
                                       ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
                                       : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >
-                                  <span className="text-[10px] font-black">{slot.bulan} <span className={`text-[8px] font-normal ${slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
+                                  <span className="text-[10px] font-black">{slot.bulan} <span className={`text-[8px] font-normal ${isPendingApp ? 'text-amber-100' : slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
                                   {slot.lunas ? (
                                     <>
-                                      <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
+                                      {isPendingApp ? (
+                                        <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-amber-600/30 px-1 py-0.2 rounded">PENDING ⌛</span>
+                                      ) : (
+                                        <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
+                                      )}
                                       {slot.tanggalBayar && (
-                                        <span className="text-[7.5px] text-emerald-100 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88]">
+                                        <span className={`text-[7.5px] font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88] ${isPendingApp ? 'text-amber-100' : 'text-emerald-100'}`}>
                                           {(() => {
                                             const p = slot.tanggalBayar.split('-');
                                             const datePart = p.length === 3 ? `${p[2]}/${p[1]}` : slot.tanggalBayar;

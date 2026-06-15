@@ -33,7 +33,7 @@ import {
   deleteOfficialLetter
 } from './supabase';
 import Dashboard from './components/Dashboard';
-import TagihanWarga from './components/TagihanWarga';
+import TagihanWarga, { getDefaultRombongRate } from './components/TagihanWarga';
 import Ledger from './components/Ledger';
 import BukuKolektor from './components/BukuKolektor';
 import UserGuide from './components/UserGuide';
@@ -1227,6 +1227,115 @@ export default function App() {
     }
   };
 
+  const handleApproveRombongCustomPayment = async (ledgerId: string) => {
+    // 1. Find the ledger entry
+    const entry = ledger.find(e => e.id === ledgerId);
+    if (!entry) return;
+
+    // 2. Mark the ledger entry as approved
+    const updatedEntry: LedgerEntry = {
+      ...entry,
+      approvedByAdmin: true,
+      needApproval: false
+    };
+
+    // Save updated ledger entry
+    setLedger((prev) => prev.map(e => e.id === ledgerId ? updatedEntry : e));
+
+    if (isSupabaseConfigured) {
+      await saveLedgerEntry(updatedEntry);
+    } else if (isFirebaseConfigured) {
+      await setDoc(doc(db, 'ledger_entries', ledgerId), sanitizeData(updatedEntry))
+        .catch((err) => handleFirestoreError(err, OperationType.WRITE, `ledger_entries/${ledgerId}`));
+    }
+
+    // 3. Mark the corresponding slot inside `rombongList` as approved!
+    if (entry.rombongId && entry.bulan && entry.tahun) {
+      const targetRombongId = entry.rombongId;
+      const targetBulan = entry.bulan;
+      const targetTahun = entry.tahun;
+
+      const updatedRombongList = rombongList.map(r => {
+        if (r.id === targetRombongId) {
+          const updatedIuran = r.iuranRombong.map(b => {
+            if (b.bulan.toLowerCase() === targetBulan.toLowerCase() && (b.tahun === targetTahun || (!b.tahun && targetTahun === 2026))) {
+              return {
+                ...b,
+                approved: true
+              };
+            }
+            return b;
+          });
+          return {
+            ...r,
+            iuranRombong: updatedIuran
+          };
+        }
+        return r;
+      });
+
+      await handleUpdateRombongList(updatedRombongList);
+    }
+
+    // 4. Increase the global `kas` for the approved nominal since we deferred adding it when paying!
+    const targetKas = entry.sumberKas || 'rombongTunai';
+    const amountToIncrease = entry.jumlah;
+
+    const nextKas = { ...kas };
+    nextKas[targetKas] += amountToIncrease;
+    updateKas(nextKas);
+  };
+
+  const handleRejectRombongCustomPayment = async (ledgerId: string) => {
+    const entry = ledger.find(e => e.id === ledgerId);
+    if (!entry) return;
+
+    // Delete the ledger entry
+    setLedger((prev) => prev.filter(e => e.id !== ledgerId));
+
+    if (isSupabaseConfigured) {
+      await deleteLedgerEntry(ledgerId);
+    } else if (isFirebaseConfigured) {
+      await deleteDoc(doc(db, 'ledger_entries', ledgerId))
+        .catch((err) => handleFirestoreError(err, OperationType.DELETE, `ledger_entries/${ledgerId}`));
+    }
+
+    // Mark the slot as unpaid/not lunas
+    if (entry.rombongId && entry.bulan && entry.tahun) {
+      const targetRombongId = entry.rombongId;
+      const targetBulan = entry.bulan;
+      const targetTahun = entry.tahun;
+
+      const updatedRombongList = rombongList.map(r => {
+        if (r.id === targetRombongId) {
+          const updatedIuran = r.iuranRombong.map(b => {
+             if (b.bulan.toLowerCase() === targetBulan.toLowerCase() && (b.tahun === targetTahun || (!b.tahun && targetTahun === 2026))) {
+               return {
+                 ...b,
+                 lunas: false,
+                 nominal: getDefaultRombongRate(targetTahun, targetBulan, rateRombong),
+                 tanggalBayar: undefined,
+                 jamBayar: undefined,
+                 fotoBase64: undefined,
+                 fotoNamaFile: undefined,
+                 isCustom: false,
+                 approved: false
+               };
+             }
+             return b;
+          });
+          return {
+            ...r,
+            iuranRombong: updatedIuran
+          };
+        }
+        return r;
+      });
+
+      await handleUpdateRombongList(updatedRombongList);
+    }
+  };
+
   const handleSetLedger = async (newLedger: LedgerEntry[] | ((prev: LedgerEntry[]) => LedgerEntry[])) => {
     const nextLedger = typeof newLedger === 'function' ? newLedger(ledger) : newLedger;
     setLedger(nextLedger);
@@ -1868,6 +1977,8 @@ export default function App() {
               yearsList={yearsList}
               addLedgerEntry={addLedgerEntry}
               users={usersList}
+              onApproveRombongPayment={handleApproveRombongCustomPayment}
+              onRejectRombongPayment={handleRejectRombongCustomPayment}
             />
           )}
 

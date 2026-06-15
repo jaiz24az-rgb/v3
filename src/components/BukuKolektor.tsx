@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { LedgerEntry, Balance, AppUser } from '../types';
 import { 
+  isBillingPayment, 
+  isPenarikanKolektor, 
+  getCollectorBalancesForPeriod 
+} from '../utils/collectorUtils';
+import { 
   BookOpen, 
   Coins, 
   Building, 
@@ -31,6 +36,8 @@ interface BukuKolektorProps {
   yearsList?: number[];
   addLedgerEntry?: (entry: Omit<LedgerEntry, 'id'>) => void;
   users?: AppUser[];
+  onApproveRombongPayment?: (id: string) => Promise<void>;
+  onRejectRombongPayment?: (id: string) => Promise<void>;
 }
 
 const INDONESIAN_MONTHS = [
@@ -55,7 +62,9 @@ export default function BukuKolektor({
   currentUser,
   yearsList = [2024, 2025, 2026, 2027, 2028],
   addLedgerEntry,
-  users = []
+  users = [],
+  onApproveRombongPayment,
+  onRejectRombongPayment
 }: BukuKolektorProps) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-12
@@ -131,24 +140,6 @@ export default function BukuKolektor({
     return matchesYear && matchesMonth;
   });
 
-  // 2. Identify and classify Billings (Iuran / Tagihan) payments
-  const isBillingPayment = (entry: LedgerEntry) => {
-    if (entry.tipe !== 'pemasukan') return false;
-    const desc = entry.deskripsi.toLowerCase();
-    const cat = entry.kategori.toLowerCase();
-    return (
-      cat.includes('iuran') || 
-      cat.includes('pendapatan rombong') ||
-      desc.includes('iuran') || 
-      desc.includes('tagihan') || 
-      desc.includes('lapak')
-    );
-  };
-
-  const isPenarikanKolektor = (entry: LedgerEntry) => {
-    return entry.kategori === 'Penarikan Dana Kolektor';
-  };
-
   // 3. Math calculations for Tunai vs Bank collections
   // Cash Billing Collections (rtTunai, rtPettyCash, rombongTunai)
   const cashPayments = monthlyLedger.filter(entry => 
@@ -181,59 +172,24 @@ export default function BukuKolektor({
   const totalDepositedToBank = setorBankTransfers.reduce((acc, entry) => acc + entry.jumlah, 0);
   
   // Sisa Tunai di Tangan Kolektor (Fisik di lapangan belum diserahterimakan)
-  const remainingCashInCollector = totalCashCollected - totalPenarikan;
+  const remainingCashInCollector = Math.max(0, totalCashCollected - totalPenarikan);
 
   // Sisa Tunai di Tangan Bendahara (Sudah ditarik bendahara tapi belum disetor ke bank)
-  const remainingCashInBendahara = totalPenarikan - totalDepositedToBank;
+  const remainingCashInBendahara = Math.max(0, totalPenarikan - totalDepositedToBank);
+
+  // Reusable collector balance calculation
+  const getCollectorBalanceInfo = (colId: string, sector: 'rtTunai' | 'rombongTunai') => {
+    const matchedUser = collectorsList.find(u => u.username === colId);
+    const collectorName = matchedUser ? matchedUser.nama : colId;
+    return getCollectorBalancesForPeriod(allowedLedger, colId, collectorName, sector, {
+      month: selectedMonth,
+      year: selectedYear
+    });
+  };
 
   // Dynamic calculation for selected collector in current view filter
   const getSelectedCollectorBalanceInfo = () => {
-    if (!drawCollectorId) return { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
-    
-    const matchedUser = collectorsList.find(u => u.username === drawCollectorId);
-    const collectorName = matchedUser ? matchedUser.nama : drawCollectorId;
-    
-    // Helper to sanitize signature name for comparison (removes paren roles & prefixes)
-    const cleanName = (name: string) => {
-      return name
-        .replace(/\s*\(.*\)\s*/g, '')
-        .replace(/^(bapak|bp\.|ibu|mas|mbak|pak|bu)\s+/i, '')
-        .trim()
-        .toLowerCase();
-    };
-
-    const cleanCollectorName = cleanName(collectorName);
-    const cleanCollectorId = cleanName(drawCollectorId);
-
-    // 1. Total cash collected by this collector in this sector for the selected period
-    const collectorCashPayments = monthlyLedger.filter(entry => {
-      if (!isBillingPayment(entry) || entry.sumberKas !== drawSector) return false;
-      const cleanEntryPetugas = cleanName(entry.petugas);
-      return (
-        cleanEntryPetugas === cleanCollectorName ||
-        cleanEntryPetugas === cleanCollectorId ||
-        cleanEntryPetugas.includes(cleanCollectorName) ||
-        cleanCollectorName.includes(cleanEntryPetugas)
-      );
-    });
-    const totalCollected = collectorCashPayments.reduce((acc, entry) => acc + entry.jumlah, 0);
-    
-    // 2. Total penarikan of this collector in this sector for the selected period
-    const collectorPenarikans = monthlyLedger.filter(entry => {
-      if (!isPenarikanKolektor(entry) || entry.sumberKas !== drawSector) return false;
-      const cleanEntryDesc = cleanName(entry.deskripsi);
-      return (
-        cleanEntryDesc.includes(cleanCollectorName) ||
-        cleanEntryDesc.includes(cleanCollectorId)
-      );
-    });
-    const totalPenarikanByCollector = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
-    
-    return {
-      totalCollected,
-      totalPenarikan: totalPenarikanByCollector,
-      remaining: Math.max(0, totalCollected - totalPenarikanByCollector)
-    };
+    return getCollectorBalanceInfo(drawCollectorId, drawSector);
   };
 
   const collectorBal = getSelectedCollectorBalanceInfo();
@@ -487,32 +443,8 @@ export default function BukuKolektor({
                   const val = e.target.value;
                   setDrawCollectorId(val);
                   if (val) {
-                    const matchedUser = collectorsList.find(u => u.username === val);
-                    const collectorName = matchedUser ? matchedUser.nama : val;
-                    
-                    const collectorCashPayments = monthlyLedger.filter(entry => 
-                      isBillingPayment(entry) && 
-                      entry.sumberKas === drawSector && 
-                      (
-                        entry.petugas.toLowerCase() === collectorName.toLowerCase() ||
-                        entry.petugas.toLowerCase() === val.toLowerCase() ||
-                        entry.petugas.toLowerCase().includes(collectorName.toLowerCase())
-                      )
-                    );
-                    const totalCollected = collectorCashPayments.reduce((acc, entry) => acc + entry.jumlah, 0);
-                    
-                    const collectorPenarikans = monthlyLedger.filter(entry => 
-                      isPenarikanKolektor(entry) && 
-                      entry.sumberKas === drawSector &&
-                      (
-                        entry.deskripsi.toLowerCase().includes(collectorName.toLowerCase()) ||
-                        entry.deskripsi.toLowerCase().includes(val.toLowerCase())
-                      )
-                    );
-                    const totalPenarikanByCollector = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
-                    
-                    const rem = Math.max(0, totalCollected - totalPenarikanByCollector);
-                    setDrawAmount(rem > 0 ? rem.toString() : '0');
+                    const info = getCollectorBalanceInfo(val, drawSector);
+                    setDrawAmount(info.remaining > 0 ? info.remaining.toString() : '0');
                   } else {
                     setDrawAmount('');
                   }
@@ -538,33 +470,8 @@ export default function BukuKolektor({
                     const sector = 'rtTunai';
                     setDrawSector(sector);
                     if (drawCollectorId) {
-                      const val = drawCollectorId;
-                      const matchedUser = collectorsList.find(u => u.username === val);
-                      const collectorName = matchedUser ? matchedUser.nama : val;
-                      
-                      const collectorCashPayments = monthlyLedger.filter(entry => 
-                        isBillingPayment(entry) && 
-                        entry.sumberKas === sector && 
-                        (
-                          entry.petugas.toLowerCase() === collectorName.toLowerCase() ||
-                          entry.petugas.toLowerCase() === val.toLowerCase() ||
-                          entry.petugas.toLowerCase().includes(collectorName.toLowerCase())
-                        )
-                      );
-                      const totalCollected = collectorCashPayments.reduce((acc, entry) => acc + entry.jumlah, 0);
-                      
-                      const collectorPenarikans = monthlyLedger.filter(entry => 
-                        isPenarikanKolektor(entry) && 
-                        entry.sumberKas === sector &&
-                        (
-                          entry.deskripsi.toLowerCase().includes(collectorName.toLowerCase()) ||
-                          entry.deskripsi.toLowerCase().includes(val.toLowerCase())
-                        )
-                      );
-                      const totalPenarikanByCollector = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
-                      
-                      const rem = Math.max(0, totalCollected - totalPenarikanByCollector);
-                      setDrawAmount(rem > 0 ? rem.toString() : '0');
+                      const info = getCollectorBalanceInfo(drawCollectorId, sector);
+                      setDrawAmount(info.remaining > 0 ? info.remaining.toString() : '0');
                     }
                   }}
                   className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border cursor-pointer ${
@@ -582,33 +489,8 @@ export default function BukuKolektor({
                     const sector = 'rombongTunai';
                     setDrawSector(sector);
                     if (drawCollectorId) {
-                      const val = drawCollectorId;
-                      const matchedUser = collectorsList.find(u => u.username === val);
-                      const collectorName = matchedUser ? matchedUser.nama : val;
-                      
-                      const collectorCashPayments = monthlyLedger.filter(entry => 
-                        isBillingPayment(entry) && 
-                        entry.sumberKas === sector && 
-                        (
-                          entry.petugas.toLowerCase() === collectorName.toLowerCase() ||
-                          entry.petugas.toLowerCase() === val.toLowerCase() ||
-                          entry.petugas.toLowerCase().includes(collectorName.toLowerCase())
-                        )
-                      );
-                      const totalCollected = collectorCashPayments.reduce((acc, entry) => acc + entry.jumlah, 0);
-                      
-                      const collectorPenarikans = monthlyLedger.filter(entry => 
-                        isPenarikanKolektor(entry) && 
-                        entry.sumberKas === sector &&
-                        (
-                          entry.deskripsi.toLowerCase().includes(collectorName.toLowerCase()) ||
-                          entry.deskripsi.toLowerCase().includes(val.toLowerCase())
-                        )
-                      );
-                      const totalPenarikanByCollector = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
-                      
-                      const rem = Math.max(0, totalCollected - totalPenarikanByCollector);
-                      setDrawAmount(rem > 0 ? rem.toString() : '0');
+                      const info = getCollectorBalanceInfo(drawCollectorId, sector);
+                      setDrawAmount(info.remaining > 0 ? info.remaining.toString() : '0');
                     }
                   }}
                   className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border cursor-pointer ${
@@ -743,6 +625,94 @@ export default function BukuKolektor({
           </div>
         </div>
       )}
+
+      {/* Admin Approval Section for Custom Rombong Payments */}
+      {(() => {
+        const pendingApprovals = ledger.filter(entry => entry.isCustomRombong && entry.needApproval && !entry.approvedByAdmin);
+        if (pendingApprovals.length === 0) return null;
+
+        const isAdmin = isLoggedIn && currentUser?.role === 'admin';
+
+        return (
+          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 shadow-sm space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-amber-100 text-amber-700 border border-amber-200 rounded-2xl">
+                  <ClipboardCheck className="w-5 h-5 text-amber-700" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-amber-900 tracking-wide">
+                    Persetujuan Nominal Kustom (Sewa Rombong)
+                  </h4>
+                  <p className="text-xs text-amber-700 font-medium">
+                    Terdapat {pendingApprovals.length} transaksi nominal kustom dari Kolektor Rombong yang memerlukan persetujuan Admin sebelum diteruskan.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono font-black text-white bg-amber-600 px-2 py-0.5 rounded-full animate-bounce">
+                {pendingApprovals.length} PENDING
+              </span>
+            </div>
+
+            {isAdmin ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {pendingApprovals.map(entry => (
+                  <div key={entry.id} className="bg-white border border-amber-200/60 rounded-2xl p-4 flex flex-col justify-between shadow-2xs">
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-slate-400">Pengajuan Kolektor</span>
+                        <span className="text-[10px] text-slate-500 font-mono font-medium">{entry.tanggal}</span>
+                      </div>
+                      <p className="text-xs font-extrabold text-slate-800 leading-normal mb-1.5">{entry.deskripsi}</p>
+                      
+                      <div className="flex justify-between items-center bg-amber-50/50 p-2 rounded-xl border border-amber-100/50 mb-3">
+                        <span className="text-[10.5px] text-amber-800 font-bold">Nominal Kustom:</span>
+                        <span className="text-sm font-black text-amber-900 font-mono">Rp {entry.jumlah.toLocaleString('id-ID')}</span>
+                      </div>
+                      
+                      <div className="text-[10px] text-slate-600 space-y-0.5 font-sans mb-3 scale-[0.98] origin-left">
+                        <div>• Petugas Pencatat: <strong>{entry.petugas}</strong></div>
+                        <div>• Alokasi: <strong>{entry.sumberKas}</strong></div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                      <button
+                        onClick={async () => {
+                          if (onApproveRombongPayment) {
+                            await onApproveRombongPayment(entry.id);
+                            alert('Transaksi kustom disetujui! Saldo resmi sudah disesuaikan.');
+                          }
+                        }}
+                        className="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition active:scale-95 cursor-pointer shadow-sm text-center"
+                      >
+                        Setujui ✓
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (confirm('Apakah Anda yakin menolak dan menghapus pengajuan custom sewa rombong ini? Status pembayaran akan dikembalikan menjadi belum lunas.')) {
+                            if (onRejectRombongPayment) {
+                              await onRejectRombongPayment(entry.id);
+                              alert('Transaksi ditolak dan dibatalkan.');
+                            }
+                          }
+                        }}
+                        className="py-1.5 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition active:scale-95 cursor-pointer text-center"
+                      >
+                        Tolak
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-amber-805 bg-amber-100/40 p-2.5 rounded-xl border border-amber-200/50 italic leading-relaxed">
+                🔒 Tinjauan administrasi hanya dapat dilakukan oleh akun Admin utama. Silakan hubungi Admin untuk melakukan verifikasi pembukuan nominal custom ini.
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Discrepancy Alert Banner */}
       {selectedMonth !== 'semua' && (

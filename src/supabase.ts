@@ -118,6 +118,12 @@ export function mapLedgerEntryToClient(row: any): LedgerEntry {
     petugas: row.petugas,
     fotoBase64: row.foto_base64,
     fotoNamaFile: row.foto_nama_file,
+    isCustomRombong: row.is_custom_rombong,
+    approvedByAdmin: row.approved_by_admin,
+    needApproval: row.need_approval,
+    rombongId: row.rombong_id,
+    bulan: row.bulan,
+    tahun: row.tahun
   };
 }
 
@@ -279,7 +285,13 @@ export async function saveLedgerEntry(entry: LedgerEntry) {
         kategori: entry.kategori,
         petugas: entry.petugas,
         foto_base64: entry.fotoBase64 || null,
-        foto_nama_file: entry.fotoNamaFile || null
+        foto_nama_file: entry.fotoNamaFile || null,
+        is_custom_rombong: entry.isCustomRombong || false,
+        approved_by_admin: entry.approvedByAdmin || false,
+        need_approval: entry.needApproval || false,
+        rombong_id: entry.rombongId || null,
+        bulan: entry.bulan || null,
+        tahun: entry.tahun || null
       });
     if (error) throw error;
   } catch (err) {
