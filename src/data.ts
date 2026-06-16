@@ -35,6 +35,13 @@ export const INITIAL_USERS: AppUser[] = [
     pin: '112233',
     role: 'kolektor',
     nama: 'Bowo Santoso (Kolektor Iuran)'
+  },
+  {
+    id: 'usr-4',
+    username: 'audit',
+    pin: '112233',
+    role: 'audit',
+    nama: 'Audit Internal (Pengawas)'
   }
 ];
 
