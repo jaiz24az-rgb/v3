@@ -176,8 +176,11 @@ export default function Ledger({
 
       const val = item.jumlah;
       const isPemasukan = item.tipe === 'pemasukan';
+      const isHandover = item.kategori === 'Penarikan Dana Kolektor';
 
-      if (item.sumberKas === 'rtPettyCash') {
+      if (isHandover) {
+        // Exclude from changing running balances or debit/credit to prevent double-counting citizen payments
+      } else if (item.sumberKas === 'rtPettyCash') {
         if (isPemasukan) {
           pcDebit = val;
           pcRunning += val;

@@ -65,6 +65,12 @@ export default function Dashboard({
     let rombongBank = 0;
 
     ledger.forEach(item => {
+      // Exclude "Penarikan Dana Kolektor" from derived balances because the funds are already counted 
+      // when the citizen payment is entered as a ledger item. Counting both would result in double counting.
+      if (item.kategori === 'Penarikan Dana Kolektor') {
+        return;
+      }
+
       const val = item.jumlah;
       const isPemasukan = item.tipe === 'pemasukan';
       
