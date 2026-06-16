@@ -266,6 +266,7 @@ export default function TagihanWarga({
     kkBase64: '',
     ktpNamaFile: '',
     kkNamaFile: '',
+    statusRumah: 'milik_sendiri' as 'milik_sendiri' | 'sewa_kontrak' | 'lainnya',
     isWargaBaru: false,
     mulaiBulan: 'Maret',
     mulaiTahun: 2026,
@@ -1655,6 +1656,11 @@ export default function TagihanWarga({
       ? parseAnggotaKeluargaString(String(rawAnggota)) 
       : existing.anggotaKeluarga || [];
 
+    const statusRumahRaw = row['Status Rumah'] !== undefined ? String(row['Status Rumah']).trim().toLowerCase() : '';
+    const statusRumah = statusRumahRaw 
+      ? (statusRumahRaw.includes('sewa') || statusRumahRaw.includes('kontrak') ? 'sewa_kontrak' : (statusRumahRaw.includes('lain') || statusRumahRaw.includes('tumpang') ? 'lainnya' : 'milik_sendiri'))
+      : existing.statusRumah;
+
     return {
       ...existing,
       nama: row['Nama Kepala Keluarga'] ? String(row['Nama Kepala Keluarga']).trim() : existing.nama,
@@ -1664,6 +1670,7 @@ export default function TagihanWarga({
       noKtp: row['Nomor KTP (NIK)'] !== undefined ? (String(row['Nomor KTP (NIK)']).trim() || undefined) : existing.noKtp,
       noKk: row['Nomor KK'] !== undefined ? (String(row['Nomor KK']).trim() || undefined) : existing.noKk,
       alamatKtpAsal: row['Alamat Asal KTP'] !== undefined ? (String(row['Alamat Asal KTP']).trim() || undefined) : existing.alamatKtpAsal,
+      statusRumah: statusRumah || undefined,
       anggotaKeluarga
     };
   };
@@ -1732,6 +1739,11 @@ export default function TagihanWarga({
     const noKk = String(row['Nomor KK'] || '').trim();
     const alamatKtpAsal = String(row['Alamat Asal KTP'] || '').trim();
     
+    const statusRumahRaw = String(row['Status Rumah'] || '').trim().toLowerCase();
+    const statusRumah = statusRumahRaw 
+      ? (statusRumahRaw.includes('sewa') || statusRumahRaw.includes('kontrak') ? 'sewa_kontrak' : (statusRumahRaw.includes('lain') || statusRumahRaw.includes('tumpang') ? 'lainnya' : 'milik_sendiri')) 
+      : 'milik_sendiri';
+
     const rawAnggota = row['Anggota Keluarga'] || row['anggotaKeluarga'] || row['AnggotaKeluarga'];
     const anggotaKeluarga = rawAnggota ? parseAnggotaKeluargaString(String(rawAnggota)) : [];
     
@@ -1756,6 +1768,7 @@ export default function TagihanWarga({
       noKtp: noKtp || undefined,
       noKk: noKk || undefined,
       alamatKtpAsal: alamatKtpAsal || undefined,
+      statusRumah,
       iuranRT,
       anggotaKeluarga
     };
@@ -1815,6 +1828,7 @@ export default function TagihanWarga({
           'Kode / ID (Jangan Diubah)': w.id,
           'Nama Kepala Keluarga': w.nama,
           'Anggota Keluarga': '', // Empty for head of family
+          'Status Rumah': w.statusRumah === 'sewa_kontrak' ? 'Sewa / Kontrak' : (w.statusRumah === 'lainnya' ? 'Lainnya / Menumpang' : 'Milik Sendiri'),
           'Nomor KTP (NIK)': w.noKtp || '',
           'Nomor KK': w.noKk || '',
           'Alamat Asal KTP': w.alamatKtpAsal || '',
@@ -1830,6 +1844,7 @@ export default function TagihanWarga({
               'Kode / ID (Jangan Diubah)': '', // Empty for family member row
               'Nama Kepala Keluarga': m.nama, // Holds family member's name
               'Anggota Keluarga': m.hubungan || 'Lainnya', // Holds relationship
+              'Status Rumah': '',
               'Nomor KTP (NIK)': m.nik || '',
               'Nomor KK': '',
               'Alamat Asal KTP': '',
@@ -2495,6 +2510,7 @@ export default function TagihanWarga({
       kkBase64: newWarga.kkBase64 || undefined,
       ktpNamaFile: newWarga.ktpNamaFile || undefined,
       kkNamaFile: newWarga.kkNamaFile || undefined,
+      statusRumah: newWarga.statusRumah,
       iuranRT: iuranRT,
       anggotaKeluarga: newWarga.anggotaKeluarga || [],
     };
@@ -2513,6 +2529,7 @@ export default function TagihanWarga({
       kkBase64: '', 
       ktpNamaFile: '', 
       kkNamaFile: '',
+      statusRumah: 'milik_sendiri',
       isWargaBaru: false,
       mulaiBulan: 'Maret',
       mulaiTahun: selectedBillingYear || 2026,
@@ -2550,6 +2567,7 @@ export default function TagihanWarga({
           kkBase64: editingWarga.kkBase64 || undefined,
           ktpNamaFile: editingWarga.ktpNamaFile || undefined,
           kkNamaFile: editingWarga.kkNamaFile || undefined,
+          statusRumah: editingWarga.statusRumah,
           anggotaKeluarga: editingWarga.anggotaKeluarga || [],
         };
       }
@@ -4225,6 +4243,19 @@ export default function TagihanWarga({
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1 font-mono">Status Kepemilikan Rumah</label>
+              <select
+                value={newWarga.statusRumah || 'milik_sendiri'}
+                onChange={e => setNewWarga({...newWarga, statusRumah: e.target.value as any})}
+                className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-sm text-slate-950 focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold"
+              >
+                <option value="milik_sendiri">Milik Sendiri (Tidak Sewa)</option>
+                <option value="sewa_kontrak">Sewa / Kontrak</option>
+                <option value="lainnya">Lainnya / Menumpang</option>
+              </select>
+            </div>
+
+            <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1 font-mono">Nomor KTP (16 Digit - Opsional)</label>
               <input 
                 type="text"
@@ -4673,6 +4704,19 @@ export default function TagihanWarga({
                   onChange={e => setEditingWarga({...editingWarga, noWa: e.target.value})}
                   className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-sm text-slate-950 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Status Kepemilikan Rumah</label>
+                <select
+                  value={editingWarga.statusRumah || 'milik_sendiri'}
+                  onChange={e => setEditingWarga({...editingWarga, statusRumah: e.target.value as any})}
+                  className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-sm text-slate-950 focus:ring-2 focus:ring-sky-500 focus:outline-none font-semibold"
+                >
+                  <option value="milik_sendiri">Milik Sendiri (Tidak Sewa)</option>
+                  <option value="sewa_kontrak">Sewa / Kontrak</option>
+                  <option value="lainnya">Lainnya / Menumpang</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -6114,6 +6158,19 @@ export default function TagihanWarga({
                   <Home className="w-3.5 h-3.5 text-sky-550 shrink-0" />
                   Blok {selectedWargaHistory.blok} No. {selectedWargaHistory.noRumah} — RT 08 Perumtas 3
                 </div>
+                {selectedWargaHistory.statusRumah === 'sewa_kontrak' ? (
+                  <div className="text-xs text-amber-600 font-extrabold font-sans flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-amber-50 rounded-lg w-fit border border-amber-200/50">
+                    <span>🏠 Status Rumah: Sewa / Kontrak</span>
+                  </div>
+                ) : selectedWargaHistory.statusRumah === 'lainnya' ? (
+                  <div className="text-xs text-slate-600 font-semibold font-sans flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-slate-100 rounded-lg w-fit border border-slate-200/50">
+                    <span>🏠 Status Rumah: Lainnya / Menumpang</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-sky-600 font-extrabold font-sans flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-sky-50 rounded-lg w-fit border border-sky-150/50">
+                    <span>🏠 Status Rumah: Milik Sendiri (Tidak Sewa)</span>
+                  </div>
+                )}
                 {selectedWargaHistory.noWa && (
                   <div className="text-xs text-emerald-600 font-semibold font-mono flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-emerald-50 rounded-lg w-fit border border-emerald-100/50">
                     <span className="w-1.5 h-1.5 rounded-full shrink-0 block bg-emerald-500 animate-ping"></span>
@@ -7149,6 +7206,19 @@ export default function TagihanWarga({
                               <div className="text-slate-500 text-xs font-mono mt-1 flex items-center gap-1.5 flex-wrap">
                                 <Home className="w-3.5 h-3.5 text-sky-550 shrink-0" />
                                 <span>Blok {w.blok} No. {w.noRumah}</span>
+                                {w.statusRumah === 'sewa_kontrak' ? (
+                                  <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/65 flex items-center gap-0.5 whitespace-nowrap" title="Status: Rumah Sewa / Kontrak">
+                                    🏠 Sewa
+                                  </span>
+                                ) : w.statusRumah === 'lainnya' ? (
+                                  <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200/70 flex items-center gap-0.5 whitespace-nowrap" title="Status: Lainnya / Menumpang">
+                                    🏠 Menumpang
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-sky-600 font-extrabold bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-200/65 flex items-center gap-0.5 whitespace-nowrap" title="Status: Rumah Milik Sendiri (Tidak Sewa)">
+                                    🏠 Milik Sendiri
+                                  </span>
+                                )}
                                 {w.noWa && (
                                   <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100/50 flex items-center gap-0.5 whitespace-nowrap">
                                     ● WA: {w.noWa}
