@@ -534,7 +534,7 @@ export default function Ledger({
     }
   };
 
-  const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser.role === 'bendahara' || currentUser.role === 'sekretaris');
+  const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser.role === 'bendahara' || currentUser.role === 'sekretaris' || currentUser.role === 'audit');
   const canModify = isLoggedIn && currentUser && (currentUser.role === 'admin' || currentUser.role === 'bendahara');
 
   if (!isAuthorized) {

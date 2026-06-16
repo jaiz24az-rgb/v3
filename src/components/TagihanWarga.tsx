@@ -242,6 +242,7 @@ export default function TagihanWarga({
   const [selectedBlock, setSelectedBlock] = useState('Semua');
   const [selectedStatus, setSelectedStatus] = useState('Semua'); // Semua, Lunas, Belum Lunas
   const [selectedBillingYear, setSelectedBillingYear] = useState<number>(2026);
+  const [selectedKeaktifan, setSelectedKeaktifan] = useState<'aktif' | 'nonaktif' | 'pindah_sementara' | 'semua'>('aktif');
 
   // Block management state
   const [showBlockManageModal, setShowBlockManageModal] = useState(false);
@@ -294,6 +295,8 @@ export default function TagihanWarga({
   const [editingRombong, setEditingRombong] = useState<RombongBill | null>(null);
   const [wargaToDelete, setWargaToDelete] = useState<{ id: string, nama: string } | null>(null);
   const [rombongToDelete, setRombongToDelete] = useState<{ id: string, nama: string } | null>(null);
+  const [deleteChoiceWarga, setDeleteChoiceWarga] = useState<'permanen' | 'nonaktif' | 'pindah_sementara'>('nonaktif');
+  const [deleteChoiceRombong, setDeleteChoiceRombong] = useState<'permanen' | 'nonaktif' | 'pindah_sementara'>('nonaktif');
 
   // Warga Payment confirmation state (with year)
   const [payingInfo, setPayingInfo] = useState<{
@@ -2594,6 +2597,12 @@ export default function TagihanWarga({
     setWargaToDelete({ id, nama });
   };
 
+  const handleReactivateWarga = (id: string, nama: string) => {
+    if (!isLoggedIn || currentUser?.role !== 'admin') return;
+    updateWargaList(wargaList.map(w => w.id === id ? { ...w, statusKeaktifan: 'aktif' as any } : w));
+    alert(`Warga "${nama}" berhasil diaktifkan kembali!`);
+  };
+
   // Rombong operations
   const handleAddRombong = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2660,6 +2669,12 @@ export default function TagihanWarga({
   const handleDeleteRombong = (id: string, nama: string) => {
     if (!isLoggedIn || currentUser?.role !== 'admin') return;
     setRombongToDelete({ id, nama });
+  };
+
+  const handleReactivateRombong = (id: string, nama: string) => {
+    if (!isLoggedIn || currentUser?.role !== 'admin') return;
+    updateRombongList(rombongList.map(r => r.id === id ? { ...r, statusKeaktifan: 'aktif' as any } : r));
+    alert(`Lapak Rombong "${nama}" berhasil diaktifkan kembali!`);
   };
 
   // Payment triggers with year compatibility
@@ -3532,6 +3547,12 @@ export default function TagihanWarga({
       return w.id === currentUser.wargaId; // only their own bill
     }
 
+    // Keaktifan filter
+    const keaktifan = w.statusKeaktifan || 'aktif';
+    if (selectedKeaktifan !== 'semua' && keaktifan !== selectedKeaktifan) {
+      return false;
+    }
+
     const matchesSearch = w.nama.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           `${w.blok}-${w.noRumah}`.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesBlock = selectedBlock === 'Semua' || w.blok === selectedBlock;
@@ -3564,6 +3585,12 @@ export default function TagihanWarga({
     }
     if (currentUser?.role === 'rombong') {
       return r.id === currentUser.rombongId; // only their own lapak bill
+    }
+
+    // Keaktifan filter
+    const keaktifan = r.statusKeaktifan || 'aktif';
+    if (selectedKeaktifan !== 'semua' && keaktifan !== selectedKeaktifan) {
+      return false;
     }
 
     const matchesSearch = r.namaPemilik.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -4119,6 +4146,21 @@ export default function TagihanWarga({
                 </select>
               </div>
 
+              {/* Keaktifan / Status Hunian Filter */}
+              <div className="relative w-full md:w-44">
+                <select
+                  value={selectedKeaktifan}
+                  onChange={(e) => setSelectedKeaktifan(e.target.value as any)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
+                  title="Pilih Status Keaktifan / Hunian"
+                >
+                  <option value="aktif">Hunian: Aktif Menempati</option>
+                  <option value="nonaktif">Hunian: Tidak Aktif / Arsip</option>
+                  <option value="pindah_sementara">Hunian: Pindah Sementara</option>
+                  <option value="semua">Hunian: Semua Hunian</option>
+                </select>
+              </div>
+
               {/* Year Filter */}
               <div className="relative w-full md:w-36">
                 <select
@@ -4173,7 +4215,16 @@ export default function TagihanWarga({
                 Cetak Buku Tagihan
               </button>
 
-
+              {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris' || currentUser?.role === 'bendahara') && (
+                <button
+                  onClick={() => activeSubTab === 'warga' ? setShowAddModal(true) : setShowAddRombongModal(true)}
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-4 py-3 rounded-xl transition duration-200 text-sm whitespace-nowrap cursor-pointer flex items-center justify-center gap-1.5 w-full md:w-auto active:scale-95 shadow-xs"
+                  title={activeSubTab === 'warga' ? "Daftarkan Kepala Keluarga Warga Baru Baru" : "Daftarkan Lapak Rombong Kuliner Baru"}
+                >
+                  <UserPlus className="w-4 h-4 shrink-0" />
+                  <span>{activeSubTab === 'warga' ? "Registrasi Warga Baru" : "Registrasi Lapak Baru"}</span>
+                </button>
+              )}
             </div>
 
           </div>
@@ -5079,12 +5130,60 @@ export default function TagihanWarga({
             <div className="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4 text-rose-500">
               <Trash2 className="w-6 h-6 animate-pulse" />
             </div>
-            <h3 className="text-slate-900 font-extrabold text-base mb-2">Hapus Warga dari Database</h3>
-            <p className="text-slate-605 text-xs md:text-sm mb-6 leading-relaxed">
-              Apakah Anda yakin ingin menghapus data warga <strong className="text-slate-900 font-semibold font-mono bg-slate-50 px-1.5 py-0.5 rounded-md">"{wargaToDelete.nama}"</strong> dari database RT 008?
-              <br /><br />
-              <span className="text-emerald-600 font-bold">Pemberitahuan Sistem Keuangan:</span> Tindakan ini <strong>TIDAK</strong> akan memengaruhi atau menghapus riwayat transaksi/pembukuan kas yang sudah tercatat sebelumnya. Pembukuan ledger keuangan serta laporan bulanan dan tahunan tetap utuh, sah, dan tidak berubah.
+            <h3 className="text-slate-900 font-extrabold text-base mb-2">Kelola Hunian / Hapus Warga</h3>
+            <p className="text-slate-605 text-xs mb-4 leading-relaxed">
+              Silakan pilih tindakan pengelolaan untuk warga <strong className="text-slate-900 font-semibold font-mono bg-slate-50 px-1.5 py-0.5 rounded-md">"{wargaToDelete.nama}"</strong>:
             </p>
+
+            <div className="text-left bg-slate-50 border border-slate-150 p-4 rounded-2xl mb-5 space-y-3">
+              <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">Pilihan Tindakan Hunian:</span>
+              
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="radio" 
+                  name="delChoiceW" 
+                  value="nonaktif" 
+                  checked={deleteChoiceWarga === 'nonaktif'}
+                  onChange={() => setDeleteChoiceWarga('nonaktif')}
+                  className="mt-1 h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-300"
+                />
+                <div className="text-xs">
+                  <span className="block font-bold text-slate-800">💤 Nonaktifkan Hunian (Arsip)</span>
+                  <span className="block text-slate-500 leading-normal font-medium text-[10px]">Menandai warga tidak aktif menempati lagi. Riwayat transaksi tetap utuh dan profil dipindahkan ke daftar arsip.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="radio" 
+                  name="delChoiceW" 
+                  value="pindah_sementara" 
+                  checked={deleteChoiceWarga === 'pindah_sementara'}
+                  onChange={() => setDeleteChoiceWarga('pindah_sementara')}
+                  className="mt-1 h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-300"
+                />
+                <div className="text-xs">
+                  <span className="block font-bold text-slate-800">🚚 Pindah Sementara</span>
+                  <span className="block text-slate-500 leading-normal font-medium text-[10px]">Warga pindah keluar sementara waktu. Riwayat kas dan iuran bulanan tetap terjaga dan warga bisa diaktifkan kembali saat menempati lagi.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="radio" 
+                  name="delChoiceW" 
+                  value="permanen" 
+                  checked={deleteChoiceWarga === 'permanen'}
+                  onChange={() => setDeleteChoiceWarga('permanen')}
+                  className="mt-1 h-4 w-4 text-rose-600 focus:ring-rose-500 border-slate-300"
+                />
+                <div className="text-xs">
+                  <span className="block font-bold text-rose-700">🗑️ Hapus Permanen seluruh riwayat</span>
+                  <span className="block text-slate-500 leading-normal font-medium text-[10px]">Menghapus seluruh profil warga secara total dari database beserta semua rekap iurannya.</span>
+                </div>
+              </label>
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setWargaToDelete(null)}
@@ -5094,13 +5193,19 @@ export default function TagihanWarga({
               </button>
               <button
                 onClick={() => {
-                  updateWargaList(wargaList.map(w => w.id === wargaToDelete.id ? { ...w, isDeleted: true } : w));
+                  if (deleteChoiceWarga === 'permanen') {
+                    updateWargaList(wargaList.filter(w => w.id !== wargaToDelete.id));
+                  } else if (deleteChoiceWarga === 'nonaktif') {
+                    updateWargaList(wargaList.map(w => w.id === wargaToDelete.id ? { ...w, statusKeaktifan: 'nonaktif' } : w));
+                  } else {
+                    updateWargaList(wargaList.map(w => w.id === wargaToDelete.id ? { ...w, statusKeaktifan: 'pindah_sementara' } : w));
+                  }
                   setWargaToDelete(null);
                 }}
                 className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs md:text-sm transition cursor-pointer shadow-md"
                 id="confirm-del-warga"
               >
-                Ya, Hapus Warga
+                Proses Tindakan
               </button>
             </div>
           </div>
@@ -5122,12 +5227,60 @@ export default function TagihanWarga({
             <div className="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4 text-rose-500">
               <Trash2 className="w-6 h-6 animate-pulse" />
             </div>
-            <h3 className="text-slate-900 font-extrabold text-base mb-2">Hapus Lapak Rombong</h3>
-            <p className="text-slate-605 text-xs md:text-sm mb-6 leading-relaxed">
-              Apakah Anda yakin ingin menghapus data lapak rombong kuliner milik <strong className="text-slate-900 font-semibold font-mono bg-slate-50 px-1.5 py-0.5 rounded-md">"{rombongToDelete.nama}"</strong> dari database RT 008?
-              <br /><br />
-              <span className="text-emerald-600 font-bold">Pemberitahuan Sistem Keuangan:</span> Tindakan ini <strong>TIDAK</strong> akan memengaruhi atau menghapus riwayat transaksi/pembukuan sewa rombong yang sudah tercatat sebelumnya. Pembukuan ledger keuangan serta laporan bulanan dan tahunan tetap utuh, sah, dan tidak berubah.
+            <h3 className="text-slate-900 font-extrabold text-base mb-2">Kelola Hunian / Hapus Lapak Rombong</h3>
+            <p className="text-slate-605 text-xs mb-4 leading-relaxed">
+              Silakan pilih tindakan pengelolaan untuk lapak rombong milik <strong className="text-slate-900 font-semibold font-mono bg-slate-50 px-1.5 py-0.5 rounded-md">"{rombongToDelete.nama}"</strong>:
             </p>
+
+            <div className="text-left bg-slate-50 border border-slate-150 p-4 rounded-2xl mb-5 space-y-3">
+              <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">Pilihan Tindakan Lapak:</span>
+              
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="radio" 
+                  name="delChoiceR" 
+                  value="nonaktif" 
+                  checked={deleteChoiceRombong === 'nonaktif'}
+                  onChange={() => setDeleteChoiceRombong('nonaktif')}
+                  className="mt-1 h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-300"
+                />
+                <div className="text-xs">
+                  <span className="block font-bold text-slate-800">💤 Nonaktifkan Rombong (Arsip)</span>
+                  <span className="block text-slate-500 leading-normal font-medium text-[10px]">Menandai lapak tidak aktif berjualan lagi. Riwayat transaksi sewa tetap utuh dan profil dipindahkan ke daftar arsip.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="radio" 
+                  name="delChoiceR" 
+                  value="pindah_sementara" 
+                  checked={deleteChoiceRombong === 'pindah_sementara'}
+                  onChange={() => setDeleteChoiceRombong('pindah_sementara')}
+                  className="mt-1 h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-300"
+                />
+                <div className="text-xs">
+                  <span className="block font-bold text-slate-800">🚚 Pindah Sementara</span>
+                  <span className="block text-slate-500 leading-normal font-medium text-[10px]">Lapak pindah/tutup sementara waktu. Riwayat kas dan iuran rombong tetap terjagakan dan lapak bisa diaktifkan kembali saat ingin aktif lagi.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input 
+                  type="radio" 
+                  name="delChoiceR" 
+                  value="permanen" 
+                  checked={deleteChoiceRombong === 'permanen'}
+                  onChange={() => setDeleteChoiceRombong('permanen')}
+                  className="mt-1 h-4 w-4 text-rose-600 focus:ring-rose-500 border-slate-300"
+                />
+                <div className="text-xs">
+                  <span className="block font-bold text-rose-700">🗑️ Hapus Permanen seluruh riwayat</span>
+                  <span className="block text-slate-500 leading-normal font-medium text-[10px]">Menghapus seluruh profil lapak secara total dari database beserta semua rekap iurannya.</span>
+                </div>
+              </label>
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setRombongToDelete(null)}
@@ -5137,13 +5290,19 @@ export default function TagihanWarga({
               </button>
               <button
                 onClick={() => {
-                  updateRombongList(rombongList.map(r => r.id === rombongToDelete.id ? { ...r, isDeleted: true } : r));
+                  if (deleteChoiceRombong === 'permanen') {
+                    updateRombongList(rombongList.filter(r => r.id !== rombongToDelete.id));
+                  } else if (deleteChoiceRombong === 'nonaktif') {
+                    updateRombongList(rombongList.map(r => r.id === rombongToDelete.id ? { ...r, statusKeaktifan: 'nonaktif' } : r));
+                  } else {
+                    updateRombongList(rombongList.map(r => r.id === rombongToDelete.id ? { ...r, statusKeaktifan: 'pindah_sementara' } : r));
+                  }
                   setRombongToDelete(null);
                 }}
                 className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs md:text-sm transition cursor-pointer shadow-md"
                 id="confirm-del-rombong"
               >
-                Ya, Hapus Rombong
+                Proses Tindakan
               </button>
             </div>
           </div>
@@ -7219,6 +7378,17 @@ export default function TagihanWarga({
                                     🏠 Milik Sendiri
                                   </span>
                                 )}
+
+                                {w.statusKeaktifan === 'nonaktif' && (
+                                  <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-300 flex items-center gap-0.5 whitespace-nowrap animate-in fade-in" title="Status Hunian: Tidak Aktif / Arsip">
+                                    💤 Tidak Aktif (Arsip)
+                                  </span>
+                                )}
+                                {w.statusKeaktifan === 'pindah_sementara' && (
+                                  <span className="text-[10px] text-indigo-600 font-extrabold bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-300 flex items-center gap-0.5 whitespace-nowrap animate-in fade-in" title="Status Hunian: Pindah Sementara">
+                                    🚚 Pindah Sementara
+                                  </span>
+                                )}
                                 {w.noWa && (
                                   <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100/50 flex items-center gap-0.5 whitespace-nowrap">
                                     ● WA: {w.noWa}
@@ -7328,13 +7498,24 @@ export default function TagihanWarga({
                               <Edit2 className="w-4 h-4" />
                             </button>
                             {currentUser?.role === 'admin' && (
-                              <button
-                                onClick={() => handleDeleteWarga(w.id, w.nama)}
-                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                                title="Hapus warga dari daftar"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => handleDeleteWarga(w.id, w.nama)}
+                                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                  title="Hapus warga dari daftar"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                                {w.statusKeaktifan && w.statusKeaktifan !== 'aktif' && (
+                                  <button
+                                    onClick={() => handleReactivateWarga(w.id, w.nama)}
+                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer animate-in fade-in"
+                                    title="Aktifkan kembali hunian warga ini"
+                                  >
+                                    <RotateCcw className="w-4 h-4 text-emerald-650 animate-spin" style={{ animationIterationCount: 1, animationDuration: '0.8s' }} />
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
                         </td>
@@ -7424,6 +7605,16 @@ export default function TagihanWarga({
                               <div className="text-slate-500 text-xs font-mono mt-1 flex items-center gap-1.5 flex-wrap">
                                 <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                                 <span>{r.noLapak} — <span className="opacity-90">{r.lokasi}</span></span>
+                                {r.statusKeaktifan === 'nonaktif' && (
+                                  <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-300 flex items-center gap-0.5 whitespace-nowrap animate-in fade-in" title="Status Lapak: Tidak Aktif / Arsip">
+                                    💤 Tidak Aktif (Arsip)
+                                  </span>
+                                )}
+                                {r.statusKeaktifan === 'pindah_sementara' && (
+                                  <span className="text-[10px] text-indigo-600 font-extrabold bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-300 flex items-center gap-0.5 whitespace-nowrap animate-in fade-in" title="Status Lapak: Pindah Sementara">
+                                    🚚 Pindah Sementara
+                                  </span>
+                                )}
                                 {r.noWa && (
                                   <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100/50 flex items-center gap-0.5 whitespace-nowrap">
                                     ● WA: {r.noWa}
@@ -7535,13 +7726,24 @@ export default function TagihanWarga({
                               <Edit2 className="w-4 h-4" />
                             </button>
                             {currentUser?.role === 'admin' && (
-                              <button
-                                onClick={() => handleDeleteRombong(r.id, r.namaPemilik)}
-                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                                title="Hapus rombong dari daftar"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => handleDeleteRombong(r.id, r.namaPemilik)}
+                                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                  title="Hapus rombong dari daftar"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                                {r.statusKeaktifan && r.statusKeaktifan !== 'aktif' && (
+                                  <button
+                                    onClick={() => handleReactivateRombong(r.id, r.namaPemilik)}
+                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer animate-in fade-in"
+                                    title="Aktifkan kembali lapak rombong ini"
+                                  >
+                                    <RotateCcw className="w-4 h-4 text-emerald-650 animate-spin" style={{ animationIterationCount: 1, animationDuration: '0.8s' }} />
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
                         </td>

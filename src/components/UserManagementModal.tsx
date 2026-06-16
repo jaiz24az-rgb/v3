@@ -34,7 +34,7 @@ export default function UserManagementModal({
   const [formUsername, setFormUsername] = useState('');
   const [formPin, setFormPin] = useState('');
   const [formNama, setFormNama] = useState('');
-  const [formRole, setFormRole] = useState<'admin' | 'bendahara' | 'warga' | 'rombong' | 'kolektor' | 'sekretaris'>('bendahara');
+  const [formRole, setFormRole] = useState<'admin' | 'bendahara' | 'warga' | 'rombong' | 'kolektor' | 'sekretaris' | 'audit'>('bendahara');
   const [formWargaId, setFormWargaId] = useState('');
   const [formRombongId, setFormRombongId] = useState('');
 
@@ -229,7 +229,7 @@ export default function UserManagementModal({
                     if (newRole !== 'rombong') setFormRombongId('');
                   }}
                   disabled={currentUser?.role !== 'admin' || editingUser?.id === 'usr-1'}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 font-sans font-semibold disabled:bg-slate-100 disabled:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-550 focus:outline-none focus:ring-2 focus:ring-sky-500 font-sans font-semibold disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="bendahara">Bendahara (Hanya Pencatat Keuangan)</option>
                   <option value="admin">Administrator (Akses Penuh &amp; Kelola User)</option>
@@ -237,6 +237,7 @@ export default function UserManagementModal({
                   <option value="kolektor">Kolektor Iuran (Hanya Lihat Saldo Tunai Kolektif)</option>
                   <option value="warga">Warga RT 08 (Hanya Lihat Tagihan Sendiri)</option>
                   <option value="rombong">Rombong/Pedagang (Hanya Lihat Rombong Sendiri)</option>
+                  <option value="audit">Audit (Bisa Lihat Semua Keuangan, Tanpa Input/Edit/Hapus)</option>
                 </select>
               </div>
 
@@ -411,9 +412,11 @@ export default function UserManagementModal({
                           ? 'bg-purple-50 border border-purple-200 text-purple-700'
                           : u.role === 'warga'
                           ? 'bg-sky-50 border border-sky-200 text-sky-700'
+                          : u.role === 'audit'
+                          ? 'bg-rose-50 border border-rose-200 text-rose-700'
                           : 'bg-amber-50 border border-amber-200 text-amber-700'
                       }`}>
-                        {u.role === 'admin' ? 'Admin' : u.role === 'bendahara' ? 'Bendahara' : u.role === 'sekretaris' ? 'Sekretaris' : u.role === 'kolektor' ? 'Kolektor' : u.role === 'warga' ? 'Warga' : 'Rombong'}
+                        {u.role === 'admin' ? 'Admin' : u.role === 'bendahara' ? 'Bendahara' : u.role === 'sekretaris' ? 'Sekretaris' : u.role === 'kolektor' ? 'Kolektor' : u.role === 'warga' ? 'Warga' : u.role === 'audit' ? 'Audit' : 'Rombong'}
                       </span>
                     </td>
                     <td className="p-3 text-right">

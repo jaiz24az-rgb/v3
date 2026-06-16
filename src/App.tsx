@@ -1865,9 +1865,11 @@ export default function App() {
                       ? 'bg-emerald-100 border border-emerald-250 text-emerald-800'
                       : currentUser?.role === 'sekretaris'
                       ? 'bg-teal-100 border border-teal-200 text-teal-850'
+                      : currentUser?.role === 'audit'
+                      ? 'bg-rose-100 border border-rose-200 text-rose-800'
                       : 'bg-purple-100 border border-purple-200 text-purple-800'
                   }`}>
-                    {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'bendahara' ? 'Bendahara' : currentUser?.role === 'sekretaris' ? 'Sekretaris' : 'Kolektor'}
+                    {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'bendahara' ? 'Bendahara' : currentUser?.role === 'sekretaris' ? 'Sekretaris' : currentUser?.role === 'audit' ? 'Audit' : 'Kolektor'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
@@ -1877,6 +1879,8 @@ export default function App() {
                     ? 'Akses Pencatat (Bendahara): Anda diizinkan melakukan pencatatan buku kas masuk/keluar serta memperbarui status iuran warga.'
                     : currentUser?.role === 'sekretaris'
                     ? 'Akses Sekretariat (Batas Keuangan): Anda berwenang meregistrasi warga, mencetak rekap, mengelola & mengunggah berkas KTP/KK secara penuh.'
+                    : currentUser?.role === 'audit'
+                    ? 'Akses Pengawas (Audit): Anda diizinkan memantau seluruh kas, laporan keuangan, ledger, dan iuran warga secara menyeluruh (Baca-Saja).'
                     : 'Akses Penagihan (Kolektor Iuran): Anda diizinkan melihat saldo tunai hasil kolektif iuran warga/rombong, serta mencatat pelunasan iuran bulanan.'}
                 </p>
               </div>
@@ -2110,7 +2114,7 @@ export default function App() {
           </button>
 
           {/* Buku Kas Ledger Button */}
-          {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris') && (
+          {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris' || currentUser?.role === 'audit') && (
             <button 
               onClick={() => setActiveTab('buku_kas')}
               className={`flex-1 py-1.5 px-1 sm:py-3 sm:px-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer ${

@@ -42,6 +42,7 @@ export interface WargaBill {
   noRumah: string;
   noWa?: string; // WhatsApp number for billing
   isDeleted?: boolean;
+  statusKeaktifan?: 'aktif' | 'nonaktif' | 'pindah_sementara';
   noKtp?: string; // KTP Number (16 digits)
   noKk?: string;  // KK Number (16 digits)
   alamatKtpAsal?: string; // Original address as shown on KTP
@@ -76,6 +77,7 @@ export interface RombongBill {
   noLapak: string;
   noWa?: string; // WhatsApp number for billing
   isDeleted?: boolean;
+  statusKeaktifan?: 'aktif' | 'nonaktif' | 'pindah_sementara';
   fotoBase64?: string; // Rombong photo Base64 data code
   fotoNamaFile?: string; // Rombong photo original file name
   iuranRombong: { 
@@ -96,7 +98,7 @@ export interface AppUser {
   id: string;
   username: string;
   pin: string; // PIN or Password
-  role: 'admin' | 'bendahara' | 'warga' | 'rombong' | 'kolektor' | 'sekretaris';
+  role: 'admin' | 'bendahara' | 'warga' | 'rombong' | 'kolektor' | 'sekretaris' | 'audit';
   nama: string;
   wargaId?: string;
   rombongId?: string;

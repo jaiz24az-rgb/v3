@@ -96,7 +96,7 @@ export default function Dashboard({
     };
   }, [ledger]);
 
-  const isAdminOrTreasurerOrSecretary = currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris';
+  const isAdminOrTreasurerOrSecretary = currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris' || currentUser?.role === 'audit';
   const activeKas = isAdminOrTreasurerOrSecretary ? derivedKas : kas;
 
   const colBalancesRT = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rtTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
@@ -142,7 +142,7 @@ export default function Dashboard({
   };
 
   const startEdit = (key: keyof Balance) => {
-    if (!isLoggedIn || currentUser?.role === 'sekretaris' || currentUser?.role === 'kolektor') return;
+    if (!isLoggedIn || currentUser?.role === 'sekretaris' || currentUser?.role === 'kolektor' || currentUser?.role === 'audit') return;
     setEditingKey(key);
     setEditingValue(kas[key].toString());
   };
@@ -405,22 +405,26 @@ export default function Dashboard({
           </div>
 
           {/* Quick Actions or Kolektor/Sekretaris Info */}
-          {isKolektor || (isLoggedIn && currentUser?.role === 'sekretaris') ? (
+          {isKolektor || (isLoggedIn && (currentUser?.role === 'sekretaris' || currentUser?.role === 'audit')) ? (
             <div className={`p-3.5 border rounded-2xl text-xs max-w-md flex items-start gap-2.5 ${
               currentUser?.role === 'sekretaris'
                 ? 'bg-sky-500/10 border-sky-500/20 text-sky-200'
+                : currentUser?.role === 'audit'
+                ? 'bg-rose-500/10 border-rose-500/20 text-rose-200'
                 : 'bg-purple-500/10 border-purple-500/20 text-purple-200'
             }`}>
               <AlertCircle className={`w-4 h-4 shrink-0 mt-0.5 ${
-                currentUser?.role === 'sekretaris' ? 'text-sky-400' : 'text-purple-400'
+                currentUser?.role === 'sekretaris' ? 'text-sky-450' : currentUser?.role === 'audit' ? 'text-rose-400' : 'text-purple-400'
               }`} />
               <div>
                 <span className="font-extrabold block">
-                  {currentUser?.role === 'sekretaris' ? 'Akses Khusus Sekretaris (Baca-Saja)' : isKolektor2 ? 'Akses Khusus Kolektor Sewa Rombong' : 'Akses Khusus Kolektor'}
+                  {currentUser?.role === 'sekretaris' ? 'Akses Khusus Sekretaris (Baca-Saja)' : currentUser?.role === 'audit' ? 'Akses Khusus Audit (Baca-Saja)' : isKolektor2 ? 'Akses Khusus Kolektor Sewa Rombong' : 'Akses Khusus Kolektor'}
                 </span>
                 <span className="opacity-95 block text-[11px] mt-0.5 leading-relaxed">
                   {currentUser?.role === 'sekretaris'
                     ? 'Peran Sekretaris diizinkan untuk melihat rekap buku kas & keuangan RT secara menyeluruh. Namun, kewenangan menambah kas, mencatatkan mutasi, dan penyesuaian saldo dinonaktifkan.'
+                    : currentUser?.role === 'audit'
+                    ? 'Peran Audit diizinkan untuk memantau dan mengaudit seluruh kas, mutasi, laporan keuangan, dan rekap detail iuran secara menyeluruh (Baca-Saja).'
                     : isKolektor2
                     ? 'Peran Kolektor Sewa Rombong diizinkan untuk melihat, menampung, dan menyerahkan uang setoran Sewa Rombong. Akses pada iuran warga RT dinonaktifkan.'
                     : 'Peran Kolektor diizinkan untuk melihat saldo tunai hasil iuran warga/rombong sebelum/sesudah disetor ke bank. Pencatatan ledger umum & buku kas dinonaktifkan.'}
