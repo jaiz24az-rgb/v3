@@ -30,15 +30,87 @@ export function isPenarikanKolektor(entry: LedgerEntry): boolean {
 
 export function cleanName(name: string): string {
   if (!name) return '';
-  return name
+  const cleaned = name
     .toLowerCase()
     .replace(/^(bapak|bp\.|ibu|mas|mbak|pak|bu)\s+/i, '')
     .replace(/\s*\(.*?\)\s*/g, '') // remove parenthetical like (Kolektor), (Admin)
     .trim();
+  return cleaned || name.toLowerCase().replace(/[()]/g, '').trim();
+}
+
+export function resolveCollectorId(nameOrId: string): string | null {
+  if (!nameOrId) return null;
+  const clean = nameOrId.toLowerCase().replace(/[()]/g, '').trim();
+  
+  // Sektor Rombong
+  if (
+    clean === 'kolektor2' ||
+    clean.includes('kolektor sewa rombong') ||
+    clean.includes('kolektor rombong') ||
+    clean.includes('rombong kuliner') ||
+    (clean.includes('rombong') && !clean.includes('rt'))
+  ) {
+    return 'Kolektor2';
+  }
+
+  // Sektor RT / Iuran RT
+  if (
+    clean === 'kolektor' ||
+    clean.includes('wirin') ||
+    clean.includes('kolektor iuran rt') ||
+    clean.includes('kolektor iuran') ||
+    clean.includes('bowo santoso') ||
+    clean.includes('iuran rt')
+  ) {
+    return 'kolektor';
+  }
+
+  return null;
+}
+
+export function isPenarikanForCollector(desc: string, colId: string, collectorName: string): boolean {
+  const cleanDesc = desc.toLowerCase();
+  const targetColId = resolveCollectorId(colId) || colId.toLowerCase().trim();
+
+  if (targetColId === 'Kolektor2') {
+    // Sector Rombong
+    return (
+      cleanDesc.includes('sewa rombong') ||
+      cleanDesc.includes('rombong') ||
+      cleanDesc.includes('kolektor2')
+    );
+  }
+
+  if (targetColId === 'kolektor') {
+    // Sector RT
+    return (
+      cleanDesc.includes('iuran rt') ||
+      cleanDesc.includes('rt 08') ||
+      cleanDesc.includes('wirin') ||
+      cleanDesc.includes('bowo') ||
+      cleanDesc.includes('kolektor iuran') ||
+      (cleanDesc.includes('kolektor') && !cleanDesc.includes('rombong'))
+    );
+  }
+
+  // Fallback to substring matching if it is some other custom collector
+  const cleanC = cleanName(collectorName);
+  const cleanId = cleanName(colId);
+  return (
+    (cleanC && cleanDesc.includes(cleanC)) ||
+    (cleanId && cleanDesc.includes(cleanId))
+  );
 }
 
 export function isCollectorMatch(entryPetugas: string, colId: string, collectorName: string): boolean {
   if (!entryPetugas || !colId) return false;
+
+  const resolvedEntry = resolveCollectorId(entryPetugas);
+  const resolvedTarget = resolveCollectorId(colId);
+
+  if (resolvedEntry && resolvedTarget) {
+    return resolvedEntry === resolvedTarget;
+  }
 
   const pClean = cleanName(entryPetugas);
   const cClean = cleanName(collectorName);
@@ -84,9 +156,6 @@ export function getCollectorBalancesForPeriod(
 ): CollectorBalanceInfo {
   if (!colId) return { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
 
-  const cleanCollectorName = cleanName(collectorName);
-  const cleanCollectorId = cleanName(colId);
-
   // Filter by period if specified
   const filteredLedger = ledger.filter(entry => {
     // entry.tanggal format: "YYYY-MM-DD"
@@ -116,11 +185,7 @@ export function getCollectorBalancesForPeriod(
   // Calculate penarikans
   const collectorPenarikans = filteredLedger.filter(entry => {
     if (!isPenarikanKolektor(entry) || entry.sumberKas !== sector) return false;
-    const cleanEntryDesc = cleanName(entry.deskripsi);
-    return (
-      (cleanCollectorName && cleanEntryDesc.includes(cleanCollectorName)) ||
-      (cleanCollectorId && cleanEntryDesc.includes(cleanCollectorId))
-    );
+    return isPenarikanForCollector(entry.deskripsi, colId, collectorName);
   });
   const totalPenarikan = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
 

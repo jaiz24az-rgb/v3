@@ -56,11 +56,48 @@ export default function Dashboard({
     currentUser.nama.toLowerCase().includes('kolektor2')
   );
 
+  // Precompute derived cash balances from the ledger entries (the ultimate truth of real transactional flows)
+  const derivedKas = React.useMemo(() => {
+    let rtTunai = 0;
+    let rtPettyCash = 0;
+    let rtBank = 0;
+    let rombongTunai = 0;
+    let rombongBank = 0;
+
+    ledger.forEach(item => {
+      const val = item.jumlah;
+      const isPemasukan = item.tipe === 'pemasukan';
+      
+      if (item.sumberKas === 'rtTunai') {
+        rtTunai += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rtPettyCash') {
+        rtPettyCash += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rtBank') {
+        rtBank += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rombongTunai') {
+        rombongTunai += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rombongBank') {
+        rombongBank += isPemasukan ? val : -val;
+      }
+    });
+
+    return {
+      rtTunai,
+      rtPettyCash,
+      rtBank,
+      rombongTunai,
+      rombongBank
+    };
+  }, [ledger]);
+
+  const isAdminOrTreasurerOrSecretary = currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris';
+  const activeKas = isAdminOrTreasurerOrSecretary ? derivedKas : kas;
+
   const colBalancesRT = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rtTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
   const colBalancesRombong = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rombongTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
 
-  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (kas.rtTunai + kas.rtPettyCash + kas.rtBank));
-  const totalRombong = isKolektor ? colBalancesRombong.remaining : (kas.rombongTunai + kas.rombongBank);
+  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (activeKas.rtTunai + activeKas.rtPettyCash + activeKas.rtBank));
+  const totalRombong = isKolektor ? colBalancesRombong.remaining : (activeKas.rombongTunai + activeKas.rombongBank);
   const totalKeseluruhan = totalRT + totalRombong;
 
   // Manual Balance Editing state
@@ -137,7 +174,7 @@ export default function Dashboard({
       const parsedAmount = parseFloat(newTx.jumlah);
       if (!newTx.deskripsi || isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      if (newTx.tipe === 'pengeluaran' && kas[newTx.sumberKas] < parsedAmount) {
+      if (newTx.tipe === 'pengeluaran' && activeKas[newTx.sumberKas] < parsedAmount) {
         alert(`Peringatan: Saldo ${kasLabels[newTx.sumberKas].label} tidak mencukupi untuk transaksi ini!`);
         return;
       }
@@ -183,8 +220,8 @@ export default function Dashboard({
       const sourceKas: keyof Balance = sectorSetor === 'rt' ? 'rtTunai' : 'rombongTunai';
       const targetKas: keyof Balance = sectorSetor === 'rt' ? 'rtBank' : 'rombongBank';
 
-      if (kas[sourceKas] < parsedAmount) {
-        alert(`Peringatan: Saldo ${kasLabels[sourceKas].label} (Rp ${kas[sourceKas].toLocaleString('id-ID')}) tidak mencukupi untuk disetorkan ke bank sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
+      if (activeKas[sourceKas] < parsedAmount) {
+        alert(`Peringatan: Saldo ${kasLabels[sourceKas].label} (Rp ${activeKas[sourceKas].toLocaleString('id-ID')}) tidak mencukupi untuk disetorkan ke bank sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
@@ -227,8 +264,8 @@ export default function Dashboard({
       const parsedAmount = parseFloat(newTx.jumlah);
       if (!newTx.deskripsi || isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      if (newTx.tipe === 'pengeluaran' && kas.rtPettyCash < parsedAmount) {
-        alert(`Peringatan: Saldo Petty Cash (Rp ${kas.rtPettyCash.toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
+      if (newTx.tipe === 'pengeluaran' && activeKas.rtPettyCash < parsedAmount) {
+        alert(`Peringatan: Saldo Petty Cash (Rp ${activeKas.rtPettyCash.toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
@@ -272,8 +309,8 @@ export default function Dashboard({
       const sourceKas: keyof Balance = bankType === 'bank_ke_petty' ? 'rtBank' : 'rtPettyCash';
       const targetKas: keyof Balance = bankType === 'bank_ke_petty' ? 'rtPettyCash' : 'rtBank';
 
-      if (kas[sourceKas] < parsedAmount) {
-        alert(`Peringatan: Saldo ${kasLabels[sourceKas].label} (Rp ${kas[sourceKas].toLocaleString('id-ID')}) tidak mencukupi untuk transfer/mutasi sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
+      if (activeKas[sourceKas] < parsedAmount) {
+        alert(`Peringatan: Saldo ${kasLabels[sourceKas].label} (Rp ${activeKas[sourceKas].toLocaleString('id-ID')}) tidak mencukupi untuk transfer/mutasi sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
@@ -557,7 +594,7 @@ export default function Dashboard({
                         }`}
                       >
                         RT (Tunai ➔ Bank)
-                        <div className="text-[10px] opacity-75 font-mono">Sisa Tunai: Rp {kas.rtTunai.toLocaleString('id-ID')}</div>
+                        <div className="text-[10px] opacity-75 font-mono">Sisa Tunai: Rp {activeKas.rtTunai.toLocaleString('id-ID')}</div>
                       </button>
                       <button
                         type="button"
@@ -569,7 +606,7 @@ export default function Dashboard({
                         }`}
                       >
                         Rombong (Tunai ➔ Bank)
-                        <div className="text-[10px] opacity-75 font-mono">Sisa Tunai: Rp {kas.rombongTunai.toLocaleString('id-ID')}</div>
+                        <div className="text-[10px] opacity-75 font-mono">Sisa Tunai: Rp {activeKas.rombongTunai.toLocaleString('id-ID')}</div>
                       </button>
                     </div>
                   </div>
@@ -651,7 +688,7 @@ export default function Dashboard({
                   <div>
                     <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Akun Kas Petty Cash (Terkunci)</label>
                     <div className="w-full bg-slate-100 border border-slate-250 rounded-xl px-3.5 py-3 text-xs text-slate-600 font-bold font-mono">
-                      [RT] RT Petty Cash (Sisa Terakhir: Rp {kas.rtPettyCash.toLocaleString('id-ID')})
+                      [RT] RT Petty Cash (Sisa Terakhir: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')})
                     </div>
                   </div>
 
@@ -775,7 +812,7 @@ export default function Dashboard({
                     }`}
                   >
                     📥 Tarik Bank ➔ Isi Petty Cash
-                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Bank: Rp {kas.rtBank.toLocaleString('id-ID')}</div>
+                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Bank: Rp {activeKas.rtBank.toLocaleString('id-ID')}</div>
                   </button>
                   <button
                     type="button"
@@ -787,7 +824,7 @@ export default function Dashboard({
                     }`}
                   >
                     📤 Setor Sisa Petty Cash ➔ Bank
-                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Petty: Rp {kas.rtPettyCash.toLocaleString('id-ID')}</div>
+                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Petty: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
                   </button>
                 </div>
 
@@ -878,7 +915,7 @@ export default function Dashboard({
                     >
                       {Object.entries(kasLabels).map(([key, item]) => (
                         <option key={key} value={key}>
-                          [{item.group}] {item.label} (Sisa: Rp {kas[key as keyof Balance].toLocaleString('id-ID')})
+                          [{item.group}] {item.label} (Sisa: Rp {activeKas[key as keyof Balance].toLocaleString('id-ID')})
                         </option>
                       ))}
                     </select>
