@@ -102,7 +102,7 @@
         "id": { "type": "string" },
         "username": { "type": "string" },
         "pin": { "type": "string" },
-        "role": { "type": "string", "enum": ["admin", "bendahara", "warga", "rombong", "kolektor", "sekretaris"] },
+        "role": { "type": "string", "enum": ["admin", "bendahara", "warga", "rombong", "kolektor", "sekretaris", "audit"] },
         "nama": { "type": "string" },
         "wargaId": { "type": "string" },
         "rombongId": { "type": "string" }

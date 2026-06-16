@@ -119,7 +119,7 @@ service cloud.firestore {
       return (!('id' in data) || data.id is string)
         && (!('username' in data) || data.username is string)
         && (!('pin' in data) || (data.pin is string && data.pin.size() <= 100))
-        && (!('role' in data) || (data.role is string && (data.role == 'admin' || data.role == 'bendahara' || data.role == 'kolektor' || data.role == 'warga' || data.role == 'rombong' || data.role == 'sekretaris')))
+        && (!('role' in data) || (data.role is string && (data.role == 'admin' || data.role == 'bendahara' || data.role == 'kolektor' || data.role == 'warga' || data.role == 'rombong' || data.role == 'sekretaris' || data.role == 'audit')))
         && (!('nama' in data) || (data.nama is string && data.nama.size() <= 200))
         && (!('wargaId' in data) || data.wargaId is string)
         && (!('rombongId' in data) || data.rombongId is string);
