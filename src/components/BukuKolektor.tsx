@@ -319,47 +319,47 @@ export default function BukuKolektor({
   };
 
   return (
-    <div className="space-y-6" id="buku-kolektor-container">
+    <div className="space-y-4" id="buku-kolektor-container">
       
-      {/* Premium Header Banner */}
-      <div className="bg-gradient-to-br from-purple-700 via-indigo-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/10 border border-indigo-700/30">
-        <div className="absolute top-0 right-0 -transtale-y-1/3 translate-x-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Premium Header Banner - Compacted */}
+      <div className="bg-gradient-to-br from-purple-700 via-indigo-800 to-slate-900 rounded-2xl p-4 sm:p-5 text-white relative overflow-hidden shadow-lg border border-indigo-700/30">
+        <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/4 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <span className="inline-flex items-center gap-1.5 bg-purple-550/20 border border-purple-400/30 text-purple-200 px-3 py-1 rounded-full text-[10px] tracking-widest font-mono font-bold uppercase">
-              <ClipboardCheck className="w-3.5 h-3.5" />
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1 bg-purple-550/20 border border-purple-400/30 text-purple-200 px-2 rounded-full text-[9px] tracking-widest font-mono font-bold uppercase py-0.5">
+              <ClipboardCheck className="w-3 h-3" />
               Reconciliation &amp; Audit Tool
             </span>
-            <h1 className="text-3xl font-extrabold tracking-tight">Buku Validasi Kolektor &amp; Bendahara</h1>
-            <p className="text-slate-200 text-xs md:text-sm max-w-2xl leading-relaxed font-sans">
-              Lembar kerja pengawasan bersama untuk menyinkronkan total penerimaan iuran secara <strong>Tunai (Fisik)</strong> dan transfer <strong>Bank (QRIS)</strong>. Membantu memantau sisa tunai di tangan kolektor hingga penarikan kas utama oleh bendahara sebelum didepositokan ke bank.
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Validasi Kolektor &amp; Bendahara</h1>
+            <p className="text-slate-350 text-[11px] max-w-2xl leading-normal font-sans">
+              Lembar kerja pengawasan bersama untuk menyinkronkan pelunasan iuran <strong>Tunai (Fisik)</strong> dan transfer <strong>Bank (QRIS)</strong>. Membantu memantau sisa tunai di tangan kolektor hingga penarikan kas oleh bendahara.
             </p>
           </div>
 
-          {/* Quick Info Box */}
-          <div className="bg-white/10 backdrop-blur-xs border border-white/20 p-4 rounded-2xl flex items-center gap-3 shrink-0 self-start md:self-center">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-700">
-              <BookOpen className="w-5 h-5" />
+          {/* Quick Info Box - Compact */}
+          <div className="bg-white/10 backdrop-blur-xs border border-white/20 p-2.5 rounded-xl flex items-center gap-2 shrink-0 self-start md:self-center">
+            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
+              <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-purple-250 font-mono uppercase tracking-wider">Peran Pengguna</p>
-              <p className="text-sm font-bold text-white leading-tight">
+              <p className="text-[9px] font-semibold text-purple-250 font-mono uppercase tracking-wider leading-none">Peran Pengguna</p>
+              <p className="text-xs font-bold text-white leading-tight mt-0.5">
                 {currentUser?.nama || 'Petugas Tamu'} 
               </p>
-              <span className="text-[9.5px] bg-purple-600 border border-purple-500 text-purple-100 font-extrabold px-1.5 py-0.25 rounded-md uppercase font-mono tracking-wider inline-block mt-0.5">
+              <span className="text-[8.5px] bg-purple-600 border border-purple-500 text-purple-100 font-bold px-1 py-0.25 rounded-md uppercase font-mono tracking-wider inline-block mt-0.5 leading-none">
                 {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'bendahara' ? 'Bendahara' : currentUser?.role === 'kolektor' ? 'Kolektor' : 'Saksi'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Dynamic Filters Bar */}
-        <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 items-center justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 bg-slate-800/40 border border-white/15 px-3 py-1.5 rounded-xl text-xs text-slate-100 font-mono">
-              <Filter className="w-3.5 h-3.5 text-slate-300" />
+        {/* Dynamic Filters Bar - Compact */}
+        <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 bg-slate-800/40 border border-white/15 px-2 py-1 rounded-lg text-[10px] text-slate-200 font-mono">
+              <Filter className="w-3 h-3 text-slate-300" />
               <span>Saring Data:</span>
             </div>
 
@@ -367,7 +367,7 @@ export default function BukuKolektor({
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-              className="bg-white border border-slate-200 text-slate-900 font-bold text-xs py-2 px-3 px-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono cursor-pointer transition hover:bg-slate-50"
+              className="bg-white border border-slate-200 text-slate-900 font-bold text-[11px] py-1 px-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400 font-mono cursor-pointer transition hover:bg-slate-50"
             >
               {yearsList.map(y => (
                 <option key={y} value={y} className="bg-white text-slate-900 font-mono">{y} Masehi</option>
@@ -378,7 +378,7 @@ export default function BukuKolektor({
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value === 'semua' ? 'semua' : parseInt(e.target.value, 10))}
-              className="bg-white border border-slate-200 text-slate-900 font-bold text-xs py-2 px-3 px-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 font-sans cursor-pointer transition hover:bg-slate-50"
+              className="bg-white border border-slate-200 text-slate-900 font-bold text-[11px] py-1 px-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400 font-sans cursor-pointer transition hover:bg-slate-50"
             >
               <option value="semua" className="bg-white text-slate-900 font-sans font-bold">Semua Bulan Kumulatif</option>
               {INDONESIAN_MONTHS.map(m => (
@@ -392,20 +392,20 @@ export default function BukuKolektor({
             {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
               <button
                 onClick={() => setShowDrawForm(!showDrawForm)}
-                className="bg-purple-600 hover:bg-purple-700 text-white border border-purple-550 active:scale-95 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                className="bg-purple-600 hover:bg-purple-700 text-white border border-purple-550 active:scale-95 px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1"
               >
-                <Coins className="w-4 h-4" />
-                <span>{showDrawForm ? 'Tutup Form Tarik Dana' : 'Tarik Tunai dari Kolektor'}</span>
+                <Coins className="w-3.5 h-3.5" />
+                <span>{showDrawForm ? 'Tutup Form' : 'Tarik Tunai dari Kolektor'}</span>
               </button>
             )}
 
             {verifiedIds.length > 0 && (
               <button
                 onClick={clearAllVerified}
-                className="flex items-center gap-1.5 hover:bg-white/10 text-white border border-white/10 active:scale-95 px-3.5 py-1.5 rounded-xl text-xs font-semibold font-mono transition cursor-pointer"
+                className="flex items-center gap-1 hover:bg-white/10 text-white border border-white/10 active:scale-95 px-2.5 py-1 rounded-lg text-[10px] font-semibold font-mono transition cursor-pointer"
                 title="Reset Tanda Verifikasi di Browser Ini"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3" />
                 <span>Reset Validasi ({verifiedIds.length})</span>
               </button>
             )}
@@ -413,10 +413,112 @@ export default function BukuKolektor({
         </div>
       </div>
 
+      {/* Dynamic Collector Balances At-a-Glance Widget - Simple & Compact */}
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-2.5 shadow-2xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 border-b border-slate-200/60 pb-2">
+          <div>
+            <h3 className="font-extrabold text-xs text-slate-800 tracking-wide flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-purple-750" />
+              <span>Rekap Sisa Dana Fisik di Tangan Kolektor</span>
+            </h3>
+            <p className="text-[10px] text-slate-500 font-medium">Uang hasil iuran warga/lapak yang secara fisik masih dipegang kolektor dan belum diserahkan ke bendahara.</p>
+          </div>
+          <span className="text-[9px] font-mono bg-purple-100/80 border border-purple-200 text-purple-800 px-2 py-0.5 rounded-md font-bold leading-tight select-none">
+            {selectedMonth === 'semua' ? 'Kumulatif' : `Bulan ${INDONESIAN_MONTHS.find(m => m.value === selectedMonth)?.label}`} {selectedYear}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {collectorsList.map(u => {
+            const rtBal = getCollectorBalanceInfo(u.username, 'rtTunai');
+            const rombongBal = getCollectorBalanceInfo(u.username, 'rombongTunai');
+            const totalRemaining = rtBal.remaining + rombongBal.remaining;
+            const hasFunds = totalRemaining > 0;
+
+            return (
+              <div 
+                key={u.id} 
+                className={`p-2.5 rounded-xl border transition duration-150 ${
+                  hasFunds 
+                    ? 'bg-amber-50/50 border-amber-200/90 shadow-2xs' 
+                    : 'bg-white border-slate-200'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasFunds ? 'bg-amber-500 animate-ping' : 'bg-slate-350'}`} />
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 leading-none">{u.nama}</p>
+                      <p className="text-[9px] text-slate-450 font-mono mt-0.5">@{u.username}</p>
+                    </div>
+                  </div>
+                  {hasFunds ? (
+                    <span className="text-[8.5px] font-extrabold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-mono">
+                      Menampung Hasil
+                    </span>
+                  ) : (
+                    <span className="text-[8.5px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded font-mono">
+                      Nihil
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-2 pt-1.5 border-t border-slate-100 text-[10px]">
+                  {/* Sektor RT */}
+                  <div className="p-1 px-1.5 rounded bg-white/80 border border-slate-100/85">
+                    <span className="text-[8px] font-mono font-bold text-slate-450 block uppercase tracking-wider">Iuran RT</span>
+                    <div className="flex justify-between items-center mt-0.5 font-sans leading-none">
+                      <span className="text-[8.5px] text-slate-450">Terkumpul</span>
+                      <span className="font-semibold text-slate-700">Rp {rtBal.totalCollected.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-sans mt-0.5 leading-none">
+                      <span className="text-[8.5px] text-slate-450">Disetor</span>
+                      <span className="font-semibold text-indigo-700">Rp {rtBal.totalPenarikan.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-sans mt-1 pt-1 leading-none border-t border-dashed border-slate-100">
+                      <span className="text-[8.5px] font-bold text-slate-500">Sisa</span>
+                      <span className={rtBal.remaining > 0 ? "font-black text-amber-600 text-[10.5px] font-mono" : "font-semibold text-slate-400 font-mono"}>
+                        Rp {rtBal.remaining.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sektor Rombong */}
+                  <div className="p-1 px-1.5 rounded bg-white/80 border border-slate-100/85">
+                    <span className="text-[8px] font-mono font-bold text-slate-450 block uppercase tracking-wider">Sewa Rombong</span>
+                    <div className="flex justify-between items-center mt-0.5 font-sans leading-none">
+                      <span className="text-[8.5px] text-slate-450">Terkumpul</span>
+                      <span className="font-semibold text-slate-700">Rp {rombongBal.totalCollected.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-sans mt-0.5 leading-none">
+                      <span className="text-[8.5px] text-slate-450">Disetor</span>
+                      <span className="font-semibold text-indigo-700">Rp {rombongBal.totalPenarikan.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex justify-between items-center font-sans mt-1 pt-1 leading-none border-t border-dashed border-slate-100">
+                      <span className="text-[8.5px] font-bold text-slate-500">Sisa</span>
+                      <span className={rombongBal.remaining > 0 ? "font-black text-amber-600 text-[10.5px] font-mono" : "font-semibold text-slate-400 font-mono"}>
+                        Rp {rombongBal.remaining.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-1.5 flex justify-between items-center text-[10px] font-bold bg-slate-100/50 p-1.5 rounded-lg border border-slate-200/40">
+                  <span className="text-slate-500">Total Sisa di Tangan:</span>
+                  <span className={totalRemaining > 0 ? "text-purple-700 text-[11px] font-black font-mono" : "text-slate-400 font-mono"}>
+                    Rp {totalRemaining.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Success banner */}
       {formSuccessMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl flex items-center gap-3 animate-in fade-in duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-xl flex items-center gap-2 animate-in fade-in duration-300">
+          <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
           <span className="text-xs font-semibold">{formSuccessMsg}</span>
         </div>
       )}
@@ -963,361 +1065,621 @@ export default function BukuKolektor({
             />
           </div>
         </div>
-
-        {/* Dynamic List Rendering */}
-        <div>
-          <div className="block md:hidden bg-sky-50 text-sky-700 border border-sky-100 rounded-xl px-4 py-2.5 mb-2.5 text-[10px] sm:text-xs font-semibold">
-            💡 Geser kesamping ke kanan untuk melihat rincian tanggal, deskripsi, petugas, nominal, dan aksi verifikasi audit.
-          </div>
-          <div className="overflow-x-auto">
-            {activeSubTab === 'tunai' && (
-              <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-700">
-              <thead>
-                <tr className="bg-slate-50/55 border-b border-slate-100 uppercase tracking-wider text-[10px] font-bold text-slate-500 font-mono">
-                  <th className="p-4 w-5 text-center">No</th>
-                  <th className="p-4">Tanggal Pembayaran</th>
-                  <th className="p-4">Informasi Tagihan / Slip Pembayaran</th>
-                  <th className="p-4">Jenis Kas</th>
-                  <th className="p-4">Petugas Pembukuan</th>
-                  <th className="p-4 text-right">Jumlah (Rp)</th>
-                  <th className="p-4 text-center w-36">Verifikasi Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+               {/* Dynamic List Rendering - Highly Responsive & Tight */}
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+          {activeSubTab === 'tunai' && (
+            <>
+              {/* Mobile Card List View for Tunai */}
+              <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/40 max-h-[1000px] overflow-y-auto">
                 {filteredCashList.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
-                      Belum ada penerimaan iuran secara tunai yang tercatat pada periode {selectedMonth === 'semua' ? 'tahun ini' : `bulan ${INDONESIAN_MONTHS.find(m => m.value === selectedMonth)?.label}`}.
-                    </td>
-                  </tr>
+                  <div className="p-8 text-center text-slate-400 font-sans leading-relaxed text-xs">
+                    Belum ada penerimaan iuran secara tunai yang tercatat pada periode ini.
+                  </div>
                 ) : (
                   filteredCashList.map((entry, index) => {
                     const isVerified = verifiedIds.includes(entry.id);
                     return (
-                      <tr 
+                      <div 
                         key={entry.id} 
-                        className={`hover:bg-slate-50/80 transition duration-150 ${
-                          isVerified ? 'bg-emerald-50/20' : ''
+                        className={`p-3.5 space-y-2.5 bg-white transition duration-150 ${
+                          isVerified ? 'bg-emerald-50/10' : ''
                         }`}
                       >
-                        <td className="p-4 text-center font-mono opacity-65">{index + 1}</td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className="font-semibold block">{formatIndonesianDate(entry.tanggal)}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">ID Ledger: {entry.id.substring(0, 10)}...</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="font-extrabold text-slate-900 block leading-normal">{entry.deskripsi}</span>
-                          <span className="inline-flex items-center gap-1 mt-1 text-[9.5px] bg-indigo-50 text-indigo-700 px-1.5 py-0.25 rounded-md font-mono border border-indigo-100">
-                            Category: {entry.kategori}
-                          </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full border text-[9.5px] font-mono leading-none ${getKasBadgeColor(entry.sumberKas)}`}>
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 font-mono">#{index + 1} | {formatIndonesianDate(entry.tanggal)}</span>
+                          <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
                             {getKasLabel(entry.sumberKas)}
                           </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap text-slate-650 flex items-center gap-1.5 mt-0.5 font-sans">
-                          <User className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{entry.petugas}</span>
-                        </td>
-                        <td className="p-4 text-right font-black font-mono text-slate-900 whitespace-nowrap text-sm">
-                          Rp {entry.jumlah.toLocaleString('id-ID')}
-                        </td>
-                        <td className="p-4 text-center whitespace-nowrap">
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-[12px] text-slate-850 leading-tight">{entry.deskripsi}</h5>
+                          <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                            <User className="w-3 h-3 text-slate-400" />
+                            <span>Kolektor: <strong className="text-slate-650 font-semibold">{entry.petugas}</strong></span>
+                          </div>
+                          <span className="inline-block mt-1 text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.25 rounded font-mono border border-slate-200/60 font-bold">
+                            Kategori: {entry.kategori}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100/75 mt-1.5">
+                          <div className="font-mono">
+                            <span className="text-[8.5px] text-slate-400 block uppercase font-bold leading-none">Nominal</span>
+                            <span className="text-xs font-black text-slate-900 mt-0.5 block">Rp {entry.jumlah.toLocaleString('id-ID')}</span>
+                          </div>
                           <button
                             disabled={!canVerify}
                             onClick={() => toggleVerifyId(entry.id)}
-                            className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold border transition flex items-center justify-center gap-1 w-full ${
+                            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-black border transition flex items-center justify-center gap-1 ${
                               !canVerify
-                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-50'
                                 : isVerified
                                 ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
-                                : 'bg-white border-slate-205 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                : 'bg-slate-50 border-slate-200 text-slate-650 hover:bg-slate-100 cursor-pointer'
                             }`}
-                            title={!canVerify ? 'Hanya Bendahara atau Administrator yang berhak melakukan verifikasi' : 'Klik untuk mengubah status kecocokan'}
                           >
                             {isVerified ? (
                               <>
-                                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                <span>Telah Cocok</span>
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                <span>Cocok ✓</span>
                               </>
                             ) : (
-                              <>
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-350" />
-                                <span>Verifikasi</span>
-                              </>
+                              <span>Cocokkan</span>
                             )}
                           </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View for Tunai */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-705">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-wider text-[10px] font-extrabold text-slate-500 font-mono">
+                      <th className="px-3.5 py-2.5 w-5 text-center">No</th>
+                      <th className="px-3.5 py-2.5">Tanggal</th>
+                      <th className="px-3.5 py-2.5">Informasi Tagihan / Slip Pembayaran</th>
+                      <th className="px-3.5 py-2.5">Sektor Kas</th>
+                      <th className="px-3.5 py-2.5">Kolektor Lapangan</th>
+                      <th className="px-3.5 py-2.5 text-right">Jumlah</th>
+                      <th className="px-3.5 py-2.5 text-center w-36">Verifikasi Audit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredCashList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
+                          Belum ada penerimaan iuran secara tunai yang tercatat pada periode ini.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCashList.map((entry, index) => {
+                        const isVerified = verifiedIds.includes(entry.id);
+                        return (
+                          <tr 
+                            key={entry.id} 
+                            className={`hover:bg-slate-50/50 transition duration-150 ${
+                              isVerified ? 'bg-emerald-50/15' : ''
+                            }`}
+                          >
+                            <td className="px-3.5 py-2 text-center font-mono opacity-65 text-[11px]">{index + 1}</td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className="font-bold block text-slate-800">{formatIndonesianDate(entry.tanggal)}</span>
+                              <span className="text-[9px] text-slate-400 font-mono">ID {entry.id.substring(0, 8)}</span>
+                            </td>
+                            <td className="px-3.5 py-2">
+                              <span className="font-bold text-slate-850 block leading-tight">{entry.deskripsi}</span>
+                              <span className="inline-flex items-center gap-1 mt-0.5 text-[9px] bg-slate-100 text-slate-650 px-1 py-0.25 rounded font-mono border border-slate-200/60 leading-none">
+                                Category: {entry.kategori}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
+                                {getKasLabel(entry.sumberKas)}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap text-slate-700 flex items-center gap-1.5 mt-1 font-sans">
+                              <User className="w-3 h-3 text-slate-450 shrink-0" />
+                              <span className="font-semibold text-xs">{entry.petugas}</span>
+                            </td>
+                            <td className="px-3.5 py-2 text-right font-black font-mono text-slate-900 whitespace-nowrap text-xs">
+                              Rp {entry.jumlah.toLocaleString('id-ID')}
+                            </td>
+                            <td className="px-3.5 py-2 text-center whitespace-nowrap">
+                              <button
+                                disabled={!canVerify}
+                                onClick={() => toggleVerifyId(entry.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center justify-center gap-1 w-full shrink-0 ${
+                                  !canVerify
+                                    ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                    : isVerified
+                                    ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
+                                    : 'bg-white border-slate-205 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                }`}
+                              >
+                                {isVerified ? (
+                                  <>
+                                    <Check className="w-3 w-3 stroke-[3]" />
+                                    <span>Telah Cocok</span>
+                                  </>
+                                ) : (
+                                  <span>Verifikasi</span>
+                                )}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {activeSubTab === 'bank' && (
-            <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-700">
-              <thead>
-                <tr className="bg-slate-50/55 border-b border-slate-100 uppercase tracking-wider text-[10px] font-bold text-slate-500 font-mono">
-                  <th className="p-4 w-5 text-center">No</th>
-                  <th className="p-4">Tanggal Pembayaran</th>
-                  <th className="p-4">Informasi Tagihan / Slip Pembayaran</th>
-                  <th className="p-4">Jenis Kas</th>
-                  <th className="p-4">Petugas Pembukuan</th>
-                  <th className="p-4 text-right">Jumlah (Rp)</th>
-                  <th className="p-4 text-center w-36">Verifikasi Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <>
+              {/* Mobile Card List View for Bank/QRIS */}
+              <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/40 max-h-[1000px] overflow-y-auto">
                 {filteredBankList.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
-                      Belum ada penerimaan iuran secara transfer/bank yang tercatat pada periode ini.
-                    </td>
-                  </tr>
+                  <div className="p-8 text-center text-slate-400 font-sans leading-relaxed text-xs">
+                    Belum ada penerimaan iuran secara transfer/bank yang tercatat pada periode ini.
+                  </div>
                 ) : (
                   filteredBankList.map((entry, index) => {
                     const isVerified = verifiedIds.includes(entry.id);
                     return (
-                      <tr 
+                      <div 
                         key={entry.id} 
-                        className={`hover:bg-slate-50/80 transition duration-150 ${
-                          isVerified ? 'bg-emerald-50/20' : ''
+                        className={`p-3.5 space-y-2.5 bg-white transition duration-150 ${
+                          isVerified ? 'bg-emerald-50/10' : ''
                         }`}
                       >
-                        <td className="p-4 text-center font-mono opacity-65">{index + 1}</td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className="font-semibold block">{formatIndonesianDate(entry.tanggal)}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">ID Ledger: {entry.id.substring(0, 10)}...</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="font-extrabold text-slate-900 block leading-normal">{entry.deskripsi}</span>
-                          <span className="inline-flex items-center gap-1 mt-1 text-[9.5px] bg-slate-100 text-slate-700 px-1.5 py-0.25 rounded-md font-mono border border-slate-200">
-                            Category: {entry.kategori}
-                          </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full border text-[9.5px] font-mono leading-none ${getKasBadgeColor(entry.sumberKas)}`}>
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 font-mono">#{index + 1} | {formatIndonesianDate(entry.tanggal)}</span>
+                          <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
                             {getKasLabel(entry.sumberKas)}
                           </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap text-slate-650 flex items-center gap-1.5 mt-0.5 font-sans">
-                          <User className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{entry.petugas}</span>
-                        </td>
-                        <td className="p-4 text-right font-black font-mono text-slate-900 whitespace-nowrap text-sm">
-                          Rp {entry.jumlah.toLocaleString('id-ID')}
-                        </td>
-                        <td className="p-4 text-center whitespace-nowrap">
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-[12px] text-slate-850 leading-tight">{entry.deskripsi}</h5>
+                          <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                            <User className="w-3 h-3 text-slate-400" />
+                            <span>Petugas: <strong className="text-slate-650 font-semibold">{entry.petugas}</strong></span>
+                          </div>
+                          <span className="inline-block mt-1 text-[9px] bg-indigo-50 text-indigo-700 px-1.5 py-0.25 rounded font-mono border border-indigo-100 font-bold">
+                            Kategori: {entry.kategori}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100/75 mt-1.5">
+                          <div className="font-mono">
+                            <span className="text-[8.5px] text-slate-400 block uppercase font-bold leading-none">Nominal</span>
+                            <span className="text-xs font-black text-slate-900 mt-0.5 block">Rp {entry.jumlah.toLocaleString('id-ID')}</span>
+                          </div>
                           <button
                             disabled={!canVerify}
                             onClick={() => toggleVerifyId(entry.id)}
-                            className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold border transition flex items-center justify-center gap-1 w-full ${
+                            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-black border transition flex items-center justify-center gap-1 ${
                               !canVerify
-                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-50'
                                 : isVerified
                                 ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
-                                : 'bg-white border-slate-205 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                : 'bg-slate-50 border-slate-200 text-slate-650 hover:bg-slate-100 cursor-pointer'
                             }`}
-                            title={!canVerify ? 'Hanya Bendahara atau Administrator yang berhak melakukan verifikasi' : 'Klik untuk mengubah status kecocokan'}
                           >
                             {isVerified ? (
                               <>
-                                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                <span>Telah Cocok</span>
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                <span>Cocok ✓</span>
                               </>
                             ) : (
-                              <>
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-350" />
-                                <span>Verifikasi</span>
-                              </>
+                              <span>Cocokkan</span>
                             )}
                           </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View for Bank/QRIS */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-705">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-wider text-[10px] font-extrabold text-slate-500 font-mono">
+                      <th className="px-3.5 py-2.5 w-5 text-center">No</th>
+                      <th className="px-3.5 py-2.5">Tanggal</th>
+                      <th className="px-3.5 py-2.5">Informasi Tagihan / Slip Pembayaran</th>
+                      <th className="px-3.5 py-2.5">Sektor Kas</th>
+                      <th className="px-3.5 py-2.5">Petugas Pembukuan</th>
+                      <th className="px-3.5 py-2.5 text-right">Jumlah</th>
+                      <th className="px-3.5 py-2.5 text-center w-36">Verifikasi Audit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredBankList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
+                          Belum ada penerimaan iuran secara transfer/bank yang tercatat pada periode ini.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredBankList.map((entry, index) => {
+                        const isVerified = verifiedIds.includes(entry.id);
+                        return (
+                          <tr 
+                            key={entry.id} 
+                            className={`hover:bg-slate-50/50 transition duration-150 ${
+                              isVerified ? 'bg-emerald-50/15' : ''
+                            }`}
+                          >
+                            <td className="px-3.5 py-2 text-center font-mono opacity-65 text-[11px]">{index + 1}</td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className="font-bold block text-slate-800">{formatIndonesianDate(entry.tanggal)}</span>
+                              <span className="text-[9px] text-slate-400 font-mono">ID {entry.id.substring(0, 8)}</span>
+                            </td>
+                            <td className="px-3.5 py-2">
+                              <span className="font-bold text-slate-850 block leading-tight">{entry.deskripsi}</span>
+                              <span className="inline-flex items-center gap-1 mt-0.5 text-[9px] bg-slate-100 text-slate-650 px-1 py-0.25 rounded font-mono border border-slate-200/60 leading-none">
+                                Category: {entry.kategori}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
+                                {getKasLabel(entry.sumberKas)}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap text-slate-700 flex items-center gap-1.5 mt-1 font-sans">
+                              <User className="w-3 h-3 text-slate-450 shrink-0" />
+                              <span className="font-semibold text-xs">{entry.petugas}</span>
+                            </td>
+                            <td className="px-3.5 py-2 text-right font-black font-mono text-slate-900 whitespace-nowrap text-xs">
+                              Rp {entry.jumlah.toLocaleString('id-ID')}
+                            </td>
+                            <td className="px-3.5 py-2 text-center whitespace-nowrap">
+                              <button
+                                disabled={!canVerify}
+                                onClick={() => toggleVerifyId(entry.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center justify-center gap-1 w-full shrink-0 ${
+                                  !canVerify
+                                    ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                    : isVerified
+                                    ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
+                                    : 'bg-white border-slate-205 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                }`}
+                              >
+                                {isVerified ? (
+                                  <>
+                                    <Check className="w-3 w-3 stroke-[3]" />
+                                    <span>Telah Cocok</span>
+                                  </>
+                                ) : (
+                                  <span>Verifikasi</span>
+                                )}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {activeSubTab === 'penarikan_kolektor' && (
-            <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-700">
-              <thead>
-                <tr className="bg-slate-50/55 border-b border-slate-100 uppercase tracking-wider text-[10px] font-bold text-slate-500 font-mono">
-                  <th className="p-4 w-5 text-center">No</th>
-                  <th className="p-4">Tanggal Penarikan</th>
-                  <th className="p-4">Deskripsi / Riwayat Pengambilan Kas Lapangan</th>
-                  <th className="p-4">Tipe Penyimpanan</th>
-                  <th className="p-4">Penerima (Bendahara)</th>
-                  <th className="p-4 text-right">Jumlah Ditarik (Rp)</th>
-                  <th className="p-4 text-center w-36">Verifikasi Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <>
+              {/* Mobile Card List View for Penarikan Bendahara */}
+              <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/40 max-h-[1000px] overflow-y-auto">
                 {filteredPenarikanList.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
-                      Belum ada pemindahantangan/penarikan dana kolektor secara fisik oleh bendahara yang tercatat.
-                    </td>
-                  </tr>
+                  <div className="p-8 text-center text-slate-400 font-sans leading-relaxed text-xs">
+                    Belum ada pemindahantangan/penarikan dana kolektor secara fisik oleh bendahara yang tercatat.
+                  </div>
                 ) : (
                   filteredPenarikanList.map((entry, index) => {
                     const isVerified = verifiedIds.includes(entry.id);
                     return (
-                      <tr 
+                      <div 
                         key={entry.id} 
-                        className={`hover:bg-slate-50/80 transition duration-150 ${
-                          isVerified ? 'bg-emerald-50/20' : ''
+                        className={`p-3.5 space-y-2.5 bg-white transition duration-150 ${
+                          isVerified ? 'bg-emerald-50/10' : ''
                         }`}
                       >
-                        <td className="p-4 text-center font-mono opacity-65">{index + 1}</td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className="font-semibold block">{formatIndonesianDate(entry.tanggal)}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">ID Penarikan: {entry.id.substring(0, 10)}...</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="font-extrabold text-slate-905 block leading-normal">{entry.deskripsi}</span>
-                          <span className="inline-flex items-center gap-1 mt-1 text-[9.5px] bg-purple-50 text-purple-700 px-1.5 py-0.25 rounded-md font-mono border border-purple-100">
-                            Petugas: {entry.petugas}
-                          </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full border text-[9.5px] font-mono leading-none ${getKasBadgeColor(entry.sumberKas)}`}>
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 font-mono">#{index + 1} | {formatIndonesianDate(entry.tanggal)}</span>
+                          <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
                             {getKasLabel(entry.sumberKas)}
                           </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap text-slate-650 flex items-center gap-1.5 mt-0.5 font-sans">
-                          <User className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{entry.petugas}</span>
-                        </td>
-                        <td className="p-4 text-right font-black font-mono text-indigo-700 whitespace-nowrap text-sm">
-                          Rp {entry.jumlah.toLocaleString('id-ID')}
-                        </td>
-                        <td className="p-4 text-center whitespace-nowrap">
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-[12px] text-slate-850 leading-tight">{entry.deskripsi}</h5>
+                          <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-450 border-t border-slate-100/50 pt-1">
+                            <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">Serah Terima:</span>
+                          </div>
+                          <div className="flex flex-col mt-0.5 text-[10.5px] text-slate-600 gap-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                              <span>Penerima (Bendahara): <strong className="text-slate-800">{entry.petugas}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                              <span>Catatan: {entry.kategori}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100/75 mt-1.5">
+                          <div className="font-mono">
+                            <span className="text-[8.5px] text-slate-400 block uppercase font-bold leading-none">Jumlah Ditarik</span>
+                            <span className="text-xs font-black text-rose-600 mt-0.5 block">Rp {entry.jumlah.toLocaleString('id-ID')}</span>
+                          </div>
                           <button
                             disabled={!canVerify}
                             onClick={() => toggleVerifyId(entry.id)}
-                            className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold border transition flex items-center justify-center gap-1 w-full ${
+                            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-black border transition flex items-center justify-center gap-1 ${
                               !canVerify
-                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-50'
                                 : isVerified
                                 ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
-                                : 'bg-white border-slate-205 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                : 'bg-slate-50 border-slate-200 text-slate-650 hover:bg-slate-100 cursor-pointer'
                             }`}
-                            title={!canVerify ? 'Hanya Bendahara atau Administrator yang berhak melakukan verifikasi' : 'Klik untuk mengubah status kecocokan'}
                           >
                             {isVerified ? (
                               <>
-                                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                <span>Telah Cocok</span>
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                <span>Cocok ✓</span>
                               </>
                             ) : (
-                              <>
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-350" />
-                                <span>Verifikasi</span>
-                              </>
+                              <span>Cocokkan</span>
                             )}
                           </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View for Penarikan Bendahara */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-705">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-wider text-[10px] font-extrabold text-slate-500 font-mono">
+                      <th className="px-3.5 py-2.5 w-5 text-center">No</th>
+                      <th className="px-3.5 py-2.5">Tanggal Penarikan</th>
+                      <th className="px-3.5 py-2.5">Deskripsi / Riwayat Pengambilan Kas Lapangan</th>
+                      <th className="px-3.5 py-2.5">Tipe Kas</th>
+                      <th className="px-3.5 py-2.5">Penerima (Bendahara)</th>
+                      <th className="px-3.5 py-2.5 text-right">Jumlah Ditarik</th>
+                      <th className="px-3.5 py-2.5 text-center w-36">Verifikasi Audit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredPenarikanList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
+                          Belum ada pemindahantangan/penarikan dana kolektor secara fisik oleh bendahara yang tercatat.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPenarikanList.map((entry, index) => {
+                        const isVerified = verifiedIds.includes(entry.id);
+                        return (
+                          <tr 
+                            key={entry.id} 
+                            className={`hover:bg-slate-50/50 transition duration-150 ${
+                              isVerified ? 'bg-emerald-50/15' : ''
+                            }`}
+                          >
+                            <td className="px-3.5 py-2 text-center font-mono opacity-65 text-[11px]">{index + 1}</td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className="font-bold block text-slate-800">{formatIndonesianDate(entry.tanggal)}</span>
+                              <span className="text-[9px] text-slate-400 font-mono">ID {entry.id.substring(0, 8)}</span>
+                            </td>
+                            <td className="px-3.5 py-2">
+                              <span className="font-bold text-slate-850 block leading-tight">{entry.deskripsi}</span>
+                              <span className="inline-flex items-center gap-1 mt-0.5 text-[9px] bg-slate-100 text-slate-655 px-1 py-0.25 rounded font-mono border border-slate-200/60 leading-none">
+                                Category: {entry.kategori}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
+                                {getKasLabel(entry.sumberKas)}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap text-slate-700 flex items-center gap-1.5 mt-1 font-sans">
+                              <User className="w-3 h-3 text-slate-450 shrink-0" />
+                              <span className="font-semibold text-xs">{entry.petugas}</span>
+                            </td>
+                            <td className="px-3.5 py-2 text-right font-black font-mono text-rose-600 whitespace-nowrap text-xs">
+                              Rp {entry.jumlah.toLocaleString('id-ID')}
+                            </td>
+                            <td className="px-3.5 py-2 text-center whitespace-nowrap">
+                              <button
+                                disabled={!canVerify}
+                                onClick={() => toggleVerifyId(entry.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center justify-center gap-1 w-full shrink-0 ${
+                                  !canVerify
+                                    ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                    : isVerified
+                                    ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                }`}
+                              >
+                                {isVerified ? (
+                                  <>
+                                    <Check className="w-3 h-3 stroke-[3]" />
+                                    <span>Telah Cocok</span>
+                                  </>
+                                ) : (
+                                  <span>Verifikasi</span>
+                                )}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {activeSubTab === 'setor_bank' && (
-            <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-700">
-              <thead>
-                <tr className="bg-slate-50/55 border-b border-slate-100 uppercase tracking-wider text-[10px] font-bold text-slate-500 font-mono">
-                  <th className="p-4 w-5 text-center">No</th>
-                  <th className="p-4">Tanggal Setor</th>
-                  <th className="p-4">Deskripsi / Riwayat Penyetoran Cash</th>
-                  <th className="p-4">Asal Saldo Fisik</th>
-                  <th className="p-4">Tipe Transaksi</th>
-                  <th className="p-4 text-right">Nominal Setor (Rp)</th>
-                  <th className="p-4 text-center w-36">Verifikasi Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <>
+              {/* Mobile Card List View for Setor Bank */}
+              <div className="block md:hidden divide-y divide-slate-100 bg-slate-50/40 max-h-[1000px] overflow-y-auto">
                 {filteredSetorList.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
-                      Belum ada mutasi setor tunai ke bank yang tersurat pada periode ini.
-                    </td>
-                  </tr>
+                  <div className="p-8 text-center text-slate-400 font-sans leading-relaxed text-xs">
+                    Belum ada mutasi setor tunai ke bank yang tercatat pada periode ini.
+                  </div>
                 ) : (
                   filteredSetorList.map((entry, index) => {
                     const isVerified = verifiedIds.includes(entry.id);
                     return (
-                      <tr 
+                      <div 
                         key={entry.id} 
-                        className={`hover:bg-slate-50/80 transition duration-150 ${
-                          isVerified ? 'bg-emerald-50/20' : ''
+                        className={`p-3.5 space-y-2.5 bg-white transition duration-150 ${
+                          isVerified ? 'bg-emerald-50/10' : ''
                         }`}
                       >
-                        <td className="p-4 text-center font-mono opacity-65">{index + 1}</td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className="font-semibold block">{formatIndonesianDate(entry.tanggal)}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">ID Setoran: {entry.id.substring(0, 10)}...</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="font-extrabold text-slate-900 block leading-normal">{entry.deskripsi}</span>
-                          <span className="inline-flex items-center gap-1 mt-1 text-[9.5px] bg-amber-50 text-amber-700 px-1.5 py-0.25 rounded-md font-mono border border-amber-100">
-                            Petugas: {entry.petugas}
-                          </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full border text-[9.5px] font-mono leading-none ${getKasBadgeColor(entry.sumberKas)}`}>
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 font-mono">#{index + 1} | {formatIndonesianDate(entry.tanggal)}</span>
+                          <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
                             {getKasLabel(entry.sumberKas)}
                           </span>
-                        </td>
-                        <td className="p-4 whitespace-nowrap text-purple-705 font-semibold font-mono">
-                          Pemindahbukuan
-                        </td>
-                        <td className="p-4 text-right font-black font-mono text-purple-750 whitespace-nowrap text-sm">
-                          Rp {entry.jumlah.toLocaleString('id-ID')}
-                        </td>
-                        <td className="p-4 text-center whitespace-nowrap">
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-[12px] text-slate-850 leading-tight">{entry.deskripsi}</h5>
+                          <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                            <User className="w-3 h-3 text-slate-450" />
+                            <span>Penyetor: <strong className="text-slate-650 font-semibold">{entry.petugas}</strong></span>
+                          </div>
+                          <span className="inline-block mt-1 text-[9px] bg-purple-100 text-purple-800 px-1.5 py-0.25 rounded font-mono border border-purple-200 font-bold">
+                            Tipe: Pemindahbukuan ke Bank
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100/75 mt-1.5">
+                          <div className="font-mono">
+                            <span className="text-[8.5px] text-slate-400 block uppercase font-bold leading-none">Nominal Disetor</span>
+                            <span className="text-xs font-black text-purple-700 mt-0.5 block">Rp {entry.jumlah.toLocaleString('id-ID')}</span>
+                          </div>
                           <button
                             disabled={!canVerify}
                             onClick={() => toggleVerifyId(entry.id)}
-                            className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold border transition flex items-center justify-center gap-1 w-full ${
+                            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-black border transition flex items-center justify-center gap-1 ${
                               !canVerify
-                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-50'
                                 : isVerified
                                 ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
-                                : 'bg-white border-slate-205 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                : 'bg-slate-50 border-slate-200 text-slate-650 hover:bg-slate-100 cursor-pointer'
                             }`}
-                            title={!canVerify ? 'Hanya Bendahara atau Administrator yang berhak melakukan verifikasi' : 'Klik untuk mengubah status kecocokan'}
                           >
                             {isVerified ? (
                               <>
-                                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                <span>Telah Cocok</span>
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                <span>Cocok ✓</span>
                               </>
                             ) : (
-                              <>
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-350" />
-                                <span>Verifikasi</span>
-                              </>
+                              <span>Cocokkan</span>
                             )}
                           </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View for Setor Bank */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-750">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100 uppercase tracking-wider text-[10px] font-extrabold text-slate-500 font-mono">
+                      <th className="px-3.5 py-2.5 w-5 text-center">No</th>
+                      <th className="px-3.5 py-2.5">Tanggal Setor</th>
+                      <th className="px-3.5 py-2.5">Deskripsi / Riwayat Penyetoran Cash</th>
+                      <th className="px-3.5 py-2.5">Asal Saldo Fisik</th>
+                      <th className="px-3.5 py-2.5">Tipe Transaksi</th>
+                      <th className="px-3.5 py-2.5 text-right">Nominal Setor</th>
+                      <th className="px-3.5 py-2.5 text-center w-36">Verifikasi Audit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredSetorList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 leading-relaxed font-sans">
+                          Belum ada mutasi setor tunai ke bank yang tersurat pada periode ini.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredSetorList.map((entry, index) => {
+                        const isVerified = verifiedIds.includes(entry.id);
+                        return (
+                          <tr 
+                            key={entry.id} 
+                            className={`hover:bg-slate-50/50 transition duration-150 ${
+                              isVerified ? 'bg-emerald-50/15' : ''
+                            }`}
+                          >
+                            <td className="px-3.5 py-2 text-center font-mono opacity-65 text-[11px]">{index + 1}</td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className="font-bold block text-slate-800">{formatIndonesianDate(entry.tanggal)}</span>
+                              <span className="text-[9px] text-slate-400 font-mono">ID {entry.id.substring(0, 8)}</span>
+                            </td>
+                            <td className="px-3.5 py-2">
+                              <span className="font-bold text-slate-850 block leading-tight">{entry.deskripsi}</span>
+                              <span className="inline-flex items-center gap-1 mt-0.5 text-[9px] bg-slate-100 text-slate-655 px-1 py-0.25 rounded font-mono border border-slate-200/60 leading-none">
+                                Penyetor: {entry.petugas}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap">
+                              <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono leading-none font-bold ${getKasBadgeColor(entry.sumberKas)}`}>
+                                {getKasLabel(entry.sumberKas)}
+                              </span>
+                            </td>
+                            <td className="px-3.5 py-2 whitespace-nowrap text-purple-750 font-bold font-mono">
+                              Pemindahbukuan
+                            </td>
+                            <td className="px-3.5 py-2 text-right font-black font-mono text-purple-750 whitespace-nowrap text-xs">
+                              Rp {entry.jumlah.toLocaleString('id-ID')}
+                            </td>
+                            <td className="px-3.5 py-2 text-center whitespace-nowrap">
+                              <button
+                                disabled={!canVerify}
+                                onClick={() => toggleVerifyId(entry.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center justify-center gap-1 w-full shrink-0 ${
+                                  !canVerify
+                                    ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                                    : isVerified
+                                    ? 'bg-emerald-700 border-emerald-750 text-white shadow-xs cursor-pointer'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400 cursor-pointer'
+                                }`}
+                              >
+                                {isVerified ? (
+                                  <>
+                                    <Check className="w-3 h-3 stroke-[3]" />
+                                    <span>Telah Cocok</span>
+                                  </>
+                                ) : (
+                                  <span>Verifikasi</span>
+                                )}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
-      </div>
 
         {/* Dynamic Verification Helper Details Footer */}
         <div className="bg-slate-50 border-t border-slate-100 p-4 font-sans text-slate-605 text-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
