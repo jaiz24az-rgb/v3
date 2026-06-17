@@ -768,15 +768,106 @@ export default function TagihanWarga({
               margin-bottom: 20px;
             }
             @media print {
+              @page {
+                size: A5 portrait;
+                margin: 4mm 6mm;
+              }
+              body {
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 9px !important;
+                line-height: 1.2 !important;
+              }
+              .kop-surat {
+                padding-bottom: 4px !important;
+                margin-bottom: 6px !important;
+                border-bottom: 1.5px solid #000000 !important;
+              }
+              .kop-title {
+                font-size: 13px !important;
+              }
+              .kop-subtitle {
+                font-size: 8px !important;
+                margin-top: 2px !important;
+              }
+              .invoice-tag {
+                font-size: 8px !important;
+                padding: 2px 5px !important;
+                margin-bottom: 5px !important;
+              }
+              .meta-table {
+                margin-bottom: 6px !important;
+              }
+              .meta-table td {
+                padding: 4px 6px !important;
+              }
+              .meta-table span {
+                font-size: 7.5px !important;
+                margin-bottom: 1px !important;
+              }
+              .meta-table strong {
+                font-size: 9.5px !important;
+              }
+              h3 {
+                font-size: 9.5px !important;
+                margin-top: 6px !important;
+                margin-bottom: 3px !important;
+              }
+              .table-bills {
+                margin-bottom: 6px !important;
+              }
+              .table-bills th {
+                padding: 2.5px 5px !important;
+                font-size: 7.5px !important;
+              }
+              .table-bills td {
+                padding: 2.5px 5px !important;
+                font-size: 7.5px !important;
+              }
+              .badge-lunas, .badge-belum {
+                font-size: 7px !important;
+                padding: 0.5px 1.5px !important;
+              }
+              .box-summary {
+                padding: 5px 8px !important;
+                margin-bottom: 5px !important;
+                border-radius: 4px !important;
+              }
+              .summary-title {
+                font-size: 8px !important;
+                padding-bottom: 1px !important;
+                margin-bottom: 2px !important;
+              }
+              .summary-row {
+                font-size: 7.5px !important;
+                margin-bottom: 1px !important;
+              }
+              .summary-row.total {
+                font-size: 9.5px !important;
+                padding-top: 3px !important;
+                margin-top: 3px !important;
+              }
+              .note-box {
+                margin-top: 3px !important;
+                font-size: 7.5px !important;
+                line-height: 1.15 !important;
+              }
+              .signature-table {
+                margin-top: 10px !important;
+              }
+              .signature-title {
+                margin-bottom: 30px !important;
+                font-size: 7.5px !important;
+              }
+              .signature-name {
+                font-size: 8px !important;
+              }
               * {
                 visibility: visible !important;
               }
               .no-print, .no-print * {
                 display: none !important;
                 visibility: hidden !important;
-              }
-              body {
-                padding: 10px;
               }
             }
           </style>
@@ -795,7 +886,7 @@ export default function TagihanWarga({
             <div class="invoice-tag">SURAT TAGIHAN RESMI IURAN WARGA</div>
           </div>
           
-          <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse; border: none;">
+          <table class="meta-table" style="width: 100%; margin-bottom: 20px; border-collapse: collapse; border: none;">
             <tr>
               <td style="width: 50%; padding: 8px 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px 0 0 6px; vertical-align: top;">
                 <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 2px;">Nama Anggota Warga</span>
@@ -854,7 +945,7 @@ export default function TagihanWarga({
 
           <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; color: #0f172a;">II. Rincian Tunggakan Tahun Lalu & Sebelum</h3>
           ${priorUnpaidList.length === 0 ? `
-            <p style="font-style: italic; color: #16a34a; font-weight: 600; font-size: 12px; border: 1px dashed #bbf7d0; padding: 10px; background-color: #f0fdf4; border-radius: 6px; margin-bottom: 25px;">
+            <p class="note-box" style="font-style: italic; color: #16a34a; font-weight: 600; font-size: 12px; border: 1px dashed #bbf7d0; padding: 10px; background-color: #f0fdf4; border-radius: 6px; margin-bottom: 25px;">
               ✓ Hebat! Warga ini bebas tunggakan iuran bulanan dari tahun-tahun sebelumnya.
             </p>
           ` : `
@@ -902,25 +993,25 @@ export default function TagihanWarga({
             </div>
           </div>
 
-          <div style="margin-top: 20px; font-size: 11px; color: #475569; border-left: 2px solid #0284c7; padding-left: 10px; line-height: 1.4;">
+          <div class="note-box" style="margin-top: 20px; font-size: 11px; color: #475569; border-left: 2px solid #0284c7; padding-left: 10px; line-height: 1.4;">
             *Catatan Penting:<br/>
-            1. Harap melunasi tunggakan iuran demi kelancaran kegiatan sosial, keamanan, dan pemeliharaan fasilitas di lingkungan ${rtNum}.<br/>
+            1. Harap melunasi tunggakan iuran demi kelancaran kegiatan sosial, keamanan, dan pemeliharaan facilities di lingkungan ${rtNum}.<br/>
             2. Pembayaran dapat diserahkan langsung kepada Pengurus RT / Bendahara / Kolektor resmi atau ditransfer ke rekening bank resmi RT.
           </div>
 
-          <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 40px; page-break-inside: avoid;">
+          <table class="signature-table" style="width: 100%; border-collapse: collapse; border: none; margin-top: 40px; page-break-inside: avoid;">
             <tr>
               <td style="width: 33%; border: none; text-align: center; vertical-align: top; padding: 10px;">
-                <span style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Bendahara RT 08</span>
-                <strong style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${bendaharaNameFormatted}</strong>
+                <span class="signature-title" style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Bendahara RT 08</span>
+                <strong class="signature-name" style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${bendaharaNameFormatted}</strong>
               </td>
               <td style="width: 33%; border: none; text-align: center; vertical-align: top; padding: 10px;">
-                <span style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Ketua RT 08</span>
-                <strong style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${adminNameFormatted}</strong>
+                <span class="signature-title" style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Ketua RT 08</span>
+                <strong class="signature-name" style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${adminNameFormatted}</strong>
               </td>
               <td style="width: 33%; border: none; text-align: center; vertical-align: top; padding: 10px;">
-                <span style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Warga / Penerima</span>
-                <strong style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${cleanSignatureName(w.nama)}</strong>
+                <span class="signature-title" style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Warga / Penerima</span>
+                <strong class="signature-name" style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${cleanSignatureName(w.nama)}</strong>
               </td>
             </tr>
           </table>
@@ -1176,15 +1267,106 @@ export default function TagihanWarga({
               margin-bottom: 20px;
             }
             @media print {
+              @page {
+                size: A5 portrait;
+                margin: 4mm 6mm;
+              }
+              body {
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 9px !important;
+                line-height: 1.2 !important;
+              }
+              .kop-surat {
+                padding-bottom: 4px !important;
+                margin-bottom: 6px !important;
+                border-bottom: 1.5px solid #000000 !important;
+              }
+              .kop-title {
+                font-size: 13px !important;
+              }
+              .kop-subtitle {
+                font-size: 8px !important;
+                margin-top: 2px !important;
+              }
+              .invoice-tag {
+                font-size: 8px !important;
+                padding: 2px 5px !important;
+                margin-bottom: 5px !important;
+              }
+              .meta-table {
+                margin-bottom: 6px !important;
+              }
+              .meta-table td {
+                padding: 4px 6px !important;
+              }
+              .meta-table span {
+                font-size: 7.5px !important;
+                margin-bottom: 1px !important;
+              }
+              .meta-table strong {
+                font-size: 9.5px !important;
+              }
+              h3 {
+                font-size: 9.5px !important;
+                margin-top: 6px !important;
+                margin-bottom: 3px !important;
+              }
+              .table-bills {
+                margin-bottom: 6px !important;
+              }
+              .table-bills th {
+                padding: 2.5px 5px !important;
+                font-size: 7.5px !important;
+              }
+              .table-bills td {
+                padding: 2.5px 5px !important;
+                font-size: 7.5px !important;
+              }
+              .badge-lunas, .badge-belum {
+                font-size: 7px !important;
+                padding: 0.5px 1.5px !important;
+              }
+              .box-summary {
+                padding: 5px 8px !important;
+                margin-bottom: 5px !important;
+                border-radius: 4px !important;
+              }
+              .summary-title {
+                font-size: 8px !important;
+                padding-bottom: 1px !important;
+                margin-bottom: 2px !important;
+              }
+              .summary-row {
+                font-size: 7.5px !important;
+                margin-bottom: 1px !important;
+              }
+              .summary-row.total {
+                font-size: 9.5px !important;
+                padding-top: 3px !important;
+                margin-top: 3px !important;
+              }
+              .note-box {
+                margin-top: 3px !important;
+                font-size: 7.5px !important;
+                line-height: 1.15 !important;
+              }
+              .signature-table {
+                margin-top: 10px !important;
+              }
+              .signature-title {
+                margin-bottom: 30px !important;
+                font-size: 7.5px !important;
+              }
+              .signature-name {
+                font-size: 8px !important;
+              }
               * {
                 visibility: visible !important;
               }
               .no-print, .no-print * {
                 display: none !important;
                 visibility: hidden !important;
-              }
-              body {
-                padding: 10px;
               }
             }
           </style>
@@ -1203,7 +1385,7 @@ export default function TagihanWarga({
             <div class="invoice-tag">SURAT TAGIHAN SEWA & IURAN ROMBONG KULINER</div>
           </div>
           
-          <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse; border: none;">
+          <table class="meta-table" style="width: 100%; margin-bottom: 20px; border-collapse: collapse; border: none;">
             <tr>
               <td style="width: 50%; padding: 8px 12px; background-color: #fafdfb; border: 1px solid #d1fae5; border-radius: 6px 0 0 6px; vertical-align: top;">
                 <span style="font-size: 10px; font-weight: 700; color: #047857; text-transform: uppercase; display: block; margin-bottom: 2px;">Nama Pemilik Rombong</span>
@@ -1262,7 +1444,7 @@ export default function TagihanWarga({
 
           <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; color: #0f172a;">II. Rincian Tunggakan Tahun Lalu & Sebelum</h3>
           ${priorUnpaidList.length === 0 ? `
-            <p style="font-style: italic; color: #16a34a; font-weight: 600; font-size: 12px; border: 1px dashed #bbf7d0; padding: 10px; background-color: #f0fdf4; border-radius: 6px; margin-bottom: 25px;">
+            <p class="note-box" style="font-style: italic; color: #16a34a; font-weight: 600; font-size: 12px; border: 1px dashed #bbf7d0; padding: 10px; background-color: #f0fdf4; border-radius: 6px; margin-bottom: 25px;">
               ✓ Hebat! Pemilik rombong ini bebas tunggakan iuran dari tahun-tahun sebelumnya.
             </p>
           ` : `
@@ -1310,25 +1492,25 @@ export default function TagihanWarga({
             </div>
           </div>
 
-          <div style="margin-top: 20px; font-size: 11px; color: #475569; border-left: 2px solid #059669; padding-left: 10px; line-height: 1.4;">
+          <div class="note-box" style="margin-top: 20px; font-size: 11px; color: #475569; border-left: 2px solid #059669; padding-left: 10px; line-height: 1.4;">
             *Catatan Penting:<br/>
             1. Mohon melakukan penyelesaian iuran/sewa lapak rombong demi kenyamanan bersama dan penataan ketertiban lingkungan ${rtNum}.<br/>
             2. Pembayaran dapat diserahkan langsung kepada Pengurus RT / Bendahara / Kolektor resmi atau ditransfer ke rekening bank resmi RT.
           </div>
 
-          <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 40px; page-break-inside: avoid;">
+          <table class="signature-table" style="width: 100%; border-collapse: collapse; border: none; margin-top: 40px; page-break-inside: avoid;">
             <tr>
               <td style="width: 33%; border: none; text-align: center; vertical-align: top; padding: 10px;">
-                <span style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Bendahara RT 08</span>
-                <strong style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${bendaharaNameFormatted}</strong>
+                <span class="signature-title" style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Bendahara RT 08</span>
+                <strong class="signature-name" style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${bendaharaNameFormatted}</strong>
               </td>
               <td style="width: 33%; border: none; text-align: center; vertical-align: top; padding: 10px;">
-                <span style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Ketua RT 08</span>
-                <strong style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${adminNameFormatted}</strong>
+                <span class="signature-title" style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Ketua RT 08</span>
+                <strong class="signature-name" style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${adminNameFormatted}</strong>
               </td>
               <td style="width: 33%; border: none; text-align: center; vertical-align: top; padding: 10px;">
-                <span style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Pemilik Lapak / Rombong</span>
-                <strong style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${cleanSignatureName(r.namaPemilik)}</strong>
+                <span class="signature-title" style="font-size: 11px; font-weight: 600; color: #4a5568; display: block; margin-bottom: 55px;">Pemilik Lapak / Rombong</span>
+                <strong class="signature-name" style="font-size: 12px; color: #0f172a; text-decoration: underline; display: block;">${cleanSignatureName(r.namaPemilik)}</strong>
               </td>
             </tr>
           </table>
