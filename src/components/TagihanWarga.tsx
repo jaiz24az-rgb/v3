@@ -3701,6 +3701,9 @@ export default function TagihanWarga({
 
   // Helper to count overdue / unpaid months for a citizen up to current date or active system configuration
   const getUnpaidMonthsCountWarga = (w: WargaBill) => {
+    if (w.statusKeaktifan && w.statusKeaktifan !== 'aktif') {
+      return 0; // frozen / cannot be billed
+    }
     const now = new Date();
     const nowYear = now.getFullYear();
     const nowMonthIndex = now.getMonth(); // 0 = Jan, 11 = Dec
@@ -3720,6 +3723,9 @@ export default function TagihanWarga({
   };
 
   const getUnpaidMonthsCountRombong = (r: RombongBill) => {
+    if (r.statusKeaktifan && r.statusKeaktifan !== 'aktif') {
+      return 0; // frozen / cannot be billed
+    }
     const now = new Date();
     const nowYear = now.getFullYear();
     const nowMonthIndex = now.getMonth();
@@ -3821,6 +3827,9 @@ export default function TagihanWarga({
 
   // Report collections (includes soft-deleted citizens/rombongs with payments in the selected billing year)
   const reportWarga = wargaList.filter(w => {
+    if (w.statusKeaktifan && w.statusKeaktifan !== 'aktif') {
+      return false; // frozen/inactive warga is not in the print report list
+    }
     if (w.isDeleted) {
       const hasAnyPaidInYear = w.iuranRT.some(b => 
         b.lunas && (b.tahun === selectedBillingYear || (!b.tahun && selectedBillingYear === 2026))
@@ -3855,6 +3864,9 @@ export default function TagihanWarga({
   });
 
   const reportRombong = rombongList.filter(r => {
+    if (r.statusKeaktifan && r.statusKeaktifan !== 'aktif') {
+      return false; // frozen/inactive rombong is not in the print report list
+    }
     if (r.isDeleted) {
       const hasAnyPaidInYear = r.iuranRombong.some(b => 
         b.lunas && (b.tahun === selectedBillingYear || (!b.tahun && selectedBillingYear === 2026))
@@ -3889,10 +3901,10 @@ export default function TagihanWarga({
   });
 
   // Analytics calculation
-  const totalWargaCount = wargaList.filter(w => !w.isDeleted).length;
-  const totalRombongCount = rombongList.filter(r => !r.isDeleted).length;
+  const totalWargaCount = wargaList.filter(w => !w.isDeleted && (!w.statusKeaktifan || w.statusKeaktifan === 'aktif')).length;
+  const totalRombongCount = rombongList.filter(r => !r.isDeleted && (!r.statusKeaktifan || r.statusKeaktifan === 'aktif')).length;
 
-  const outstandingWargaBillsCount = wargaList.filter(w => !w.isDeleted).reduce((acc, w) => {
+  const outstandingWargaBillsCount = wargaList.filter(w => !w.isDeleted && (!w.statusKeaktifan || w.statusKeaktifan === 'aktif')).reduce((acc, w) => {
     const defaultMonths = fullMonths;
     let count = 0;
     
@@ -3922,7 +3934,7 @@ export default function TagihanWarga({
     return acc + count;
   }, 0);
 
-  const outstandingRombongBillsCount = rombongList.filter(r => !r.isDeleted).reduce((acc, r) => {
+  const outstandingRombongBillsCount = rombongList.filter(r => !r.isDeleted && (!r.statusKeaktifan || r.statusKeaktifan === 'aktif')).reduce((acc, r) => {
     const defaultMonths = fullMonths;
     let count = 0;
     
