@@ -142,13 +142,15 @@ export default function Undangan({
 }: UndanganProps) {
   const printContentViaIframe = (htmlContent: string) => {
     const iframe = document.createElement('iframe');
+    iframe.className = 'print-iframe-helper';
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
     iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
+    iframe.style.width = '1px';
+    iframe.style.height = '1px';
     iframe.style.border = '0';
     iframe.style.zIndex = '-9999';
+    iframe.style.opacity = '0.01';
     document.body.appendChild(iframe);
 
     const doc = iframe.contentWindow?.document;
@@ -945,11 +947,12 @@ export default function Undangan({
 
   // PDF Printing for warga list
   const exportAllWargaList = (listToPrint: WargaBill[]) => {
-    const printDoc = window.open('', '_blank');
-    if (!printDoc) {
-      alert('Pop-up terblokir! Harap izinkan pop-up untuk mencetak rekap data warga.');
-      return;
-    }
+    const printDoc = {
+      write: (htmlContent: string) => {
+        printContentViaIframe(htmlContent);
+      },
+      close: () => {}
+    };
 
     const adminUser = usersList.find(u => u.role === 'admin');
 
@@ -968,8 +971,7 @@ export default function Undangan({
       `;
     }).join('');
 
-    printDoc.document.open();
-    printDoc.document.write(`
+    printDoc.write(`
       <html>
         <head>
           <title>Buku Registry & Data Warga Terupdate - RT 08 Perumtas 3</title>
@@ -1028,16 +1030,17 @@ export default function Undangan({
             </tr>
           </table>
           
-          <script {
+          <script>
             window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
+              setTimeout(function() {
+                window.print();
+              }, 500);
             };
-          } />
+          </script>
         </body>
       </html>
     `);
-    printDoc.document.close();
+    printDoc.close();
   };
 
   // -----------------------------------------------------
@@ -1349,8 +1352,14 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
           <title>Cetak Surat Undangan Resmi ${rtNum}</title>
           <style>
             @media print {
+              * {
+                visibility: visible !important;
+              }
+              .no-print, .no-print * {
+                display: none !important;
+                visibility: hidden !important;
+              }
               body { margin: 1.5cm; }
-              .no-print { display: none; }
             }
             body {
               font-family: 'Times New Roman', Times, serif;

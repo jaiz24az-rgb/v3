@@ -128,13 +128,15 @@ export default function TagihanWarga({
 }: TagihanWargaProps) {
   const printContentViaIframe = (htmlContent: string) => {
     const iframe = document.createElement('iframe');
+    iframe.className = 'print-iframe-helper';
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
     iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
+    iframe.style.width = '1px';
+    iframe.style.height = '1px';
     iframe.style.border = '0';
     iframe.style.zIndex = '-9999';
+    iframe.style.opacity = '0.01';
     document.body.appendChild(iframe);
 
     const doc = iframe.contentWindow?.document;
@@ -766,8 +768,12 @@ export default function TagihanWarga({
               margin-bottom: 20px;
             }
             @media print {
-              .no-print {
+              * {
+                visibility: visible !important;
+              }
+              .no-print, .no-print * {
                 display: none !important;
+                visibility: hidden !important;
               }
               body {
                 padding: 10px;
@@ -1170,8 +1176,12 @@ export default function TagihanWarga({
               margin-bottom: 20px;
             }
             @media print {
-              .no-print {
+              * {
+                visibility: visible !important;
+              }
+              .no-print, .no-print * {
                 display: none !important;
+                visibility: hidden !important;
               }
               body {
                 padding: 10px;
@@ -1485,11 +1495,15 @@ export default function TagihanWarga({
               display: inline-block;
             }
             @media print {
+              * {
+                visibility: visible !important;
+              }
+              .no-print, .no-print * {
+                display: none !important;
+                visibility: hidden !important;
+              }
               body {
                 padding: 10px;
-              }
-              .no-print {
-                display: none;
               }
             }
             .print-btn-bar {
@@ -2325,8 +2339,12 @@ export default function TagihanWarga({
               background-color: #0369a1;
             }
             @media print {
-              .no-print {
-                display: none;
+              * {
+                visibility: visible !important;
+              }
+              .no-print, .no-print * {
+                display: none !important;
+                visibility: hidden !important;
               }
               body {
                 padding: 10px;
@@ -7908,6 +7926,15 @@ export default function TagihanWarga({
                                     .no-print, button, input, select {
                                       display: none !important;
                                       visibility: hidden !important;
+                                    }
+                                    @media print {
+                                      * {
+                                        visibility: visible !important;
+                                      }
+                                      .no-print, .no-print *, button, input, select {
+                                        display: none !important;
+                                        visibility: hidden !important;
+                                      }
                                     }
                                   </style>
                                 </head>
