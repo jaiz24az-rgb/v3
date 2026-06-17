@@ -91,11 +91,6 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
             tanggalBayar: `${yr}-12-31`,
             jamBayar: '23:59'
           });
-        } else {
-          newIuran[idx].lunas = true;
-          newIuran[idx].catatan = newIuran[idx].catatan || 'Lunas Otomatis (2024-2026)';
-          newIuran[idx].tanggalBayar = newIuran[idx].tanggalBayar || `${yr}-12-31`;
-          newIuran[idx].jamBayar = newIuran[idx].jamBayar || '23:59';
         }
       });
     });
@@ -116,11 +111,6 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           tanggalBayar: '2026-05-01',
           jamBayar: '12:00'
         });
-      } else {
-        newIuran[idx].lunas = true;
-        newIuran[idx].catatan = newIuran[idx].catatan || 'Lunas Otomatis (2024-2026)';
-        newIuran[idx].tanggalBayar = newIuran[idx].tanggalBayar || '2026-05-01';
-        newIuran[idx].jamBayar = newIuran[idx].jamBayar || '12:00';
       }
     });
 
@@ -155,11 +145,6 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
             tanggalBayar: `${yr}-12-31`,
             jamBayar: '23:59'
           });
-        } else {
-          newIuran[idx].lunas = true;
-          newIuran[idx].catatan = newIuran[idx].catatan || 'Lunas Otomatis (2024-2026)';
-          newIuran[idx].tanggalBayar = newIuran[idx].tanggalBayar || `${yr}-12-31`;
-          newIuran[idx].jamBayar = newIuran[idx].jamBayar || '23:59';
         }
       });
     });
@@ -180,11 +165,6 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
           tanggalBayar: '2026-05-01',
           jamBayar: '12:00'
         });
-      } else {
-        newIuran[idx].lunas = true;
-        newIuran[idx].catatan = newIuran[idx].catatan || 'Lunas Otomatis (2024-2026)';
-        newIuran[idx].tanggalBayar = newIuran[idx].tanggalBayar || '2026-05-01';
-        newIuran[idx].jamBayar = newIuran[idx].jamBayar || '12:00';
       }
     });
 
