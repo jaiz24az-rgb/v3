@@ -418,6 +418,19 @@ export default function TagihanWarga({
   const [batchMonthsPaidStatus, setBatchMonthsPaidStatus] = useState<{[key: string]: boolean}>({});
   const [showCurrentMonthOnly, setShowCurrentMonthOnly] = useState<boolean>(true);
 
+  // Dropdown states for managing Edit/Delete actions in citizens and stalls
+  const [activeDropdownWarga, setActiveDropdownWarga] = useState<string | null>(null);
+  const [activeDropdownRombong, setActiveDropdownRombong] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setActiveDropdownWarga(null);
+      setActiveDropdownRombong(null);
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, []);
+
   const fullMonths = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -7936,26 +7949,49 @@ export default function TagihanWarga({
                         </td>
                       )}
 
-                      {/* Admin/Bendahara Management Actions: Edit and Delete */}
+                      {/* Admin/Bendahara Management Actions: Edit and Delete combined into local Settings dropdown */}
                       {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                        <td className="p-4 text-center align-middle">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="p-4 text-center align-middle relative">
+                          <div className="relative inline-block text-left">
                             <button
-                              onClick={() => setEditingWarga(w)}
-                              className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition cursor-pointer"
-                              title="Edit data warga"
+                              id={`warga-actions-btn-${w.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdownWarga(activeDropdownWarga === w.id ? null : w.id);
+                                setActiveDropdownRombong(null);
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-slate-850 hover:bg-slate-100 rounded-lg transition cursor-pointer border border-slate-200 bg-white shadow-3xs"
+                              title="Aksi Pengurus"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Settings className="w-4 h-4" />
                             </button>
-                            {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                              <div className="flex items-center gap-1.5">
+                            
+                            {activeDropdownWarga === w.id && (
+                              <div className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
                                 <button
-                                  onClick={() => handleDeleteWarga(w.id, w.nama)}
-                                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                                  title="Hapus warga dari daftar"
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingWarga(w);
+                                    setActiveDropdownWarga(null);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-50 transition text-left font-semibold cursor-pointer"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <span>Edit Data</span>
                                 </button>
+                                {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDeleteWarga(w.id, w.nama);
+                                      setActiveDropdownWarga(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Hapus Warga</span>
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -8173,26 +8209,49 @@ export default function TagihanWarga({
                         </td>
                       )}
 
-                      {/* Admin/Bendahara Options */}
+                      {/* Admin/Bendahara Options: Edit and Delete combined into local Settings dropdown */}
                       {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                        <td className="p-4 text-center align-middle">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="p-4 text-center align-middle relative">
+                          <div className="relative inline-block text-left">
                             <button
-                              onClick={() => setEditingRombong(r)}
-                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
-                              title="Edit data rombong"
+                              id={`rombong-actions-btn-${r.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdownRombong(activeDropdownRombong === r.id ? null : r.id);
+                                setActiveDropdownWarga(null);
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-slate-850 hover:bg-slate-100 rounded-lg transition cursor-pointer border border-slate-200 bg-white shadow-3xs"
+                              title="Aksi Pengurus"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Settings className="w-4 h-4" />
                             </button>
-                            {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                              <div className="flex items-center gap-1.5">
+                            
+                            {activeDropdownRombong === r.id && (
+                              <div className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
                                 <button
-                                  onClick={() => handleDeleteRombong(r.id, r.namaPemilik)}
-                                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                                  title="Hapus rombong dari daftar"
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingRombong(r);
+                                    setActiveDropdownRombong(null);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-750 hover:bg-emerald-50 transition text-left font-semibold cursor-pointer"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <span>Edit Lapak</span>
                                 </button>
+                                {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDeleteRombong(r.id, r.namaPemilik);
+                                      setActiveDropdownRombong(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Hapus Lapak</span>
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>

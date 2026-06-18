@@ -465,6 +465,16 @@ export default function Undangan({
   const [selectedBlock, setSelectedBlock] = useState('Semua');
   const [selectedStatus, setSelectedStatus] = useState('Semua');
   const [editingWarga, setEditingWarga] = useState<WargaBill | null>(null);
+  const [activeDropdownWarga, setActiveDropdownWarga] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setActiveDropdownWarga(null);
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, []);
+
   const [showAddWargaModal, setShowAddWargaModal] = useState(false);
   const [selectedWargaHistory, setSelectedWargaHistory] = useState<WargaBill | null>(null);
   
@@ -1908,34 +1918,58 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                             )}
                           </td>
 
-                          <td className="p-4 text-center align-middle">
-                            <div className="flex items-center justify-center gap-1.5">
+                          <td className="p-4 text-center align-middle relative">
+                            <div className="relative inline-block text-left">
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setSelectedWargaHistory(w);
+                                id={`adm-warga-actions-${w.id}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdownWarga(activeDropdownWarga === w.id ? null : w.id);
                                 }}
-                                className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition cursor-pointer"
-                                title="Lihat detail berkas & kk"
+                                className="p-1.5 text-slate-500 hover:text-slate-850 hover:bg-slate-100 rounded-lg transition cursor-pointer border border-slate-200 bg-white shadow-3xs"
+                                title="Aksi Pengurus"
                               >
-                                <Eye className="w-3.5 h-3.5" />
+                                <Settings className="w-4 h-4" />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditingWarga(w)}
-                                className="p-1 text-sky-600 hover:bg-sky-50 rounded-md transition cursor-pointer"
-                                title="Edit warga"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteWarga(w.id, w.nama)}
-                                className="p-1 text-rose-600 hover:bg-rose-50 rounded-md transition cursor-pointer"
-                                title="Hapus warga"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+
+                              {activeDropdownWarga === w.id && (
+                                <div className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedWargaHistory(w);
+                                      setActiveDropdownWarga(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-705 hover:bg-slate-50 transition text-left font-semibold cursor-pointer"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>Lihat Detail</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingWarga(w);
+                                      setActiveDropdownWarga(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                    <span>Edit Warga</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDeleteWarga(w.id, w.nama);
+                                      setActiveDropdownWarga(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                    <span>Hapus Warga</span>
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
