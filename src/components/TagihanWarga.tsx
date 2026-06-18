@@ -2678,6 +2678,7 @@ export default function TagihanWarga({
         let isLunas = false;
         let tglBayar: string | undefined = undefined;
         let jmBayar: string | undefined = undefined;
+        let setNominal = getDefaultRtRate(yr, m, rateRT);
         
         if (newWarga.isWargaBaru) {
           const isBeforeYear = yr < newWarga.mulaiTahun;
@@ -2688,13 +2689,14 @@ export default function TagihanWarga({
             isLunas = true;
             tglBayar = 'Bebas (Warga Baru)';
             jmBayar = 'Sistem';
+            setNominal = 0;
           }
         }
         
         iuranRT.push({
           bulan: m,
           lunas: isLunas,
-          nominal: getDefaultRtRate(yr, m, rateRT),
+          nominal: setNominal,
           tahun: yr,
           tanggalBayar: tglBayar,
           jamBayar: jmBayar

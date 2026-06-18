@@ -102,7 +102,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           newIuran.push({
             bulan: m,
             lunas: true,
-            nominal: 35000,
+            nominal: beforePlacement ? 0 : 35000,
             tahun: yr,
             catatan: beforePlacement ? 'Bebas (Warga Baru)' : 'Lunas Otomatis (2024-2026)',
             tanggalBayar: beforePlacement ? 'Sistem' : `${yr}-12-31`,
@@ -113,12 +113,14 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           if (slot.manualKoreksi !== true) {
             if (beforePlacement) {
               slot.lunas = true;
+              slot.nominal = 0;
               slot.catatan = 'Bebas (Warga Baru)';
               slot.tanggalBayar = 'Sistem';
               slot.jamBayar = undefined;
             } else {
               if (!w.isWargaBaru) {
                 slot.lunas = true;
+                slot.nominal = slot.nominal === 0 ? 35000 : slot.nominal; // Restore if it was zero
                 slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
                 slot.tanggalBayar = slot.tanggalBayar || `${yr}-12-31`;
                 slot.jamBayar = slot.jamBayar || '23:59';
@@ -150,7 +152,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           newIuran.push({
             bulan: m,
             lunas: true,
-            nominal: 35000,
+            nominal: beforePlacement ? 0 : 35000,
             tahun: 2026,
             catatan: beforePlacement ? 'Bebas (Warga Baru)' : 'Lunas Otomatis (2024-2026)',
             tanggalBayar: beforePlacement ? 'Sistem' : '2026-05-01',
@@ -172,6 +174,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
         if (slot.manualKoreksi !== true) {
           if (beforePlacement) {
             slot.lunas = true;
+            slot.nominal = 0;
             slot.catatan = 'Bebas (Warga Baru)';
             slot.tanggalBayar = 'Sistem';
             slot.jamBayar = undefined;
@@ -181,6 +184,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           } else {
             if (!w.isWargaBaru) {
               slot.lunas = true;
+              slot.nominal = slot.nominal === 0 ? 35000 : slot.nominal;
               slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
               slot.tanggalBayar = slot.tanggalBayar || '2026-05-01';
               slot.jamBayar = slot.jamBayar || '12:00';
@@ -222,7 +226,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
             newIuran.push({
               bulan: m,
               lunas: true,
-              nominal: 35000,
+              nominal: 0,
               tahun: yr,
               catatan: 'Bebas (Warga Baru)',
               tanggalBayar: 'Sistem',
@@ -232,6 +236,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
             const slot = newIuran[idx];
             if (slot.manualKoreksi !== true) {
               slot.lunas = true;
+              slot.nominal = 0;
               slot.catatan = 'Bebas (Warga Baru)';
               slot.tanggalBayar = 'Sistem';
               slot.jamBayar = undefined;
