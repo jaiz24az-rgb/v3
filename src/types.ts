@@ -55,6 +55,9 @@ export interface WargaBill {
   statusRumah?: 'milik_sendiri' | 'sewa_kontrak' | 'lainnya'; // Status kepemilikan rumah (keluarga vs sewa/kontrak)
   tglAwalSewa?: string; // Tanggal awal kontrak (optional)
   tglAkhirSewa?: string; // Tanggal akhir kontrak (optional)
+  isWargaBaru?: boolean; // Flag for new citizen (free bills before placement)
+  mulaiBulan?: string; // Starting month for billing
+  mulaiTahun?: number; // Starting year for billing
   iuranRT: { 
     bulan: string; 
     lunas: boolean; 

@@ -2716,6 +2716,9 @@ export default function TagihanWarga({
       ktpNamaFile: newWarga.ktpNamaFile || undefined,
       kkNamaFile: newWarga.kkNamaFile || undefined,
       statusRumah: newWarga.statusRumah,
+      isWargaBaru: newWarga.isWargaBaru,
+      mulaiBulan: newWarga.isWargaBaru ? newWarga.mulaiBulan : undefined,
+      mulaiTahun: newWarga.isWargaBaru ? newWarga.mulaiTahun : undefined,
       iuranRT: iuranRT,
       anggotaKeluarga: newWarga.anggotaKeluarga || [],
     };
@@ -2773,6 +2776,9 @@ export default function TagihanWarga({
           ktpNamaFile: editingWarga.ktpNamaFile || undefined,
           kkNamaFile: editingWarga.kkNamaFile || undefined,
           statusRumah: editingWarga.statusRumah,
+          isWargaBaru: editingWarga.isWargaBaru,
+          mulaiBulan: editingWarga.isWargaBaru ? editingWarga.mulaiBulan : undefined,
+          mulaiTahun: editingWarga.isWargaBaru ? editingWarga.mulaiTahun : undefined,
           anggotaKeluarga: editingWarga.anggotaKeluarga || [],
         };
       }
@@ -5052,6 +5058,58 @@ export default function TagihanWarga({
                   className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-sm text-slate-950 focus:ring-2 focus:ring-sky-500 focus:outline-none font-sans"
                   rows={2}
                 />
+              </div>
+
+              {/* Fitur Warga Baru (Bebas Iuran Sebelum Menempati) */}
+              <div className="bg-sky-50/40 border border-sky-100/60 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-2.5">
+                  <input 
+                    type="checkbox"
+                    id="edit-checkbox-warga-baru"
+                    checked={editingWarga.isWargaBaru || false}
+                    onChange={e => setEditingWarga({
+                      ...editingWarga, 
+                      isWargaBaru: e.target.checked,
+                      mulaiBulan: e.target.checked ? (editingWarga.mulaiBulan || 'Maret') : undefined,
+                      mulaiTahun: e.target.checked ? (editingWarga.mulaiTahun || 2026) : undefined
+                    })}
+                    className="mt-1 w-4 h-4 text-sky-600 border-slate-300 rounded focus:ring-sky-500 focus:outline-none cursor-pointer"
+                  />
+                  <div>
+                    <label htmlFor="edit-checkbox-warga-baru" className="block text-xs font-bold text-slate-800 cursor-pointer font-sans select-none">
+                      Tandai Sebagai "Warga Baru" (Baru Pindah/Menempati)
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Aktifkan opsi ini untuk otomatis membebaskan/menggratiskan iuran pada bulan-bulan sebelum masa penempatan.
+                    </p>
+                  </div>
+                </div>
+
+                {editingWarga.isWargaBaru && (
+                  <div className="flex flex-wrap items-center gap-2 bg-white border border-sky-100 p-2 rounded-lg shrink-0 animate-in fade-in slide-in-from-right duration-205">
+                    <span className="text-xs font-bold text-slate-600 font-sans">Mulai Tagihan:</span>
+                    
+                    <select
+                      value={editingWarga.mulaiBulan || 'Maret'}
+                      onChange={e => setEditingWarga({...editingWarga, mulaiBulan: e.target.value})}
+                      className="bg-slate-50 border border-slate-200 rounded-md py-1 px-2 text-xs text-slate-800 focus:outline-none font-semibold cursor-pointer"
+                    >
+                      {fullMonths.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={editingWarga.mulaiTahun || 2026}
+                      onChange={e => setEditingWarga({...editingWarga, mulaiTahun: Number(e.target.value)})}
+                      className="bg-slate-50 border border-slate-200 rounded-md py-1 px-2 text-xs text-slate-800 focus:outline-none font-semibold cursor-pointer"
+                    >
+                      {yearsList.map(yr => (
+                        <option key={yr} value={yr}>{yr}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               {/* Edit Uploader KTP */}

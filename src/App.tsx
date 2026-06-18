@@ -72,8 +72,23 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
+  const monthsOrder = fullMonths.map(m => m.toLowerCase());
+  
   return wList.map(w => {
     const newIuran = w.iuranRT.map(b => ({ ...b }));
+    
+    const startMonthIndex = w.mulaiBulan ? monthsOrder.indexOf(w.mulaiBulan.toLowerCase()) : -1;
+    const startYear = w.mulaiTahun || 2026;
+
+    const isBeforePlacement = (yr: number, mName: string) => {
+      if (!w.isWargaBaru) return false;
+      if (yr < startYear) return true;
+      if (yr > startYear) return false;
+      const mIdx = monthsOrder.indexOf(mName.toLowerCase());
+      return mIdx < startMonthIndex;
+    };
+
+    // 1. Process 2024 and 2025 iuran
     [2024, 2025].forEach((yr) => {
       fullMonths.forEach((m) => {
         const shortM = m.slice(0, 3);
@@ -81,56 +96,149 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           (b.tahun === yr) && 
           (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
         );
+        const beforePlacement = isBeforePlacement(yr, m);
+        
         if (idx === -1) {
           newIuran.push({
             bulan: m,
             lunas: true,
             nominal: 35000,
             tahun: yr,
-            catatan: 'Lunas Otomatis (2024-2026)',
-            tanggalBayar: `${yr}-12-31`,
-            jamBayar: '23:59'
+            catatan: beforePlacement ? 'Bebas (Warga Baru)' : 'Lunas Otomatis (2024-2026)',
+            tanggalBayar: beforePlacement ? 'Sistem' : `${yr}-12-31`,
+            jamBayar: beforePlacement ? undefined : '23:59'
           });
         } else {
           const slot = newIuran[idx];
           if (slot.manualKoreksi !== true) {
-            slot.lunas = true;
-            slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
-            slot.tanggalBayar = slot.tanggalBayar || `${yr}-12-31`;
-            slot.jamBayar = slot.jamBayar || '23:59';
+            if (beforePlacement) {
+              slot.lunas = true;
+              slot.catatan = 'Bebas (Warga Baru)';
+              slot.tanggalBayar = 'Sistem';
+              slot.jamBayar = undefined;
+            } else {
+              if (!w.isWargaBaru) {
+                slot.lunas = true;
+                slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
+                slot.tanggalBayar = slot.tanggalBayar || `${yr}-12-31`;
+                slot.jamBayar = slot.jamBayar || '23:59';
+              } else {
+                if (slot.catatan === 'Lunas Otomatis (2024-2026)') {
+                  slot.lunas = false;
+                  slot.catatan = undefined;
+                  slot.tanggalBayar = undefined;
+                  slot.jamBayar = undefined;
+                }
+              }
+            }
           }
         }
       });
     });
 
+    // 2. Process Jan-Mei 2026 iuran
     fullMonths.slice(0, 5).forEach((m) => {
       const shortM = m.slice(0, 3);
       const idx = newIuran.findIndex(b => 
         (b.tahun === 2026 || !b.tahun) && 
         (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
       );
+      const beforePlacement = isBeforePlacement(2026, m);
+      
       if (idx === -1) {
-        newIuran.push({
-          bulan: m,
-          lunas: true,
-          nominal: 35000,
-          tahun: 2026,
-          catatan: 'Lunas Otomatis (2024-2026)',
-          tanggalBayar: '2026-05-01',
-          jamBayar: '12:00'
-        });
+        if (!w.isWargaBaru || beforePlacement) {
+          newIuran.push({
+            bulan: m,
+            lunas: true,
+            nominal: 35000,
+            tahun: 2026,
+            catatan: beforePlacement ? 'Bebas (Warga Baru)' : 'Lunas Otomatis (2024-2026)',
+            tanggalBayar: beforePlacement ? 'Sistem' : '2026-05-01',
+            jamBayar: beforePlacement ? undefined : '12:00'
+          });
+        } else {
+          newIuran.push({
+            bulan: m,
+            lunas: false,
+            nominal: 35000,
+            tahun: 2026,
+            catatan: undefined,
+            tanggalBayar: undefined,
+            jamBayar: undefined
+          });
+        }
       } else {
         const slot = newIuran[idx];
         if (slot.manualKoreksi !== true) {
-          slot.lunas = true;
-          slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
-          slot.tanggalBayar = slot.tanggalBayar || '2026-05-01';
-          slot.jamBayar = slot.jamBayar || '12:00';
-          if (!slot.tahun) {
-            slot.tahun = 2026;
+          if (beforePlacement) {
+            slot.lunas = true;
+            slot.catatan = 'Bebas (Warga Baru)';
+            slot.tanggalBayar = 'Sistem';
+            slot.jamBayar = undefined;
+            if (!slot.tahun) {
+              slot.tahun = 2026;
+            }
+          } else {
+            if (!w.isWargaBaru) {
+              slot.lunas = true;
+              slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
+              slot.tanggalBayar = slot.tanggalBayar || '2026-05-01';
+              slot.jamBayar = slot.jamBayar || '12:00';
+              if (!slot.tahun) {
+                slot.tahun = 2026;
+              }
+            } else {
+              if (slot.catatan === 'Lunas Otomatis (2024-2026)') {
+                slot.lunas = false;
+                slot.catatan = undefined;
+                slot.tanggalBayar = undefined;
+                slot.jamBayar = undefined;
+              }
+              if (!slot.tahun) {
+                slot.tahun = 2026;
+              }
+            }
           }
         }
       }
+    });
+
+    // 3. Process all remaining months in other years
+    const allYears = Array.from(new Set([2024, 2025, 2026, 2027, ...(w.iuranRT.map(b => b.tahun).filter(Boolean) as number[])]));
+    allYears.forEach(yr => {
+      fullMonths.forEach(m => {
+        const isJanMei2026 = yr === 2026 && monthsOrder.indexOf(m.toLowerCase()) < 5;
+        if (yr === 2024 || yr === 2025 || isJanMei2026) return;
+
+        const shortM = m.slice(0, 3);
+        const idx = newIuran.findIndex(b =>
+          (b.tahun === yr) &&
+          (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+        );
+
+        const beforePlacement = isBeforePlacement(yr, m);
+        if (beforePlacement) {
+          if (idx === -1) {
+            newIuran.push({
+              bulan: m,
+              lunas: true,
+              nominal: 35000,
+              tahun: yr,
+              catatan: 'Bebas (Warga Baru)',
+              tanggalBayar: 'Sistem',
+              jamBayar: undefined
+            });
+          } else {
+            const slot = newIuran[idx];
+            if (slot.manualKoreksi !== true) {
+              slot.lunas = true;
+              slot.catatan = 'Bebas (Warga Baru)';
+              slot.tanggalBayar = 'Sistem';
+              slot.jamBayar = undefined;
+            }
+          }
+        }
+      });
     });
 
     return {
