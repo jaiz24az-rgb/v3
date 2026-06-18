@@ -468,6 +468,38 @@ export default function App() {
     return saved || 'Lapak Rombong';
   });
 
+  const [bankNama, setBankNama] = useState<string>(() => localStorage.getItem('perumtas_rt08_bank_nama') || 'Bank Mandiri');
+  const [bankNoRek, setBankNoRek] = useState<string>(() => localStorage.getItem('perumtas_rt08_bank_norek') || '');
+  const [bankPenerima, setBankPenerima] = useState<string>(() => localStorage.getItem('perumtas_rt08_bank_penerima') || '');
+  const [bankCatatanVendor, setBankCatatanVendor] = useState<string>(() => localStorage.getItem('perumtas_rt08_bank_catatan_vendor') || '');
+  const [meetingNotulen, setMeetingNotulen] = useState<string>(() => localStorage.getItem('perumtas_rt08_meeting_notulen') || '');
+
+  const updateBankNama = (val: string) => {
+    setBankNama(val);
+    localStorage.setItem('perumtas_rt08_bank_nama', val);
+    upsertGeneralSettings({ bankNama: val });
+  };
+  const updateBankNoRek = (val: string) => {
+    setBankNoRek(val);
+    localStorage.setItem('perumtas_rt08_bank_norek', val);
+    upsertGeneralSettings({ bankNoRek: val });
+  };
+  const updateBankPenerima = (val: string) => {
+    setBankPenerima(val);
+    localStorage.setItem('perumtas_rt08_bank_penerima', val);
+    upsertGeneralSettings({ bankPenerima: val });
+  };
+  const updateBankCatatanVendor = (val: string) => {
+    setBankCatatanVendor(val);
+    localStorage.setItem('perumtas_rt08_bank_catatan_vendor', val);
+    upsertGeneralSettings({ bankCatatanVendor: val });
+  };
+  const updateMeetingNotulen = (val: string) => {
+    setMeetingNotulen(val);
+    localStorage.setItem('perumtas_rt08_meeting_notulen', val);
+    upsertGeneralSettings({ meetingNotulen: val });
+  };
+
   useEffect(() => {
     localStorage.setItem('perumtas_rt08_app_name', appName);
   }, [appName]);
@@ -960,6 +992,11 @@ export default function App() {
             if (settings.labelWargaPlural !== undefined) setLabelWargaPlural(settings.labelWargaPlural);
             if (settings.labelRombongSingular !== undefined) setLabelRombongSingular(settings.labelRombongSingular);
             if (settings.labelRombongPlural !== undefined) setLabelRombongPlural(settings.labelRombongPlural);
+            if (settings.bankNama !== undefined) setBankNama(settings.bankNama);
+            if (settings.bankNoRek !== undefined) setBankNoRek(settings.bankNoRek);
+            if (settings.bankPenerima !== undefined) setBankPenerima(settings.bankPenerima);
+            if (settings.bankCatatanVendor !== undefined) setBankCatatanVendor(settings.bankCatatanVendor);
+            if (settings.meetingNotulen !== undefined) setMeetingNotulen(settings.meetingNotulen);
           } else {
             // Seed settings
             await upsertGeneralSettings({
@@ -976,7 +1013,12 @@ export default function App() {
               labelWargaSingular,
               labelWargaPlural,
               labelRombongSingular,
-              labelRombongPlural
+              labelRombongPlural,
+              bankNama,
+              bankNoRek,
+              bankPenerima,
+              bankCatatanVendor,
+              meetingNotulen
             });
           }
         }
@@ -2083,6 +2125,16 @@ export default function App() {
               labelWargaPlural={labelWargaPlural}
               labelRombongSingular={labelRombongSingular}
               labelRombongPlural={labelRombongPlural}
+              bankNama={bankNama}
+              updateBankNama={updateBankNama}
+              bankNoRek={bankNoRek}
+              updateBankNoRek={updateBankNoRek}
+              bankPenerima={bankPenerima}
+              updateBankPenerima={updateBankPenerima}
+              bankCatatanVendor={bankCatatanVendor}
+              updateBankCatatanVendor={updateBankCatatanVendor}
+              meetingNotulen={meetingNotulen}
+              updateMeetingNotulen={updateMeetingNotulen}
             />
           )}
 

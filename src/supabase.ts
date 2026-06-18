@@ -67,6 +67,11 @@ export function mapGeneralSettingsToClient(dbData: any) {
     labelWargaPlural: dbData.label_warga_plural ? String(dbData.label_warga_plural) : undefined,
     labelRombongSingular: dbData.label_rombong_singular ? String(dbData.label_rombong_singular) : undefined,
     labelRombongPlural: dbData.label_rombong_plural ? String(dbData.label_rombong_plural) : undefined,
+    bankNama: dbData.bank_nama ? String(dbData.bank_nama) : undefined,
+    bankNoRek: dbData.bank_no_rek ? String(dbData.bank_no_rek) : undefined,
+    bankPenerima: dbData.bank_penerima ? String(dbData.bank_penerima) : undefined,
+    bankCatatanVendor: dbData.bank_catatan_vendor ? String(dbData.bank_catatan_vendor) : undefined,
+    meetingNotulen: dbData.meeting_notulen ? String(dbData.meeting_notulen) : undefined,
   };
 }
 
@@ -87,6 +92,12 @@ export function mapWargaBillToClient(row: any): WargaBill {
     kkNamaFile: row.kk_nama_file,
     fotoBase64: row.foto_base64,
     fotoNamaFile: row.foto_nama_file,
+    statusRumah: row.status_rumah || 'milik_sendiri',
+    tglAwalSewa: row.tgl_awal_sewa || undefined,
+    tglAkhirSewa: row.tgl_akhir_sewa || undefined,
+    isWargaBaru: row.is_warga_baru || false,
+    mulaiBulan: row.mulai_bulan || undefined,
+    mulaiTahun: row.mulai_tahun || undefined,
     iuranRT: row.iuran_rt || [],
     anggotaKeluarga: row.anggota_keluarga || [],
   };
@@ -196,6 +207,11 @@ export async function upsertGeneralSettings(settings: Partial<any>) {
     if (settings.labelWargaPlural !== undefined) dbPayload.label_warga_plural = settings.labelWargaPlural;
     if (settings.labelRombongSingular !== undefined) dbPayload.label_rombong_singular = settings.labelRombongSingular;
     if (settings.labelRombongPlural !== undefined) dbPayload.label_rombong_plural = settings.labelRombongPlural;
+    if (settings.bankNama !== undefined) dbPayload.bank_nama = settings.bankNama;
+    if (settings.bankNoRek !== undefined) dbPayload.bank_no_rek = settings.bankNoRek;
+    if (settings.bankPenerima !== undefined) dbPayload.bank_penerima = settings.bankPenerima;
+    if (settings.bankCatatanVendor !== undefined) dbPayload.bank_catatan_vendor = settings.bankCatatanVendor;
+    if (settings.meetingNotulen !== undefined) dbPayload.meeting_notulen = settings.meetingNotulen;
 
     const { error } = await supabase
       .from('settings')
@@ -348,6 +364,12 @@ export async function saveWargaBill(w: WargaBill) {
         kk_nama_file: w.kkNamaFile || null,
         foto_base64: w.fotoBase64 || null,
         foto_nama_file: w.fotoNamaFile || null,
+        status_rumah: w.statusRumah || 'milik_sendiri',
+        tgl_awal_sewa: w.tglAwalSewa || null,
+        tgl_akhir_sewa: w.tglAkhirSewa || null,
+        is_warga_baru: w.isWargaBaru || false,
+        mulai_bulan: w.mulaiBulan || null,
+        mulai_tahun: w.mulaiTahun || null,
         iuran_rt: w.iuranRT || [],
         anggota_keluarga: w.anggotaKeluarga || []
       });

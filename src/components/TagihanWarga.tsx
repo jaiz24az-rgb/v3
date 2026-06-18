@@ -90,6 +90,16 @@ interface TagihanWargaProps {
   labelWargaPlural?: string;
   labelRombongSingular?: string;
   labelRombongPlural?: string;
+  bankNama?: string;
+  updateBankNama?: (newVal: string) => void;
+  bankNoRek?: string;
+  updateBankNoRek?: (newVal: string) => void;
+  bankPenerima?: string;
+  updateBankPenerima?: (newVal: string) => void;
+  bankCatatanVendor?: string;
+  updateBankCatatanVendor?: (newVal: string) => void;
+  meetingNotulen?: string;
+  updateMeetingNotulen?: (newVal: string) => void;
 }
 
 export default function TagihanWarga({ 
@@ -124,7 +134,17 @@ export default function TagihanWarga({
   labelWargaSingular = 'Warga',
   labelWargaPlural = 'Warga',
   labelRombongSingular = 'Rombong',
-  labelRombongPlural = 'Lapak Rombong'
+  labelRombongPlural = 'Lapak Rombong',
+  bankNama = 'Bank Mandiri',
+  updateBankNama = () => {},
+  bankNoRek = '',
+  updateBankNoRek = () => {},
+  bankPenerima = '',
+  updateBankPenerima = () => {},
+  bankCatatanVendor = '',
+  updateBankCatatanVendor = () => {},
+  meetingNotulen = '',
+  updateMeetingNotulen = () => {}
 }: TagihanWargaProps) {
   const printContentViaIframe = (htmlContent: string) => {
     const iframe = document.createElement('iframe');
@@ -270,6 +290,8 @@ export default function TagihanWarga({
     ktpNamaFile: '',
     kkNamaFile: '',
     statusRumah: 'milik_sendiri' as 'milik_sendiri' | 'sewa_kontrak' | 'lainnya',
+    tglAwalSewa: '',
+    tglAkhirSewa: '',
     isWargaBaru: false,
     mulaiBulan: 'Maret',
     mulaiTahun: 2026,
@@ -2731,6 +2753,8 @@ export default function TagihanWarga({
       ktpNamaFile: newWarga.ktpNamaFile || undefined,
       kkNamaFile: newWarga.kkNamaFile || undefined,
       statusRumah: newWarga.statusRumah,
+      tglAwalSewa: newWarga.statusRumah === 'sewa_kontrak' ? newWarga.tglAwalSewa : undefined,
+      tglAkhirSewa: newWarga.statusRumah === 'sewa_kontrak' ? newWarga.tglAkhirSewa : undefined,
       isWargaBaru: newWarga.isWargaBaru,
       mulaiBulan: newWarga.isWargaBaru ? newWarga.mulaiBulan : undefined,
       mulaiTahun: newWarga.isWargaBaru ? newWarga.mulaiTahun : undefined,
@@ -2753,6 +2777,8 @@ export default function TagihanWarga({
       ktpNamaFile: '', 
       kkNamaFile: '',
       statusRumah: 'milik_sendiri',
+      tglAwalSewa: '',
+      tglAkhirSewa: '',
       isWargaBaru: false,
       mulaiBulan: 'Maret',
       mulaiTahun: selectedBillingYear || 2026,
@@ -2791,6 +2817,8 @@ export default function TagihanWarga({
           ktpNamaFile: editingWarga.ktpNamaFile || undefined,
           kkNamaFile: editingWarga.kkNamaFile || undefined,
           statusRumah: editingWarga.statusRumah,
+          tglAwalSewa: editingWarga.statusRumah === 'sewa_kontrak' ? editingWarga.tglAwalSewa : undefined,
+          tglAkhirSewa: editingWarga.statusRumah === 'sewa_kontrak' ? editingWarga.tglAkhirSewa : undefined,
           isWargaBaru: editingWarga.isWargaBaru,
           mulaiBulan: editingWarga.isWargaBaru ? editingWarga.mulaiBulan : undefined,
           mulaiTahun: editingWarga.isWargaBaru ? editingWarga.mulaiTahun : undefined,
@@ -4617,6 +4645,29 @@ export default function TagihanWarga({
               </select>
             </div>
 
+            {newWarga.statusRumah === 'sewa_kontrak' && (
+              <div className="grid grid-cols-2 gap-3 p-3 bg-amber-50/55 border border-amber-150 rounded-2xl animate-in fade-in slide-in-from-top-1">
+                <div>
+                  <label className="block text-[10.5px] font-bold text-amber-900 mb-1 font-mono">Tgl Mulai Sewa</label>
+                  <input 
+                    type="date"
+                    value={newWarga.tglAwalSewa || ''}
+                    onChange={e => setNewWarga({...newWarga, tglAwalSewa: e.target.value})}
+                    className="w-full bg-white border border-amber-200 rounded-xl p-2 text-xs text-slate-950 focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10.5px] font-bold text-amber-900 mb-1 font-mono">Tgl Akhir Sewa</label>
+                  <input 
+                    type="date"
+                    value={newWarga.tglAkhirSewa || ''}
+                    onChange={e => setNewWarga({...newWarga, tglAkhirSewa: e.target.value})}
+                    className="w-full bg-white border border-amber-200 rounded-xl p-2 text-xs text-slate-950 focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1 font-mono">Nomor KTP (16 Digit - Opsional)</label>
               <input 
@@ -5080,6 +5131,29 @@ export default function TagihanWarga({
                   <option value="lainnya">Lainnya / Menumpang</option>
                 </select>
               </div>
+
+              {editingWarga.statusRumah === 'sewa_kontrak' && (
+                <div className="grid grid-cols-2 gap-3 p-3 bg-amber-50/55 border border-amber-150 rounded-2xl animate-in fade-in slide-in-from-top-1">
+                  <div>
+                    <label className="block text-[10.5px] font-bold text-amber-900 mb-1 font-mono">Tgl Mulai Sewa</label>
+                    <input 
+                      type="date"
+                      value={editingWarga.tglAwalSewa || ''}
+                      onChange={e => setEditingWarga({...editingWarga, tglAwalSewa: e.target.value})}
+                      className="w-full bg-white border border-amber-200 rounded-xl p-2 text-xs text-slate-950 focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10.5px] font-bold text-amber-900 mb-1 font-mono">Tgl Akhir Sewa</label>
+                    <input 
+                      type="date"
+                      value={editingWarga.tglAkhirSewa || ''}
+                      onChange={e => setEditingWarga({...editingWarga, tglAkhirSewa: e.target.value})}
+                      className="w-full bg-white border border-amber-200 rounded-xl p-2 text-xs text-slate-950 focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold font-mono"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -6723,8 +6797,15 @@ export default function TagihanWarga({
                   Blok {selectedWargaHistory.blok} No. {selectedWargaHistory.noRumah} — RT 08 Perumtas 3
                 </div>
                 {selectedWargaHistory.statusRumah === 'sewa_kontrak' ? (
-                  <div className="text-xs text-amber-600 font-extrabold font-sans flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-amber-50 rounded-lg w-fit border border-amber-200/50">
-                    <span>🏠 Status Rumah: Sewa / Kontrak</span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="text-xs text-amber-600 font-extrabold font-sans flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-amber-50 rounded-lg w-fit border border-amber-200/50">
+                      <span>🏠 Status Rumah: Sewa / Kontrak</span>
+                    </div>
+                    {(selectedWargaHistory.tglAwalSewa || selectedWargaHistory.tglAkhirSewa) && (
+                      <div className="text-[10.5px] text-amber-750 font-bold font-mono px-2 py-1 bg-amber-50/70 rounded-lg w-fit border border-amber-200/35">
+                        <span>📅 Periode Sewa: {selectedWargaHistory.tglAwalSewa || '-'} s/d {selectedWargaHistory.tglAkhirSewa || '-'}</span>
+                      </div>
+                    )}
                   </div>
                 ) : selectedWargaHistory.statusRumah === 'lainnya' ? (
                   <div className="text-xs text-slate-600 font-semibold font-sans flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-slate-100 rounded-lg w-fit border border-slate-200/50">
@@ -7804,17 +7885,6 @@ export default function TagihanWarga({
                                   {w.nama}
                                 </button>
 
-                                {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                                  <button
-                                    onClick={() => handleDeleteWarga(w.id, w.nama)}
-                                    className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-sky-600 transition cursor-pointer shrink-0"
-                                    title="Klik untuk Kelola Hunian (Arsip / Pindah / Hapus)"
-                                  >
-                                    <Settings className="w-3.5 h-3.5" />
-                                    <span className="sr-only">Kelola Hunian</span>
-                                  </button>
-                                )}
-
                                 {isOverdue && (
                                   <span 
                                     className="text-[9.5px] font-black uppercase tracking-wider text-rose-700 bg-rose-100/90 border border-rose-200/60 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 select-none font-sans animate-pulse"
@@ -7967,7 +8037,7 @@ export default function TagihanWarga({
                             </button>
                             
                             {activeDropdownWarga === w.id && (
-                              <div className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                              <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -7977,7 +8047,7 @@ export default function TagihanWarga({
                                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-50 transition text-left font-semibold cursor-pointer"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
-                                  <span>Edit Data</span>
+                                  <span>Edit Data Warga</span>
                                 </button>
                                 {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                                   <button
@@ -7989,7 +8059,7 @@ export default function TagihanWarga({
                                     className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
-                                    <span>Hapus Warga</span>
+                                    <span>Kelola / Hapus</span>
                                   </button>
                                 )}
                               </div>
@@ -8075,17 +8145,6 @@ export default function TagihanWarga({
                                 >
                                   {r.namaPemilik}
                                 </button>
-
-                                {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                                  <button
-                                    onClick={() => handleDeleteRombong(r.id, r.namaPemilik)}
-                                    className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-sky-600 transition cursor-pointer shrink-0"
-                                    title="Klik untuk Kelola Lapak Rombong (Arsip / Pindah / Hapus)"
-                                  >
-                                    <Settings className="w-3.5 h-3.5" />
-                                    <span className="sr-only">Kelola Lapak Rombong</span>
-                                  </button>
-                                )}
 
                                 {isOverdue && (
                                   <span 
@@ -8227,7 +8286,7 @@ export default function TagihanWarga({
                             </button>
                             
                             {activeDropdownRombong === r.id && (
-                              <div className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                              <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -8237,7 +8296,7 @@ export default function TagihanWarga({
                                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-750 hover:bg-emerald-50 transition text-left font-semibold cursor-pointer"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
-                                  <span>Edit Lapak</span>
+                                  <span>Edit Data Lapak</span>
                                 </button>
                                 {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                                   <button
@@ -8249,7 +8308,7 @@ export default function TagihanWarga({
                                     className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
-                                    <span>Hapus Lapak</span>
+                                    <span>Kelola / Hapus</span>
                                   </button>
                                 )}
                               </div>
@@ -8833,7 +8892,7 @@ export default function TagihanWarga({
       )}
 
       {/* Dynamic System configuration Management Dialogue (Blok & Tahun) */}
-      {false && showBlockManageModal && (
+      {showBlockManageModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[95] animate-in fade-in duration-250 no-print">
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-805 max-w-2xl md:max-w-3xl w-full">
             <button 
