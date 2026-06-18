@@ -3259,7 +3259,7 @@ export default function TagihanWarga({
             const isMatch = b.bulan.toLowerCase() === bulan.toLowerCase() && 
                             (b.tahun === initialTahun || (!b.tahun && initialTahun === 2026));
             if (isMatch) {
-              return { ...b, lunas: false, tanggalBayar: undefined, jamBayar: undefined, catatan: undefined };
+              return { ...b, lunas: false, tanggalBayar: undefined, jamBayar: undefined, catatan: undefined, manualKoreksi: true };
             }
             return b;
           });
@@ -3280,7 +3280,7 @@ export default function TagihanWarga({
           if (index > -1) {
             updatedBillings = updatedBillings.map(b => {
               if (b.bulan.toLowerCase() === bulan.toLowerCase() && (b.tahun === corrTahun || (!b.tahun && corrTahun === 2026))) {
-                return { ...b, lunas: true, nominal: corrNominal, tanggalBayar: corrPaymentDate, jamBayar: corrPaymentTime, catatan: corrCatatan };
+                return { ...b, lunas: true, nominal: corrNominal, tanggalBayar: corrPaymentDate, jamBayar: corrPaymentTime, catatan: corrCatatan, manualKoreksi: true };
               }
               return b;
             });
@@ -3292,7 +3292,8 @@ export default function TagihanWarga({
               tahun: corrTahun,
               tanggalBayar: corrPaymentDate,
               jamBayar: corrPaymentTime,
-              catatan: corrCatatan
+              catatan: corrCatatan,
+              manualKoreksi: true
             });
           }
           return { ...w, [billingType]: updatedBillings };
@@ -3458,14 +3459,27 @@ export default function TagihanWarga({
 
     const warga = selectedWargaHistory;
     const billingType = 'iuranRT';
+    const monthsOrder = fullMonths.map(m => m.toLowerCase());
 
     const updatedWargaList = wargaList.map(w => {
       if (w.id === warga.id) {
         let updatedBillings = [...w[billingType]];
 
+        const startMonthIndex = w.mulaiBulan ? monthsOrder.indexOf(w.mulaiBulan.toLowerCase()) : -1;
+        const startYear = w.mulaiTahun || 2026;
+
+        const isBeforePlacement = (yr: number, mName: string) => {
+          if (!w.isWargaBaru) return false;
+          if (yr < startYear) return true;
+          if (yr > startYear) return false;
+          const mIdx = monthsOrder.indexOf(mName.toLowerCase());
+          return mIdx < startMonthIndex;
+        };
+
         fullMonths.forEach(m => {
           const shortM = m.slice(0, 3);
           const isTargetLunas = batchMonthsPaidStatus[m];
+          const beforePlacement = isBeforePlacement(historyYear, m);
           
           const index = updatedBillings.findIndex(b => 
             (b.tahun === historyYear || (!b.tahun && historyYear === 2026)) &&
@@ -3473,23 +3487,51 @@ export default function TagihanWarga({
           );
 
           if (index > -1) {
-            updatedBillings[index] = {
-              ...updatedBillings[index],
-              lunas: isTargetLunas,
-              tanggalBayar: isTargetLunas ? (updatedBillings[index].tanggalBayar || new Date().toISOString().split('T')[0]) : undefined,
-              jamBayar: isTargetLunas ? (updatedBillings[index].jamBayar || '12:00') : undefined,
-              catatan: isTargetLunas ? (updatedBillings[index].catatan || 'Koreksi Massal') : undefined
-            };
-          } else if (isTargetLunas) {
-            updatedBillings.push({
-              bulan: m,
-              lunas: true,
-              nominal: getDefaultRtRate(historyYear, m, rateRT),
-              tahun: historyYear,
-              tanggalBayar: new Date().toISOString().split('T')[0],
-              jamBayar: '12:00',
-              catatan: 'Koreksi Massal'
-            });
+            if (beforePlacement) {
+              updatedBillings[index] = {
+                ...updatedBillings[index],
+                lunas: true,
+                nominal: 0,
+                tanggalBayar: 'Sistem',
+                jamBayar: undefined,
+                catatan: 'Bebas (Warga Baru)',
+                manualKoreksi: true
+              };
+            } else {
+              updatedBillings[index] = {
+                ...updatedBillings[index],
+                lunas: isTargetLunas,
+                nominal: updatedBillings[index].nominal === 0 ? getDefaultRtRate(historyYear, m, rateRT) : updatedBillings[index].nominal,
+                tanggalBayar: isTargetLunas ? (updatedBillings[index].tanggalBayar || new Date().toISOString().split('T')[0]) : undefined,
+                jamBayar: isTargetLunas ? (updatedBillings[index].jamBayar || '12:00') : undefined,
+                catatan: isTargetLunas ? (updatedBillings[index].catatan || 'Koreksi Massal') : undefined,
+                manualKoreksi: true
+              };
+            }
+          } else {
+            if (beforePlacement) {
+              updatedBillings.push({
+                bulan: m,
+                lunas: true,
+                nominal: 0,
+                tahun: historyYear,
+                tanggalBayar: 'Sistem',
+                jamBayar: undefined,
+                catatan: 'Bebas (Warga Baru)',
+                manualKoreksi: true
+              });
+            } else {
+              updatedBillings.push({
+                bulan: m,
+                lunas: isTargetLunas,
+                nominal: getDefaultRtRate(historyYear, m, rateRT),
+                tahun: historyYear,
+                tanggalBayar: isTargetLunas ? new Date().toISOString().split('T')[0] : undefined,
+                jamBayar: isTargetLunas ? '12:00' : undefined,
+                catatan: isTargetLunas ? 'Koreksi Massal' : undefined,
+                manualKoreksi: true
+              });
+            }
           }
         });
 
