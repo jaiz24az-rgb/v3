@@ -2793,12 +2793,12 @@ export default function TagihanWarga({
   };
 
   const handleDeleteWarga = (id: string, nama: string) => {
-    if (!isLoggedIn || currentUser?.role !== 'admin') return;
+    if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     setWargaToDelete({ id, nama });
   };
 
   const handleReactivateWarga = (id: string, nama: string) => {
-    if (!isLoggedIn || currentUser?.role !== 'admin') return;
+    if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     updateWargaList(wargaList.map(w => w.id === id ? { ...w, statusKeaktifan: 'aktif' as any } : w));
     alert(`Warga "${nama}" berhasil diaktifkan kembali!`);
   };
@@ -2867,12 +2867,12 @@ export default function TagihanWarga({
   };
 
   const handleDeleteRombong = (id: string, nama: string) => {
-    if (!isLoggedIn || currentUser?.role !== 'admin') return;
+    if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     setRombongToDelete({ id, nama });
   };
 
   const handleReactivateRombong = (id: string, nama: string) => {
-    if (!isLoggedIn || currentUser?.role !== 'admin') return;
+    if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     updateRombongList(rombongList.map(r => r.id === id ? { ...r, statusKeaktifan: 'aktif' as any } : r));
     alert(`Lapak Rombong "${nama}" berhasil diaktifkan kembali!`);
   };
@@ -3322,7 +3322,7 @@ export default function TagihanWarga({
               const isMatch = b.bulan.toLowerCase() === bulan.toLowerCase() && 
                               (b.tahun === initialTahun || (!b.tahun && initialTahun === 2026));
               if (isMatch) {
-                return { ...b, lunas: true, nominal: corrNominal, tahun: corrTahun, tanggalBayar: corrPaymentDate, jamBayar: corrPaymentTime, noCashFlow: corrNoCashFlow, catatan: corrCatatan };
+                return { ...b, lunas: true, nominal: corrNominal, tahun: corrTahun, tanggalBayar: corrPaymentDate, jamBayar: corrPaymentTime, noCashFlow: corrNoCashFlow, catatan: corrCatatan, manualKoreksi: true };
               }
               return b;
             });
@@ -3335,7 +3335,8 @@ export default function TagihanWarga({
               tanggalBayar: corrPaymentDate,
               jamBayar: corrPaymentTime,
               noCashFlow: corrNoCashFlow,
-              catatan: corrCatatan
+              catatan: corrCatatan,
+              manualKoreksi: true
             });
           }
         } else {
@@ -3345,7 +3346,7 @@ export default function TagihanWarga({
               const isMatch = b.bulan.toLowerCase() === bulan.toLowerCase() && 
                               (b.tahun === initialTahun || (!b.tahun && initialTahun === 2026));
               if (isMatch) {
-                return { ...b, lunas: false, tanggalBayar: undefined, jamBayar: undefined, noCashFlow: corrNoCashFlow, catatan: corrCatatan };
+                return { ...b, lunas: false, tanggalBayar: undefined, jamBayar: undefined, noCashFlow: corrNoCashFlow, catatan: corrCatatan, manualKoreksi: true };
               }
               return b;
             });
@@ -3356,7 +3357,8 @@ export default function TagihanWarga({
               nominal: corrNominal,
               tahun: corrTahun,
               noCashFlow: corrNoCashFlow,
-              catatan: corrCatatan
+              catatan: corrCatatan,
+              manualKoreksi: true
             });
           }
         }
@@ -3597,7 +3599,7 @@ export default function TagihanWarga({
               const isMatch = b.bulan.toLowerCase() === bulan.toLowerCase() && 
                               (b.tahun === initialTahun || (!b.tahun && initialTahun === 2026));
               if (isMatch) {
-                return { ...b, lunas: true, nominal: corrRombongNominal, tahun: corrRombongTahun, tanggalBayar: corrPaymentDate, jamBayar: corrPaymentTime, noCashFlow: corrRombongNoCashFlow, catatan: corrRombongCatatan };
+                return { ...b, lunas: true, nominal: corrRombongNominal, tahun: corrRombongTahun, tanggalBayar: corrPaymentDate, jamBayar: corrPaymentTime, noCashFlow: corrRombongNoCashFlow, catatan: corrRombongCatatan, manualKoreksi: true };
               }
               return b;
             });
@@ -3610,7 +3612,8 @@ export default function TagihanWarga({
               tanggalBayar: corrPaymentDate,
               jamBayar: corrPaymentTime,
               noCashFlow: corrRombongNoCashFlow,
-              catatan: corrRombongCatatan
+              catatan: corrRombongCatatan,
+              manualKoreksi: true
             });
           }
         } else {
@@ -3619,7 +3622,7 @@ export default function TagihanWarga({
               const isMatch = b.bulan.toLowerCase() === bulan.toLowerCase() && 
                               (b.tahun === initialTahun || (!b.tahun && initialTahun === 2026));
               if (isMatch) {
-                return { ...b, lunas: false, tanggalBayar: undefined, jamBayar: undefined, noCashFlow: corrRombongNoCashFlow, catatan: corrRombongCatatan };
+                return { ...b, lunas: false, tanggalBayar: undefined, jamBayar: undefined, noCashFlow: corrRombongNoCashFlow, catatan: corrRombongCatatan, manualKoreksi: true };
               }
               return b;
             });
@@ -3630,7 +3633,8 @@ export default function TagihanWarga({
               nominal: corrRombongNominal,
               tahun: corrRombongTahun,
               noCashFlow: corrRombongNoCashFlow,
-              catatan: corrRombongCatatan
+              catatan: corrRombongCatatan,
+              manualKoreksi: true
             });
           }
         }
@@ -7564,6 +7568,17 @@ export default function TagihanWarga({
                                   {w.nama}
                                 </button>
 
+                                {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                                  <button
+                                    onClick={() => handleDeleteWarga(w.id, w.nama)}
+                                    className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-sky-600 transition cursor-pointer shrink-0"
+                                    title="Klik untuk Kelola Hunian (Arsip / Pindah / Hapus)"
+                                  >
+                                    <Settings className="w-3.5 h-3.5" />
+                                    <span className="sr-only">Kelola Hunian</span>
+                                  </button>
+                                )}
+
                                 {isOverdue && (
                                   <span 
                                     className="text-[9.5px] font-black uppercase tracking-wider text-rose-700 bg-rose-100/90 border border-rose-200/60 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 select-none font-sans animate-pulse"
@@ -7709,7 +7724,7 @@ export default function TagihanWarga({
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            {currentUser?.role === 'admin' && (
+                            {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => handleDeleteWarga(w.id, w.nama)}
@@ -7803,6 +7818,17 @@ export default function TagihanWarga({
                                 >
                                   {r.namaPemilik}
                                 </button>
+
+                                {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                                  <button
+                                    onClick={() => handleDeleteRombong(r.id, r.namaPemilik)}
+                                    className="p-1 hover:bg-slate-100 rounded text-slate-500 hover:text-sky-600 transition cursor-pointer shrink-0"
+                                    title="Klik untuk Kelola Lapak Rombong (Arsip / Pindah / Hapus)"
+                                  >
+                                    <Settings className="w-3.5 h-3.5" />
+                                    <span className="sr-only">Kelola Lapak Rombong</span>
+                                  </button>
+                                )}
 
                                 {isOverdue && (
                                   <span 
@@ -7937,7 +7963,7 @@ export default function TagihanWarga({
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            {currentUser?.role === 'admin' && (
+                            {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={() => handleDeleteRombong(r.id, r.namaPemilik)}

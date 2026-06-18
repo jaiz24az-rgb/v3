@@ -91,6 +91,14 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
             tanggalBayar: `${yr}-12-31`,
             jamBayar: '23:59'
           });
+        } else {
+          const slot = newIuran[idx];
+          if (slot.manualKoreksi !== true) {
+            slot.lunas = true;
+            slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
+            slot.tanggalBayar = slot.tanggalBayar || `${yr}-12-31`;
+            slot.jamBayar = slot.jamBayar || '23:59';
+          }
         }
       });
     });
@@ -111,6 +119,17 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           tanggalBayar: '2026-05-01',
           jamBayar: '12:00'
         });
+      } else {
+        const slot = newIuran[idx];
+        if (slot.manualKoreksi !== true) {
+          slot.lunas = true;
+          slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
+          slot.tanggalBayar = slot.tanggalBayar || '2026-05-01';
+          slot.jamBayar = slot.jamBayar || '12:00';
+          if (!slot.tahun) {
+            slot.tahun = 2026;
+          }
+        }
       }
     });
 
@@ -145,6 +164,14 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
             tanggalBayar: `${yr}-12-31`,
             jamBayar: '23:59'
           });
+        } else {
+          const slot = newIuran[idx];
+          if (slot.manualKoreksi !== true) {
+            slot.lunas = true;
+            slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
+            slot.tanggalBayar = slot.tanggalBayar || `${yr}-12-31`;
+            slot.jamBayar = slot.jamBayar || '23:59';
+          }
         }
       });
     });
@@ -165,6 +192,17 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
           tanggalBayar: '2026-05-01',
           jamBayar: '12:00'
         });
+      } else {
+        const slot = newIuran[idx];
+        if (slot.manualKoreksi !== true) {
+          slot.lunas = true;
+          slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
+          slot.tanggalBayar = slot.tanggalBayar || '2026-05-01';
+          slot.jamBayar = slot.jamBayar || '12:00';
+          if (!slot.tahun) {
+            slot.tahun = 2026;
+          }
+        }
       }
     });
 

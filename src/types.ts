@@ -66,6 +66,7 @@ export interface WargaBill {
     catatan?: string;
     fotoBase64?: string; // Payment receipt photo Base64
     fotoNamaFile?: string; // Payment receipt filename
+    manualKoreksi?: boolean; // User manual correction flag 2024-2026
   }[];
   anggotaKeluarga?: FamilyMember[];
 }
@@ -91,6 +92,7 @@ export interface RombongBill {
     catatan?: string;
     fotoBase64?: string; // Payment receipt photo Base64
     fotoNamaFile?: string; // Payment receipt filename
+    manualKoreksi?: boolean; // User manual correction flag 2024-2026
   }[];
 }
 
