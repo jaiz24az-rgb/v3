@@ -297,8 +297,8 @@ export default function TagihanWarga({
   const [editingRombong, setEditingRombong] = useState<RombongBill | null>(null);
   const [wargaToDelete, setWargaToDelete] = useState<{ id: string, nama: string } | null>(null);
   const [rombongToDelete, setRombongToDelete] = useState<{ id: string, nama: string } | null>(null);
-  const [deleteChoiceWarga, setDeleteChoiceWarga] = useState<'permanen' | 'nonaktif' | 'pindah_sementara'>('nonaktif');
-  const [deleteChoiceRombong, setDeleteChoiceRombong] = useState<'permanen' | 'nonaktif' | 'pindah_sementara'>('nonaktif');
+  const [deleteChoiceWarga, setDeleteChoiceWarga] = useState<'aktif' | 'permanen' | 'nonaktif' | 'pindah_sementara'>('nonaktif');
+  const [deleteChoiceRombong, setDeleteChoiceRombong] = useState<'aktif' | 'permanen' | 'nonaktif' | 'pindah_sementara'>('nonaktif');
 
   // Warga Payment confirmation state (with year)
   const [payingInfo, setPayingInfo] = useState<{
@@ -2796,6 +2796,12 @@ export default function TagihanWarga({
 
   const handleDeleteWarga = (id: string, nama: string) => {
     if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
+    const w = wargaList.find(x => x.id === id);
+    if (w && w.statusKeaktifan && w.statusKeaktifan !== 'aktif') {
+      setDeleteChoiceWarga('aktif');
+    } else {
+      setDeleteChoiceWarga('nonaktif');
+    }
     setWargaToDelete({ id, nama });
   };
 
@@ -2871,6 +2877,12 @@ export default function TagihanWarga({
 
   const handleDeleteRombong = (id: string, nama: string) => {
     if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
+    const r = rombongList.find(x => x.id === id);
+    if (r && r.statusKeaktifan && r.statusKeaktifan !== 'aktif') {
+      setDeleteChoiceRombong('aktif');
+    } else {
+      setDeleteChoiceRombong('nonaktif');
+    }
     setRombongToDelete({ id, nama });
   };
 
@@ -3753,7 +3765,7 @@ export default function TagihanWarga({
   };
 
   // Filter systems
-  const filteredWarga = wargaList.filter(w => !w.isDeleted).filter(w => {
+  let filteredWarga = wargaList.filter(w => !w.isDeleted).filter(w => {
     if (currentUser?.role === 'rombong') {
       return false; // rombong users shouldn't see warga bills
     }
@@ -3793,7 +3805,15 @@ export default function TagihanWarga({
     }
   });
 
-  const filteredRombong = rombongList.filter(r => !r.isDeleted).filter(r => {
+  filteredWarga = [...filteredWarga].sort((a, b) => {
+    const aInactive = !!(a.statusKeaktifan && a.statusKeaktifan !== 'aktif');
+    const bInactive = !!(b.statusKeaktifan && b.statusKeaktifan !== 'aktif');
+    if (aInactive && !bInactive) return 1;
+    if (!aInactive && bInactive) return -1;
+    return 0; // maintain relative order
+  });
+
+  let filteredRombong = rombongList.filter(r => !r.isDeleted).filter(r => {
     if (currentUser?.role === 'warga') {
       return false; // warga users shouldn't see rombong bills
     }
@@ -3831,6 +3851,14 @@ export default function TagihanWarga({
     } else {
       return matchesSearch && hasOutstanding;
     }
+  });
+
+  filteredRombong = [...filteredRombong].sort((a, b) => {
+    const aInactive = !!(a.statusKeaktifan && a.statusKeaktifan !== 'aktif');
+    const bInactive = !!(b.statusKeaktifan && b.statusKeaktifan !== 'aktif');
+    if (aInactive && !bInactive) return 1;
+    if (!aInactive && bInactive) return -1;
+    return 0; // maintain relative order
   });
 
   // Report collections (includes soft-deleted citizens/rombongs with payments in the selected billing year)
@@ -4316,33 +4344,33 @@ export default function TagihanWarga({
 
       {/* Control Panel: Search & Adding */}
       {(!currentUser || (currentUser.role !== 'warga' && currentUser.role !== 'rombong')) && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs animate-in fade-in duration-400">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs animate-in fade-in duration-400">
+          <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center justify-between">
             
-            <div className="flex flex-col md:flex-row gap-3 w-full lg:flex-1">
+            <div className="flex flex-col md:flex-row flex-wrap gap-2 w-full xl:flex-1 items-stretch md:items-center">
               {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                 <input
                   type="text"
                   placeholder={
                     activeSubTab === 'warga' 
-                      ? `Cari ${labelWargaSingular.toLowerCase()} berdasarkan nama atau blok nomor...` 
-                      : `Cari pemilik ${labelRombongSingular.toLowerCase()}, nomor lapak, lokasi...`
+                      ? `Cari nama atau blok...` 
+                      : `Cari nama / lapak / lokasi...`
                   }
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-205 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-450"
+                  className="w-full bg-slate-50 border border-slate-205 rounded-lg pl-8.5 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 placeholder-slate-400"
                 />
               </div>
 
               {/* Block Filter - Only shown for warga */}
               {activeSubTab === 'warga' && (
-                <div className="w-full md:w-56 shrink-0">
+                <div className="w-full md:w-32 shrink-0">
                   <select
                     value={selectedBlock}
                     onChange={(e) => setSelectedBlock(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs md:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
                   >
                     <option value="Semua">Blok: Semua</option>
                     {blocksList.map(b => (
@@ -4353,40 +4381,40 @@ export default function TagihanWarga({
               )}
 
               {/* Status Filter */}
-              <div className="relative w-full md:w-44">
+              <div className="relative w-full md:w-36 shrink-0">
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
                 >
                   <option value="Semua">Status: Semua</option>
                   <option value="Lunas">Bebas Tunggakan</option>
                   <option value="Belum Lunas">Ada Tunggakan</option>
-                  <option value="Tunggakan2Bulan">⚠️ Menunggak &gt; 2 Bulan</option>
+                  <option value="Tunggakan2Bulan">⚠️ Tunggakan &gt; 2 Bln</option>
                 </select>
               </div>
 
               {/* Keaktifan / Status Hunian Filter */}
-              <div className="relative w-full md:w-44">
+              <div className="relative w-full md:w-36 shrink-0">
                 <select
                   value={selectedKeaktifan}
                   onChange={(e) => setSelectedKeaktifan(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
                   title="Pilih Status Keaktifan / Hunian"
                 >
-                  <option value="aktif">Hunian: Aktif Menempati</option>
-                  <option value="nonaktif">Hunian: Tidak Aktif / Arsip</option>
-                  <option value="pindah_sementara">Hunian: Pindah Sementara</option>
-                  <option value="semua">Hunian: Semua Hunian</option>
+                  <option value="aktif">Hunian: Aktif</option>
+                  <option value="nonaktif">Hunian: Nonaktif</option>
+                  <option value="pindah_sementara">Hunian: Pindah</option>
+                  <option value="semua">Hunian: Semua</option>
                 </select>
               </div>
 
               {/* Year Filter */}
-              <div className="relative w-full md:w-36">
+              <div className="relative w-full md:w-28 shrink-0">
                 <select
                   value={selectedBillingYear}
                   onChange={(e) => setSelectedBillingYear(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-205 rounded-xl px-3 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-extrabold font-mono"
+                  className="w-full bg-slate-50 border border-slate-205 rounded-lg px-2.5 py-2 text-xs text-slate-850 focus:outline-none focus:ring-2 focus:ring-sky-500 font-extrabold font-mono"
                   title="Pilih Tahun Anggaran/Tagihan"
                 >
                   {yearsList.map(yr => (
@@ -4396,11 +4424,11 @@ export default function TagihanWarga({
               </div>
 
               {/* Month View Toggle */}
-              <div className="bg-slate-55 border border-slate-205 p-1 rounded-xl flex items-center w-full md:w-auto shrink-0 select-none">
+              <div className="bg-slate-55 border border-slate-205 p-0.5 rounded-lg flex items-center w-full md:w-auto shrink-0 select-none">
                 <button
                   type="button"
                   onClick={() => setShowCurrentMonthOnly(true)}
-                  className={`px-3 py-2 rounded-lg text-xs font-extrabold transition cursor-pointer flex-1 md:flex-initial whitespace-nowrap leading-none ${
+                  className={`px-2 py-1.5 rounded-md text-[11px] font-extrabold transition cursor-pointer flex-1 md:flex-initial whitespace-nowrap leading-none ${
                     showCurrentMonthOnly
                       ? 'bg-sky-600 text-white shadow-xs'
                       : 'text-slate-600 hover:bg-slate-150'
@@ -4412,7 +4440,7 @@ export default function TagihanWarga({
                 <button
                   type="button"
                   onClick={() => setShowCurrentMonthOnly(false)}
-                  className={`px-3 py-2 rounded-lg text-xs font-extrabold transition cursor-pointer flex-1 md:flex-initial whitespace-nowrap leading-none ${
+                  className={`px-2 py-1.5 rounded-md text-[11px] font-extrabold transition cursor-pointer flex-1 md:flex-initial whitespace-nowrap leading-none ${
                     !showCurrentMonthOnly
                       ? 'bg-sky-600 text-white shadow-xs'
                       : 'text-slate-600 hover:bg-slate-150'
@@ -4425,24 +4453,24 @@ export default function TagihanWarga({
             </div>
 
             {/* Add triggers for logged in admins & general actions (Print Buku Tagihan) */}
-            <div className="w-full lg:w-auto flex flex-col md:flex-row items-center gap-2.5">
+            <div className="w-full xl:w-auto flex flex-col md:flex-row items-stretch xl:items-center gap-2 shrink-0">
               <button
                 onClick={() => setShowPrintBillingModal(true)}
-                className="bg-slate-50 hover:bg-slate-100 text-slate-700 font-extrabold px-4 py-3 rounded-xl transition duration-200 text-sm whitespace-nowrap cursor-pointer flex items-center justify-center gap-1.5 border border-slate-205 w-full md:w-auto active:scale-95"
+                className="bg-slate-50 hover:bg-slate-100 text-slate-700 font-extrabold px-3 py-2 rounded-lg transition duration-200 text-xs whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 border border-slate-205 w-full md:w-auto active:scale-95"
                 title="Cetak format Buku Rekapitulasi Tagihan dan Status Bulanan"
               >
-                <Printer className="w-4 h-4 text-sky-600 shrink-0" />
+                <Printer className="w-3.5 h-3.5 text-sky-600 shrink-0" />
                 Cetak Buku Tagihan
               </button>
 
               {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'sekretaris' || currentUser?.role === 'bendahara') && (
                 <button
                   onClick={() => activeSubTab === 'warga' ? setShowAddModal(true) : setShowAddRombongModal(true)}
-                  className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-4 py-3 rounded-xl transition duration-200 text-sm whitespace-nowrap cursor-pointer flex items-center justify-center gap-1.5 w-full md:w-auto active:scale-95 shadow-xs"
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-3 py-2 rounded-lg transition duration-200 text-xs whitespace-nowrap cursor-pointer flex items-center justify-center gap-1 w-full md:w-auto active:scale-95 shadow-xs"
                   title={activeSubTab === 'warga' ? "Daftarkan Kepala Keluarga Warga Baru Baru" : "Daftarkan Lapak Rombong Kuliner Baru"}
                 >
-                  <UserPlus className="w-4 h-4 shrink-0" />
-                  <span>{activeSubTab === 'warga' ? "Registrasi Warga Baru" : "Registrasi Lapak Baru"}</span>
+                  <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                  <span>Registrasi Baru</span>
                 </button>
               )}
             </div>
@@ -5358,6 +5386,23 @@ export default function TagihanWarga({
             <div className="text-left bg-slate-50 border border-slate-150 p-4 rounded-2xl mb-5 space-y-3">
               <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">Pilihan Tindakan Hunian:</span>
               
+              {wargaList.find(w => w.id === wargaToDelete.id)?.statusKeaktifan && wargaList.find(w => w.id === wargaToDelete.id)?.statusKeaktifan !== 'aktif' && (
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input 
+                    type="radio" 
+                    name="delChoiceW" 
+                    value="aktif" 
+                    checked={deleteChoiceWarga === 'aktif'}
+                    onChange={() => setDeleteChoiceWarga('aktif')}
+                    className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                  />
+                  <div className="text-xs">
+                    <span className="block font-bold text-emerald-700">🔄 Aktifkan Kembali Hunian</span>
+                    <span className="block text-slate-500 leading-normal font-medium text-[10px]">Mengaktifkan kembali status warga agar pembukuan dan pembayaran iuran bulanan berjalan normal.</span>
+                  </div>
+                </label>
+              )}
+
               <label className="flex items-start gap-2.5 cursor-pointer select-none">
                 <input 
                   type="radio" 
@@ -5415,6 +5460,10 @@ export default function TagihanWarga({
                 onClick={() => {
                   if (deleteChoiceWarga === 'permanen') {
                     updateWargaList(wargaList.filter(w => w.id !== wargaToDelete.id));
+                  } else if (deleteChoiceWarga === 'aktif') {
+                    updateWargaList(wargaList.map(w => w.id === wargaToDelete.id ? { ...w, statusKeaktifan: 'aktif' as any } : w));
+                    setSelectedWargaHistory(prev => prev && prev.id === wargaToDelete.id ? { ...prev, statusKeaktifan: 'aktif' as any } : prev);
+                    alert(`Warga "${wargaToDelete.nama}" berhasil diaktifkan kembali!`);
                   } else if (deleteChoiceWarga === 'nonaktif') {
                     updateWargaList(wargaList.map(w => w.id === wargaToDelete.id ? { ...w, statusKeaktifan: 'nonaktif' } : w));
                   } else {
@@ -5455,6 +5504,23 @@ export default function TagihanWarga({
             <div className="text-left bg-slate-50 border border-slate-150 p-4 rounded-2xl mb-5 space-y-3">
               <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">Pilihan Tindakan Lapak:</span>
               
+              {rombongList.find(r => r.id === rombongToDelete.id)?.statusKeaktifan && rombongList.find(r => r.id === rombongToDelete.id)?.statusKeaktifan !== 'aktif' && (
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input 
+                    type="radio" 
+                    name="delChoiceR" 
+                    value="aktif" 
+                    checked={deleteChoiceRombong === 'aktif'}
+                    onChange={() => setDeleteChoiceRombong('aktif')}
+                    className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                  />
+                  <div className="text-xs">
+                    <span className="block font-bold text-emerald-700">🔄 Aktifkan Kembali Lapak</span>
+                    <span className="block text-slate-500 leading-normal font-medium text-[10px]">Mengaktifkan kembali status lapak rombong agar pembukuan dan pembayaran sewa bulanan berjalan normal.</span>
+                  </div>
+                </label>
+              )}
+
               <label className="flex items-start gap-2.5 cursor-pointer select-none">
                 <input 
                   type="radio" 
@@ -5512,6 +5578,10 @@ export default function TagihanWarga({
                 onClick={() => {
                   if (deleteChoiceRombong === 'permanen') {
                     updateRombongList(rombongList.filter(r => r.id !== rombongToDelete.id));
+                  } else if (deleteChoiceRombong === 'aktif') {
+                    updateRombongList(rombongList.map(r => r.id === rombongToDelete.id ? { ...r, statusKeaktifan: 'aktif' as any } : r));
+                    setSelectedRombongHistory(prev => prev && prev.id === rombongToDelete.id ? { ...prev, statusKeaktifan: 'aktif' as any } : prev);
+                    alert(`Lapak Rombong "${rombongToDelete.nama}" berhasil diaktifkan kembali!`);
                   } else if (deleteChoiceRombong === 'nonaktif') {
                     updateRombongList(rombongList.map(r => r.id === rombongToDelete.id ? { ...r, statusKeaktifan: 'nonaktif' } : r));
                   } else {
@@ -6575,18 +6645,10 @@ export default function TagihanWarga({
                       </h5>
                       <p className="text-[11px] text-amber-900 leading-relaxed font-semibold mt-0.5">
                         Warga ini berstatus <strong className="font-mono bg-amber-100/60 px-1 py-0.5 rounded text-amber-950 font-bold">{selectedWargaHistory.statusKeaktifan === 'nonaktif' ? '❌ Nonaktif / Arsip' : '🚚 Pindah Sementara'}</strong>. 
-                        Pembayaran dan koreksi iuran dibekukan. Aktifkan kembali warga untuk melakukan perubahan pembayaran.
+                        Pembayaran dan koreksi iuran bulanan dibekukan. {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') ? 'Klik tanda gerigi ⚙️ di samping nama warga di atas untuk mengaktifkan kembali.' : 'Hubungi pengurus RT untuk mengaktifkan kembali.'}
                       </p>
                     </div>
                   </div>
-                  {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                    <button
-                      onClick={() => handleReactivateWarga(selectedWargaHistory.id, selectedWargaHistory.nama)}
-                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer shrink-0 shadow-sm flex items-center gap-1 hover:scale-105 active:scale-95"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" /> Aktifkan Hunian
-                    </button>
-                  )}
                 </div>
               )}
 
@@ -7234,18 +7296,10 @@ export default function TagihanWarga({
                       </h5>
                       <p className="text-[11px] text-amber-900 leading-relaxed font-semibold mt-0.5">
                         Lapak Rombong ini berstatus <strong className="font-mono bg-amber-100/60 px-1 py-0.5 rounded text-amber-950 font-bold">{selectedRombongHistory.statusKeaktifan === 'nonaktif' ? '❌ Nonaktif / Arsip' : '🚚 Pindah Sementara'}</strong>. 
-                        Pembayaran dan koreksi sewa dibekukan. Aktifkan kembali lapak untuk melakukan perubahan pembayaran.
+                        Pembayaran dan koreksi sewa dibekukan. {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') ? 'Klik tanda gerigi ⚙️ di samping nama lapak di atas untuk mengaktifkan kembali.' : 'Hubungi pengurus RT untuk mengaktifkan kembali.'}
                       </p>
                     </div>
                   </div>
-                  {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                    <button
-                      onClick={() => handleReactivateRombong(selectedRombongHistory.id, selectedRombongHistory.namaPemilik)}
-                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer shrink-0 shadow-sm flex items-center gap-1 hover:scale-105 active:scale-95"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" /> Aktifkan Lapak
-                    </button>
-                  )}
                 </div>
               )}
 
@@ -7594,14 +7648,17 @@ export default function TagihanWarga({
                     {filteredWarga.map((w) => {
                       const unpaidMonthsCount = getUnpaidMonthsCountWarga(w);
                       const isOverdue = unpaidMonthsCount > 2;
+                      const isInactive = !!(w.statusKeaktifan && w.statusKeaktifan !== 'aktif');
 
                       return (
                         <tr 
                           key={w.id} 
                           className={`transition duration-150 border-b border-slate-100 ${
-                            isOverdue 
-                              ? 'bg-rose-50/45 hover:bg-rose-100/40 border-l-[3.5px] border-l-rose-500' 
-                              : 'hover:bg-slate-50/50'
+                            isInactive 
+                              ? 'bg-slate-50/30 opacity-70 hover:bg-slate-100/30'
+                              : isOverdue 
+                                ? 'bg-rose-50/45 hover:bg-rose-100/40 border-l-[3.5px] border-l-rose-500' 
+                                : 'hover:bg-slate-50/50'
                           }`}
                         >
                           <td className="p-4 min-w-[220px]">
@@ -7622,7 +7679,11 @@ export default function TagihanWarga({
                                     setSelectedWargaHistory(w);
                                     setHistoryYear(2026);
                                   }}
-                                  className="font-extrabold text-slate-900 hover:text-sky-600 transition text-sm cursor-pointer border-b border-dashed border-slate-300 hover:border-sky-500 text-left focus:outline-none focus:ring-0 select-all"
+                                  className={`${
+                                    isInactive 
+                                      ? 'font-mono italic font-normal text-slate-500 hover:text-sky-600' 
+                                      : 'font-extrabold text-slate-900 hover:text-sky-600'
+                                  } transition text-sm cursor-pointer border-b border-dashed border-slate-300 hover:border-sky-500 text-left focus:outline-none focus:ring-0 select-all`}
                                   title="Klik untuk cek buku tagihan setahun & riwayat"
                                 >
                                   {w.nama}
@@ -7793,15 +7854,6 @@ export default function TagihanWarga({
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
-                                {w.statusKeaktifan && w.statusKeaktifan !== 'aktif' && (
-                                  <button
-                                    onClick={() => handleReactivateWarga(w.id, w.nama)}
-                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer animate-in fade-in"
-                                    title="Aktifkan kembali hunian warga ini"
-                                  >
-                                    <RotateCcw className="w-4 h-4 text-emerald-650 animate-spin" style={{ animationIterationCount: 1, animationDuration: '0.8s' }} />
-                                  </button>
-                                )}
                               </div>
                             )}
                           </div>
@@ -7845,14 +7897,17 @@ export default function TagihanWarga({
                     {filteredRombong.map((r) => {
                       const unpaidMonthsCount = getUnpaidMonthsCountRombong(r);
                       const isOverdue = unpaidMonthsCount > 2;
+                      const isInactive = !!(r.statusKeaktifan && r.statusKeaktifan !== 'aktif');
 
                       return (
                         <tr 
                           key={r.id} 
                           className={`transition duration-150 border-b border-slate-100 ${
-                            isOverdue 
-                              ? 'bg-rose-50/45 hover:bg-rose-100/40 border-l-[3.5px] border-l-rose-500' 
-                              : 'hover:bg-slate-50/50'
+                            isInactive 
+                              ? 'bg-slate-50/30 opacity-70 hover:bg-slate-100/30'
+                              : isOverdue 
+                                ? 'bg-rose-50/45 hover:bg-rose-100/40 border-l-[3.5px] border-l-rose-500' 
+                                : 'hover:bg-slate-50/50'
                           }`}
                         >
                           <td className="p-4 min-w-[220px]">
@@ -7873,7 +7928,11 @@ export default function TagihanWarga({
                                     setSelectedRombongHistory(r);
                                     setHistoryYear(2026);
                                   }}
-                                  className="font-extrabold text-slate-900 hover:text-emerald-700 transition text-sm cursor-pointer border-b border-dashed border-slate-300 hover:border-emerald-600 text-left focus:outline-none focus:ring-0 select-all"
+                                  className={`${
+                                    isInactive 
+                                      ? 'font-mono italic font-normal text-slate-500 hover:text-emerald-700' 
+                                      : 'font-extrabold text-slate-900 hover:text-emerald-700'
+                                  } transition text-sm cursor-pointer border-b border-dashed border-slate-300 hover:border-emerald-600 text-left focus:outline-none focus:ring-0 select-all`}
                                   title="Klik untuk cek buku tagihan setahun & riwayat"
                                 >
                                   {r.namaPemilik}
@@ -8032,15 +8091,6 @@ export default function TagihanWarga({
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
-                                {r.statusKeaktifan && r.statusKeaktifan !== 'aktif' && (
-                                  <button
-                                    onClick={() => handleReactivateRombong(r.id, r.namaPemilik)}
-                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer animate-in fade-in"
-                                    title="Aktifkan kembali lapak rombong ini"
-                                  >
-                                    <RotateCcw className="w-4 h-4 text-emerald-650 animate-spin" style={{ animationIterationCount: 1, animationDuration: '0.8s' }} />
-                                  </button>
-                                )}
                               </div>
                             )}
                           </div>
