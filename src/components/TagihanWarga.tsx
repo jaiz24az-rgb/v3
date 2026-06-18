@@ -411,6 +411,8 @@ export default function TagihanWarga({
   const [selectedWargaHistory, setSelectedWargaHistory] = useState<WargaBill | null>(null);
   const [selectedRombongHistory, setSelectedRombongHistory] = useState<RombongBill | null>(null);
   const [historyYear, setHistoryYear] = useState<number>(2026);
+  const isWargaInactive = !!(selectedWargaHistory?.statusKeaktifan && selectedWargaHistory.statusKeaktifan !== 'aktif');
+  const isRombongInactive = !!(selectedRombongHistory?.statusKeaktifan && selectedRombongHistory.statusKeaktifan !== 'aktif');
   const [previewOnlyCurrentMonth, setPreviewOnlyCurrentMonth] = useState<boolean>(false);
   const [isBatchEdit, setIsBatchEdit] = useState<boolean>(false);
   const [batchMonthsPaidStatus, setBatchMonthsPaidStatus] = useState<{[key: string]: boolean}>({});
@@ -2800,6 +2802,7 @@ export default function TagihanWarga({
   const handleReactivateWarga = (id: string, nama: string) => {
     if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     updateWargaList(wargaList.map(w => w.id === id ? { ...w, statusKeaktifan: 'aktif' as any } : w));
+    setSelectedWargaHistory(prev => prev && prev.id === id ? { ...prev, statusKeaktifan: 'aktif' as any } : prev);
     alert(`Warga "${nama}" berhasil diaktifkan kembali!`);
   };
 
@@ -2874,6 +2877,7 @@ export default function TagihanWarga({
   const handleReactivateRombong = (id: string, nama: string) => {
     if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     updateRombongList(rombongList.map(r => r.id === id ? { ...r, statusKeaktifan: 'aktif' as any } : r));
+    setSelectedRombongHistory(prev => prev && prev.id === id ? { ...prev, statusKeaktifan: 'aktif' as any } : prev);
     alert(`Lapak Rombong "${nama}" berhasil diaktifkan kembali!`);
   };
 
@@ -6558,6 +6562,34 @@ export default function TagihanWarga({
             {/* Scrollable contents */}
             <div className="flex-1 overflow-y-auto py-4 space-y-5 pr-1 scrollbar select-none">
               
+              {/* Inactive Attention Banner */}
+              {isWargaInactive && (
+                <div className="bg-amber-50 border border-amber-250 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3.5 shadow-xs text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-100 text-amber-700 rounded-xl mt-0.5 shrink-0">
+                      <ShieldAlert className="w-5 h-5 animate-bounce" style={{ animationDuration: '2s' }} />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-extrabold text-amber-800 uppercase tracking-wider font-sans">
+                        Pemberitahuan: Akun Hunian Ditangguhkan (Frozen)
+                      </h5>
+                      <p className="text-[11px] text-amber-900 leading-relaxed font-semibold mt-0.5">
+                        Warga ini berstatus <strong className="font-mono bg-amber-100/60 px-1 py-0.5 rounded text-amber-950 font-bold">{selectedWargaHistory.statusKeaktifan === 'nonaktif' ? '❌ Nonaktif / Arsip' : '🚚 Pindah Sementara'}</strong>. 
+                        Pembayaran dan koreksi iuran dibekukan. Aktifkan kembali warga untuk melakukan perubahan pembayaran.
+                      </p>
+                    </div>
+                  </div>
+                  {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                    <button
+                      onClick={() => handleReactivateWarga(selectedWargaHistory.id, selectedWargaHistory.nama)}
+                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer shrink-0 shadow-sm flex items-center gap-1 hover:scale-105 active:scale-95"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Aktifkan Hunian
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Year options selector bar & Monthly filter buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-slate-50 p-2.5 rounded-2xl border border-slate-150">
                 <div className="flex items-center gap-2">
@@ -6829,7 +6861,7 @@ export default function TagihanWarga({
                     Lembar Buku Tagihan {previewOnlyCurrentMonth && !isBatchEdit ? 'Bulan Ini' : 'Setahun'}
                   </h5>
                   
-                  {isLoggedIn && currentUser?.role === 'admin' && (
+                  {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                     <button
                       onClick={() => {
                         const initialStatus: {[key: string]: boolean} = {};
@@ -7013,7 +7045,7 @@ export default function TagihanWarga({
                                     <Receipt className="w-2.5 h-2.5 pointer-events-none" /> Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})
                                   </button>
                                 )}
-                                {isLoggedIn && currentUser?.role === 'admin' && (
+                                {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                                   <button
                                     onClick={() => {
                                       openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
@@ -7026,7 +7058,7 @@ export default function TagihanWarga({
                               </div>
                             ) : (
                               <div className="flex flex-col items-end gap-1 font-sans">
-                                {isWargaOfficer ? (
+                                {isWargaOfficer && !isWargaInactive ? (
                                   <button
                                     onClick={() => {
                                       openPaymentModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
@@ -7040,7 +7072,7 @@ export default function TagihanWarga({
                                     Belum Lunas
                                   </span>
                                 )}
-                                {isLoggedIn && currentUser?.role === 'admin' && (
+                                {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                                   <button
                                     onClick={() => {
                                       openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
@@ -7189,6 +7221,34 @@ export default function TagihanWarga({
             {/* Scrollable contents */}
             <div className="flex-1 overflow-y-auto py-4 space-y-5 pr-1 scrollbar select-none">
               
+              {/* Inactive Attention Banner for Rombong */}
+              {isRombongInactive && (
+                <div className="bg-amber-50 border border-amber-250 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3.5 shadow-xs text-left">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-100 text-amber-700 rounded-xl mt-0.5 shrink-0">
+                      <ShieldAlert className="w-5 h-5 animate-bounce" style={{ animationDuration: '2s' }} />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-extrabold text-amber-800 uppercase tracking-wider font-sans">
+                        Pemberitahuan: Akun Lapak Ditangguhkan (Frozen)
+                      </h5>
+                      <p className="text-[11px] text-amber-900 leading-relaxed font-semibold mt-0.5">
+                        Lapak Rombong ini berstatus <strong className="font-mono bg-amber-100/60 px-1 py-0.5 rounded text-amber-950 font-bold">{selectedRombongHistory.statusKeaktifan === 'nonaktif' ? '❌ Nonaktif / Arsip' : '🚚 Pindah Sementara'}</strong>. 
+                        Pembayaran dan koreksi sewa dibekukan. Aktifkan kembali lapak untuk melakukan perubahan pembayaran.
+                      </p>
+                    </div>
+                  </div>
+                  {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                    <button
+                      onClick={() => handleReactivateRombong(selectedRombongHistory.id, selectedRombongHistory.namaPemilik)}
+                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer shrink-0 shadow-sm flex items-center gap-1 hover:scale-105 active:scale-95"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" /> Aktifkan Lapak
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Year options selector bar */}
               <div className="flex items-center justify-between bg-slate-50 p-2 rounded-2xl border border-slate-150">
                 <span className="text-xs font-bold text-slate-655 pl-1.5">Tahun Buku / Anggaran:</span>
@@ -7326,7 +7386,7 @@ export default function TagihanWarga({
                                   <Receipt className="w-2.5 h-2.5 pointer-events-none" /> Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})
                                 </button>
                               )}
-                              {isLoggedIn && currentUser?.role === 'admin' && (
+                              {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
                                 <button
                                   onClick={() => {
                                     openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, nominalValue, 'iuranRombong', historyYear);
@@ -7339,7 +7399,7 @@ export default function TagihanWarga({
                             </div>
                           ) : (
                             <div className="flex flex-col items-end gap-1">
-                              {isOfficer ? (
+                              {isOfficer && !isRombongInactive ? (
                                 <button
                                   onClick={() => {
                                     openRombongPaymentModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, nominalValue, 'iuranRombong', historyYear);
@@ -7353,7 +7413,7 @@ export default function TagihanWarga({
                                   Belum Lunas
                                 </span>
                               )}
-                              {isLoggedIn && currentUser?.role === 'admin' && (
+                              {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
                                 <button
                                   onClick={() => {
                                     openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, nominalValue, 'iuranRombong', historyYear);
