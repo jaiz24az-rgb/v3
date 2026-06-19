@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LedgerEntry, Balance, AppUser } from '../types';
 import { getBase64SizeInBytes, formatFileSize } from '../utils/fileSizeUtils';
+import { compressImage } from '../utils/fileCompressor';
 import { 
   FileText, 
   ArrowUpRight, 
@@ -18,7 +19,8 @@ import {
   Camera,
   Receipt,
   Download,
-  Eye
+  Eye,
+  Edit2
 } from 'lucide-react';
 
 interface LedgerProps {
@@ -93,6 +95,7 @@ export default function Ledger({
     sumberKas: keyof Balance; 
     deskripsi: string; 
   } | null>(null);
+  const [editingLedgerEntry, setEditingLedgerEntry] = useState<LedgerEntry | null>(null);
 
   const INDO_MONTHS = [
     { value: '01', name: 'Januari' },
@@ -126,17 +129,64 @@ export default function Ledger({
   const adminName = adminUser ? cleanSignatureName(adminUser.nama) : 'Bp. Sutriadi';
   const bendaharaName = bendaharaUser ? cleanSignatureName(bendaharaUser.nama) : 'Heri Gunawan';
 
+  const allowedPhotos = isLoggedIn && currentUser && (
+    currentUser.role === 'admin' || 
+    currentUser.role === 'bendahara' || 
+    currentUser.role === 'sekretaris'
+  );
+
+  // Preprocess ledger to map 'Kas Kas Rombong' to 'Kas Rombong' and filter out certain corrections
+  const processedLedger = React.useMemo(() => {
+    return ledger
+      .map(entry => {
+        if (entry.kategori === 'Kas Kas Rombong') {
+          return { ...entry, kategori: 'Kas Rombong' };
+        }
+        return entry;
+      })
+      .filter(entry => {
+        if (entry.kategori === 'Koreksi Data') return false;
+        const descLower = (entry.deskripsi || '').toLowerCase();
+        if (descLower.includes('koreksi massal')) return false;
+        if (descLower.includes('[koreksi administratif]')) return false;
+        if (descLower.includes('modifikasi data warga')) return false;
+        return true;
+      });
+  }, [ledger]);
+
   // Find unique categories for dropdown filter
-  const categories = ['Semua', ...Array.from(new Set(ledger.map(entry => entry.kategori)))];
+  const categories = ['Semua', ...Array.from(new Set(processedLedger.map(entry => entry.kategori)))];
 
   const handleDeleteLedgerEntry = (id: string, jumlah: number, tipe: 'pemasukan' | 'pengeluaran', sumberKas: keyof Balance, deskripsi: string) => {
     if (!isLoggedIn || (currentUser?.role !== 'admin' && currentUser?.role !== 'bendahara')) return;
     setEntryToDelete({ id, jumlah, tipe, sumberKas, deskripsi });
   };
 
+  const handleUpdateLedgerEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLedgerEntry) return;
+
+    const updatedLedger = ledger.map(item => {
+      if (item.id === editingLedgerEntry.id) {
+        return {
+          ...item,
+          tanggal: editingLedgerEntry.tanggal,
+          tanggalInput: editingLedgerEntry.tanggalInput || new Date().toISOString().split('T')[0],
+          deskripsi: editingLedgerEntry.deskripsi,
+          kategori: editingLedgerEntry.kategori,
+          petugas: editingLedgerEntry.petugas
+        };
+      }
+      return item;
+    });
+
+    setLedger(updatedLedger);
+    setEditingLedgerEntry(null);
+  };
+
   // Precompute running balances in ascending chronological order over EVERYTHING
   const tabularData = React.useMemo(() => {
-    const sortedAll = [...ledger].sort((a, b) => {
+    const sortedAll = [...processedLedger].sort((a, b) => {
       if (a.tanggal !== b.tanggal) {
         return a.tanggal.localeCompare(b.tanggal);
       }
@@ -234,7 +284,7 @@ export default function Ledger({
         totalRunning: pcRunning + rtRunning + rbRunning + bkRunning
       };
     });
-  }, [ledger]);
+  }, [processedLedger]);
 
   // Find start boundary date based on standard filters
   const startBoundaryDate = React.useMemo(() => {
@@ -267,7 +317,7 @@ export default function Ledger({
   }, [tabularData, startBoundaryDate]);
 
   // General Filtered Ledger list for the portrait mode "Jurnal"
-  const filteredLedger = ledger.filter(entry => {
+  const filteredLedger = processedLedger.filter(entry => {
     const matchesSearch = entry.deskripsi.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           entry.kategori.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           entry.petugas.toLowerCase().includes(searchTerm.toLowerCase());
@@ -869,7 +919,12 @@ export default function Ledger({
 
                       return (
                         <tr key={row.id} className="hover:bg-slate-50 border-b border-slate-150 transition">
-                          <td className="border-r border-slate-300 p-2.5 text-center font-mono font-medium text-slate-600">{row.tanggal}</td>
+                          <td className="border-r border-slate-300 p-2.5 text-center font-mono font-medium text-slate-600" title={row.tanggalInput ? `Tanggal Input: ${row.tanggalInput}` : 'Tanggal Transaksi'}>
+                            <div>{row.tanggal}</div>
+                            {row.tanggalInput && row.tanggalInput !== row.tanggal && (
+                              <div className="text-[10px] text-slate-400 font-normal">In: {row.tanggalInput}</div>
+                            )}
+                          </td>
                           <td className={`border-r border-slate-300 p-2.5 font-mono text-center text-[9px] ${codeColorClass}`}>
                             {row.noBukti}
                           </td>
@@ -932,13 +987,25 @@ export default function Ledger({
                           {/* Action revert */}
                           {canModify && (
                             <td className="border-l border-slate-300 p-2 text-center bg-slate-50/30">
-                              <button
-                                onClick={() => handleDeleteLedgerEntry(row.id, row.jumlah, row.tipe, row.sumberKas, row.deskripsi)}
-                                className="p-1 text-slate-450 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                title="Hapus Transaksi Tabelaris"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    const orig = ledger.find(l => l.id === row.id);
+                                    if (orig) setEditingLedgerEntry(orig);
+                                  }}
+                                  className="p-1 text-slate-450 hover:text-sky-600 hover:bg-sky-50 rounded transition cursor-pointer"
+                                  title="Edit Transaksi Tabelaris"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteLedgerEntry(row.id, row.jumlah, row.tipe, row.sumberKas, row.deskripsi)}
+                                  className="p-1 text-slate-450 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                  title="Hapus Transaksi Tabelaris"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-650" />
+                                </button>
+                              </div>
                             </td>
                           )}
                         </tr>
@@ -1041,7 +1108,7 @@ export default function Ledger({
                       <div className="space-y-1">
                         <h4 className="font-extrabold text-slate-900 text-sm md:text-base leading-snug flex items-center flex-wrap gap-2">
                           <span>{entry.deskripsi}</span>
-                          {entry.fotoBase64 ? (
+                          {entry.fotoBase64 && allowedPhotos && (
                             <button
                               type="button"
                               onClick={() => setSelectedReceipt({ deskripsi: entry.deskripsi, fotoBase64: entry.fotoBase64!, fotoNamaFile: entry.fotoNamaFile || 'bukti_pembukuan.jpg' })}
@@ -1051,13 +1118,47 @@ export default function Ledger({
                               <Receipt className="w-3 h-3 text-sky-600 pointer-events-none" />
                               Nota Bukti ({formatFileSize(getBase64SizeInBytes(entry.fotoBase64))})
                             </button>
-                          ) : null}
+                          )}
+                          {allowedPhotos && (
+                            <label className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 hover:border-slate-400 rounded-md text-[10px] font-bold flex items-center gap-1 transition cursor-pointer select-none">
+                              <Camera className="w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+                              <span>{entry.fotoBase64 ? 'Ubah Nota' : 'Tambah Nota'}</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const base64 = await compressImage(file);
+                                    const updatedLedger = ledger.map(item => {
+                                      if (item.id === entry.id) {
+                                        return { ...item, fotoBase64: base64, fotoNamaFile: file.name };
+                                      }
+                                      return item;
+                                    });
+                                    setLedger(updatedLedger);
+                                  } catch (err) {
+                                    console.error(err);
+                                    alert('Gagal mengunggah foto');
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
                         </h4>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 font-mono">
                           <span className="flex items-center gap-1 font-semibold">
                             <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                            {entry.tanggal}
+                            Tgl Transaksi: {entry.tanggal}
                           </span>
+                          {entry.tanggalInput && (
+                            <span className="flex items-center gap-1 font-semibold text-slate-500">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              Tgl Input: {entry.tanggalInput}
+                            </span>
+                          )}
                           <span className="flex items-center gap-1 font-semibold">
                             <Tag className="w-3.5 h-3.5 text-slate-400" />
                             {entry.kategori}
@@ -1083,14 +1184,23 @@ export default function Ledger({
                       </div>
 
                       {canModify && (
-                        <button
-                          onClick={() => handleDeleteLedgerEntry(entry.id, entry.jumlah, entry.tipe, entry.sumberKas, entry.deskripsi)}
-                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
-                          title="Hapus Transaksi (Memulihkan Kas)"
-                          id={`del-tx-${entry.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setEditingLedgerEntry(entry)}
+                            className="p-2 text-slate-450 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition cursor-pointer"
+                            title="Modifikasi Transaksi"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteLedgerEntry(entry.id, entry.jumlah, entry.tipe, entry.sumberKas, entry.deskripsi)}
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                            title="Hapus Transaksi (Memulihkan Kas)"
+                            id={`del-tx-${entry.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1427,7 +1537,12 @@ export default function Ledger({
 
                       {visibleTabularRows.map((row) => (
                         <tr key={row.id} className="hover:bg-slate-55/20 transition">
-                          <td className="border-r border-slate-400 p-1.5 text-center font-mono whitespace-nowrap text-slate-600">{row.tanggal}</td>
+                          <td className="border-r border-slate-400 p-1.5 text-center font-mono text-slate-600" title={row.tanggalInput ? `Tanggal Input: ${row.tanggalInput}` : 'Tanggal Transaksi'}>
+                            <div>{row.tanggal}</div>
+                            {row.tanggalInput && row.tanggalInput !== row.tanggal && (
+                              <div className="text-[9px] text-slate-400">In: {row.tanggalInput}</div>
+                            )}
+                          </td>
                           <td className="border-r border-slate-400 p-1.5 font-mono text-center text-[8px] text-slate-600">{row.noBukti}</td>
                           <td className="border-r border-slate-400 p-1.5 font-medium leading-tight text-slate-900">{row.deskripsi}</td>
                           <td className="border-r border-slate-400 p-1.5 capitalize text-slate-600 whitespace-nowrap">{row.petugas}</td>
@@ -1525,7 +1640,7 @@ export default function Ledger({
                                 <td className="py-2 px-3 border-r border-slate-200 font-semibold text-slate-900 leading-normal">
                                   <div className="flex items-center justify-between gap-2">
                                     <span>{entry.deskripsi}</span>
-                                    {entry.fotoBase64 ? (
+                                    {entry.fotoBase64 && allowedPhotos && (
                                       <button
                                         type="button"
                                         onClick={() => setSelectedReceipt({ deskripsi: entry.deskripsi, fotoBase64: entry.fotoBase64!, fotoNamaFile: entry.fotoNamaFile || 'bukti_pembukuan.jpg' })}
@@ -1535,7 +1650,35 @@ export default function Ledger({
                                         <Receipt className="w-2.5 h-2.5 text-sky-600 pointer-events-none" />
                                         Nota ({formatFileSize(getBase64SizeInBytes(entry.fotoBase64))})
                                       </button>
-                                    ) : null}
+                                    )}
+                                    {allowedPhotos && (
+                                      <label className="shrink-0 px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-[9px] font-bold flex items-center gap-0.5 transition cursor-pointer select-none">
+                                        <Camera className="w-2.5 h-2.5 text-slate-500 pointer-events-none" />
+                                        <span>{entry.fotoBase64 ? 'Ubah' : '+ Nota'}</span>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            try {
+                                              const base64 = await compressImage(file);
+                                              const updatedLedger = ledger.map(item => {
+                                                if (item.id === entry.id) {
+                                                  return { ...item, fotoBase64: base64, fotoNamaFile: file.name };
+                                                }
+                                                return item;
+                                              });
+                                              setLedger(updatedLedger);
+                                            } catch (err) {
+                                              console.error(err);
+                                              alert('Gagal mengunggah foto');
+                                            }
+                                          }}
+                                        />
+                                      </label>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="py-2 px-3 border-r border-slate-200 text-slate-600">{entry.kategori}</td>
@@ -1646,6 +1789,129 @@ export default function Ledger({
                 Ekspor / Unduh Original
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modification Modal (Admin/Bendahara only) */}
+      {editingLedgerEntry && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-[998] animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl relative max-w-lg w-full flex flex-col max-h-[90vh]">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-150 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-sky-600" />
+                <h4 className="font-extrabold text-slate-800 text-sm">
+                  Modifikasi Detail Transaksi
+                </h4>
+              </div>
+              <button
+                onClick={() => setEditingLedgerEntry(null)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1.5 rounded-full hover:bg-slate-155 transition"
+                title="Batal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateLedgerEntry} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="bg-amber-50 text-amber-800 border border-amber-200 p-3.5 rounded-2xl text-xs leading-relaxed">
+                💡 <strong>Catatan Kepatuhan:</strong> Anda mengubah metadata pencatatan (tanggal transaksi, tanggal input, deskripsi, kategori, petugas). Hal ini aman dilakukan tanpa mengganggu saldo kas Anda saat ini.
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1.5 font-mono">ID Transaksi (Terkunci)</label>
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-500 font-bold font-mono">
+                  {editingLedgerEntry.id}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Transaksi / Kejadian</label>
+                  <input
+                    required
+                    type="date"
+                    value={editingLedgerEntry.tanggal}
+                    onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, tanggal: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Input / Catat</label>
+                  <input
+                    required
+                    type="date"
+                    value={editingLedgerEntry.tanggalInput || editingLedgerEntry.tanggal}
+                    onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, tanggalInput: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Deskripsi Lengkap Transaksi</label>
+                <input
+                  required
+                  type="text"
+                  value={editingLedgerEntry.deskripsi}
+                  onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, deskripsi: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Kategori Transaksi</label>
+                  <input
+                    required
+                    type="text"
+                    value={editingLedgerEntry.kategori}
+                    onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, kategori: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Petugas / Pembuat</label>
+                  <input
+                     required
+                     type="text"
+                     value={editingLedgerEntry.petugas}
+                     onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, petugas: e.target.value })}
+                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Nilai & Tipe Transaksi (Terkunci)</label>
+                <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-700 font-extrabold font-mono flex items-center justify-between">
+                  <span>Rp {editingLedgerEntry.jumlah.toLocaleString('id-ID')}</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                    editingLedgerEntry.tipe === 'pemasukan' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}>
+                    {editingLedgerEntry.tipe}
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-150 pt-4 flex items-center justify-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEditingLedgerEntry(null)}
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-5 py-2 rounded-xl text-xs cursor-pointer shadow-lg shadow-sky-600/10 transition"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

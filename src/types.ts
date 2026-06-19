@@ -10,13 +10,14 @@ export type TransactionType = 'pemasukan' | 'pengeluaran';
 
 export interface LedgerEntry {
   id: string;
-  tanggal: string;
+  tanggal: string; // Tanggal transaksi keuangan
   deskripsi: string;
   jumlah: number;
   tipe: TransactionType;
   sumberKas: keyof Balance;
   kategori: string;
   petugas: string;
+  tanggalInput?: string; // Tanggal input/pencatatan transaksi
   fotoBase64?: string; // Transaction receipt photo
   fotoNamaFile?: string; // Transaction receipt filename
   isCustomRombong?: boolean; // Flag to indicate custom payment

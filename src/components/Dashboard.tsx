@@ -115,6 +115,7 @@ export default function Dashboard({
   const [activeTab, setActiveTab] = useState<'tagihan' | 'petty' | 'bank' | 'umum'>('umum');
   
   const [newTx, setNewTx] = useState({
+    tanggal: '',
     deskripsi: '',
     jumlah: '',
     tipe: 'pemasukan' as 'pemasukan' | 'pengeluaran',
@@ -131,6 +132,7 @@ export default function Dashboard({
   const [transferAmount, setTransferAmount] = useState('');
   const [transferDesc, setTransferDesc] = useState('');
   const [transferPetugas, setTransferPetugas] = useState('');
+  const [transferDate, setTransferDate] = useState('');
   const [sectorSetor, setSectorSetor] = useState<'rt' | 'rombong'>('rt');
 
   const kasLabels: Record<keyof Balance, { label: string; group: 'RT' | 'Rombong'; desc: string }> = {
@@ -186,7 +188,8 @@ export default function Dashboard({
       }
 
       addLedgerEntry({
-        tanggal: today,
+        tanggal: newTx.tanggal || today,
+        tanggalInput: today,
         deskripsi: newTx.deskripsi,
         jumlah: parsedAmount,
         tipe: newTx.tipe,
@@ -207,6 +210,7 @@ export default function Dashboard({
 
       // Reset
       setNewTx({
+        tanggal: '',
         deskripsi: '',
         jumlah: '',
         tipe: 'pemasukan',
@@ -232,10 +236,12 @@ export default function Dashboard({
       }
 
       const customDesc = transferDesc || `Setor Bank: Pemindahbukuan Hasil Tagihan ${sectorSetor.toUpperCase()}`;
+      const effectiveDate = transferDate || today;
       
       // 1. Outgoing from tunai
       addLedgerEntry({
-        tanggal: today,
+        tanggal: effectiveDate,
+        tanggalInput: today,
         deskripsi: `${customDesc} (Debet Tunai)`,
         jumlah: parsedAmount,
         tipe: 'pengeluaran',
@@ -246,7 +252,8 @@ export default function Dashboard({
 
       // 2. Incoming to bank
       addLedgerEntry({
-        tanggal: today,
+        tanggal: effectiveDate,
+        tanggalInput: today,
         deskripsi: `${customDesc} (Kredit Bank)`,
         jumlah: parsedAmount,
         tipe: 'pemasukan',
@@ -264,6 +271,7 @@ export default function Dashboard({
       setTransferAmount('');
       setTransferDesc('');
       setTransferPetugas('');
+      setTransferDate('');
       setShowQuickTx(false);
 
     } else if (activeTab === 'petty') {
@@ -276,7 +284,8 @@ export default function Dashboard({
       }
 
       addLedgerEntry({
-        tanggal: today,
+        tanggal: newTx.tanggal || today,
+        tanggalInput: today,
         deskripsi: `${newTx.deskripsi} (Buku Petty Cash)`,
         jumlah: parsedAmount,
         tipe: newTx.tipe,
@@ -297,6 +306,7 @@ export default function Dashboard({
 
       // Reset
       setNewTx({
+        tanggal: '',
         deskripsi: '',
         jumlah: '',
         tipe: 'pengeluaran',
@@ -323,10 +333,12 @@ export default function Dashboard({
       const customDesc = transferDesc || (bankType === 'bank_ke_petty' 
         ? 'Mutasi Bank: Pengisian Saldo Petty Cash (Tarik Tunai)' 
         : 'Mutasi Bank: Penyetoran Sisa Petty Cash ');
+      const effectiveDate = transferDate || today;
 
       // 1. Debit out of source
       addLedgerEntry({
-        tanggal: today,
+        tanggal: effectiveDate,
+        tanggalInput: today,
         deskripsi: `${customDesc} (Debet Pengirim)`,
         jumlah: parsedAmount,
         tipe: 'pengeluaran',
@@ -337,7 +349,8 @@ export default function Dashboard({
 
       // 2. Credit into target
       addLedgerEntry({
-        tanggal: today,
+        tanggal: effectiveDate,
+        tanggalInput: today,
         deskripsi: `${customDesc} (Kredit Penerima)`,
         jumlah: parsedAmount,
         tipe: 'pemasukan',
@@ -355,6 +368,7 @@ export default function Dashboard({
       setTransferAmount('');
       setTransferDesc('');
       setTransferPetugas('');
+      setTransferDate('');
       setShowQuickTx(false);
     }
   };
@@ -635,6 +649,16 @@ export default function Dashboard({
                   </div>
 
                   <div>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Transaksi (Opsional, Default Hari Ini)</label>
+                    <input
+                      type="date"
+                      value={transferDate}
+                      onChange={e => setTransferDate(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Catatan / Deskripsi Setor Bank (Opsional)</label>
                     <input
                       type="text"
@@ -723,6 +747,16 @@ export default function Dashboard({
                       placeholder="e.g. 45000"
                       value={newTx.jumlah}
                       onChange={e => setNewTx({ ...newTx, jumlah: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Transaksi (Opsional, Default Hari Ini)</label>
+                    <input
+                      type="date"
+                      value={newTx.tanggal}
+                      onChange={e => setNewTx({ ...newTx, tanggal: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                     />
                   </div>
@@ -853,6 +887,16 @@ export default function Dashboard({
                   </div>
 
                   <div>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Transaksi (Opsional, Default Hari Ini)</label>
+                    <input
+                      type="date"
+                      value={transferDate}
+                      onChange={e => setTransferDate(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Deskripsi Lengkap Mutasi (Opsional)</label>
                     <input
                       type="text"
@@ -952,6 +996,16 @@ export default function Dashboard({
                       placeholder="e.g. 250000"
                       value={newTx.jumlah}
                       onChange={e => setNewTx({ ...newTx, jumlah: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Transaksi (Opsional, Default Hari Ini)</label>
+                    <input
+                      type="date"
+                      value={newTx.tanggal}
+                      onChange={e => setNewTx({ ...newTx, tanggal: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                     />
                   </div>
