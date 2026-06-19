@@ -139,10 +139,14 @@ export default function Ledger({
   const processedLedger = React.useMemo(() => {
     return ledger
       .map(entry => {
-        if (entry.kategori === 'Kas Kas Rombong') {
-          return { ...entry, kategori: 'Kas Rombong' };
+        let kategori = entry.kategori;
+        const originalKategori = entry.kategori;
+        if (kategori === 'Kas Kas Rombong') {
+          kategori = 'Kas Rombong';
+        } else if (kategori === 'Operasional Petty Cash' || kategori === 'Mutasi Bank-Petty') {
+          kategori = 'Petty Cash';
         }
-        return entry;
+        return { ...entry, kategori, originalKategori };
       })
       .filter(entry => {
         if (entry.kategori === 'Koreksi Data') return false;
@@ -343,18 +347,18 @@ export default function Ledger({
   const totalPemasukan = filteredLedger
     .filter(e => 
       e.tipe === 'pemasukan' && 
-      e.kategori !== 'Setor Bank' && 
-      e.kategori !== 'Mutasi Bank-Petty' && 
-      e.kategori !== 'Penarikan Dana Kolektor'
+      (e as any).originalKategori !== 'Setor Bank' && 
+      (e as any).originalKategori !== 'Mutasi Bank-Petty' && 
+      (e as any).originalKategori !== 'Penarikan Dana Kolektor'
     )
     .reduce((sum, e) => sum + e.jumlah, 0);
 
   const totalPengeluaran = filteredLedger
     .filter(e => 
       e.tipe === 'pengeluaran' && 
-      e.kategori !== 'Setor Bank' && 
-      e.kategori !== 'Mutasi Bank-Petty' && 
-      e.kategori !== 'Penarikan Dana Kolektor'
+      (e as any).originalKategori !== 'Setor Bank' && 
+      (e as any).originalKategori !== 'Mutasi Bank-Petty' && 
+      (e as any).originalKategori !== 'Penarikan Dana Kolektor'
     )
     .reduce((sum, e) => sum + e.jumlah, 0);
 
@@ -538,16 +542,23 @@ export default function Ledger({
       // 2. Export in original single-line ledger layout
       const headers = ['No', 'Tanggal', 'Deskripsi/Keterangan', 'Kategori', 'Petugas', 'Akun Kas', 'Tipe', 'Nominal (Rp)'];
       
-      const rows = filteredLedger.map((entry, idx) => [
-        idx + 1,
-        entry.tanggal,
-        `"${entry.deskripsi.replace(/"/g, '""')}"`,
-        `"${entry.kategori.replace(/"/g, '""')}"`,
-        `"${entry.petugas.replace(/"/g, '""')}"`,
-        entry.sumberKas,
-        entry.tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
-        entry.jumlah
-      ]);
+      const rows = [...filteredLedger]
+        .sort((a, b) => {
+          if (a.tanggal !== b.tanggal) {
+            return a.tanggal.localeCompare(b.tanggal);
+          }
+          return (a.id || '').localeCompare(b.id || '');
+        })
+        .map((entry, idx) => [
+          idx + 1,
+          entry.tanggal,
+          `"${entry.deskripsi.replace(/"/g, '""')}"`,
+          `"${entry.kategori.replace(/"/g, '""')}"`,
+          `"${entry.petugas.replace(/"/g, '""')}"`,
+          entry.sumberKas,
+          entry.tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
+          entry.jumlah
+        ]);
 
       const emptyRow = ['', '', '', '', '', '', '', ''];
       const rowTotalPemasukan = ['', '', 'Total Debit (Pemasukan)', '', '', '', '', totalPemasukan];
@@ -1631,8 +1642,15 @@ export default function Ledger({
                             </td>
                           </tr>
                         ) : (
-                          filteredLedger.map((entry, idx) => {
-                            const isPemasukan = entry.tipe === 'pemasukan';
+                          [...filteredLedger]
+                            .sort((a, b) => {
+                              if (a.tanggal !== b.tanggal) {
+                                return a.tanggal.localeCompare(b.tanggal);
+                              }
+                              return (a.id || '').localeCompare(b.id || '');
+                            })
+                            .map((entry, idx) => {
+                              const isPemasukan = entry.tipe === 'pemasukan';
                             return (
                               <tr key={entry.id} className="border-b border-slate-200 hover:bg-slate-50/20">
                                 <td className="py-2 px-3 border-r border-slate-200 text-center font-mono text-slate-500">{idx + 1}</td>

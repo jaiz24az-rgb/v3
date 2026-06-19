@@ -290,7 +290,7 @@ export default function Dashboard({
         jumlah: parsedAmount,
         tipe: newTx.tipe,
         sumberKas: 'rtPettyCash',
-        kategori: newTx.kategori || 'Operasional Petty Cash',
+        kategori: newTx.kategori || 'Petty Cash',
         petugas: newTx.petugas || 'Pemegang Kas Kecil',
         fotoBase64: newTx.fotoBase64 || undefined,
         fotoNamaFile: newTx.fotoNamaFile || undefined
@@ -311,7 +311,7 @@ export default function Dashboard({
         jumlah: '',
         tipe: 'pengeluaran',
         sumberKas: 'rtPettyCash',
-        kategori: 'Operasional Petty Cash',
+        kategori: 'Petty Cash',
         petugas: '',
         fotoBase64: '',
         fotoNamaFile: ''
@@ -553,7 +553,7 @@ export default function Dashboard({
               type="button"
               onClick={() => {
                 setActiveTab('petty');
-                setNewTx({ ...newTx, kategori: 'Operasional Petty Cash', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
+                setNewTx({ ...newTx, kategori: 'Petty Cash', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
               }}
               className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
                 activeTab === 'petty'
