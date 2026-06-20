@@ -7952,10 +7952,10 @@ export default function TagihanWarga({
                 💡 Geser tabel ke kanan untuk melihat status iuran lengkap Januari - Desember, tombol cetak, dan kelola.
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[950px] text-left border-collapse table-auto">
+                <table className="w-full min-w-[850px] text-left border-collapse table-auto">
                   <thead>
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
-                      <th className="p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
+                      <th className="p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
                       <th className="p-2.5 sm:p-3 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-2.5 sm:p-3 text-center w-[120px]">Tindakan</th>
                     </tr>
@@ -7977,7 +7977,7 @@ export default function TagihanWarga({
                                 : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className={`p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                          <td className={`p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
                             isInactive 
                               ? 'bg-slate-100/60 md:bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
                               : isOverdue 
@@ -8026,7 +8026,7 @@ export default function TagihanWarga({
                                 <span>Blok {w.blok} No. {w.noRumah}</span>
                                 {w.statusRumah === 'sewa_kontrak' ? (
                                   <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/65 flex items-center gap-0.5 whitespace-nowrap" title="Status: Rumah Sewa / Kontrak">
-                                    🏠 Sewa
+                                    🏢 Sewa
                                   </span>
                                 ) : w.statusRumah === 'lainnya' ? (
                                   <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-200/70 flex items-center gap-0.5 whitespace-nowrap" title="Status: Lainnya / Menumpang">
@@ -8048,15 +8048,18 @@ export default function TagihanWarga({
                                     🚚 Pindah Sementara
                                   </span>
                                 )}
+                              </div>
+                              
+                              <div className="flex flex-col mt-1.5 pl-0.5 gap-1 border-t border-slate-100/50 pt-1">
                                 {w.noWa && (
-                                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100/50 flex items-center gap-0.5 whitespace-nowrap">
-                                    ● WA: {w.noWa}
+                                  <span className="text-[10.5px] text-emerald-600 font-semibold bg-emerald-50/70 px-1.5 py-0.5 rounded border border-emerald-100/40 flex items-center gap-1 w-fit select-all">
+                                    <span className="text-emerald-500 font-bold shrink-0">📞 WA:</span> {w.noWa}
                                   </span>
                                 )}
                                 {w.anggotaKeluarga && w.anggotaKeluarga.length > 0 && (
-                                  <span className="text-[10px] text-sky-600 font-semibold bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100/50 flex items-center gap-0.5 whitespace-nowrap">
-                                    <Users className="w-3 h-3 text-sky-500" />
-                                    {w.anggotaKeluarga.length} Anggota KK
+                                  <span className="text-[10.5px] text-sky-600 font-semibold bg-sky-50/70 px-1.5 py-0.5 rounded border border-sky-100/40 flex items-center gap-1 w-fit">
+                                    <Users className="w-3 h-3 text-sky-550 shrink-0" />
+                                    <span>{w.anggotaKeluarga.length} Anggota KK</span>
                                   </span>
                                 )}
                               </div>
@@ -8216,10 +8219,10 @@ export default function TagihanWarga({
                 💡 Geser tabel ke kanan untuk melihat status sewa Rombong lengkap, tombol cetak, dan kelola.
               </div>
               <div className="overflow-x-auto animate-in fade-in duration-200">
-                <table className="w-full min-w-[850px] text-left border-collapse table-auto">
+                <table className="w-full min-w-[800px] text-left border-collapse table-auto">
                   <thead>
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
-                      <th className="p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
+                      <th className="p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
                       <th className="p-2.5 sm:p-3 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-2.5 sm:p-3 text-center w-[120px]">Tindakan</th>
                     </tr>
@@ -8241,7 +8244,7 @@ export default function TagihanWarga({
                                 : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className={`p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                          <td className={`p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
                             isInactive 
                               ? 'bg-slate-100/60 md:bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
                               : isOverdue 
@@ -8298,12 +8301,15 @@ export default function TagihanWarga({
                                     🚚 Pindah Sementara
                                   </span>
                                 )}
-                                {r.noWa && (
-                                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100/50 flex items-center gap-0.5 whitespace-nowrap">
-                                    ● WA: {r.noWa}
-                                  </span>
-                                )}
                               </div>
+                              
+                              {r.noWa && (
+                                <div className="flex flex-col mt-1.5 pl-0.5 gap-1 border-t border-slate-100/50 pt-1">
+                                  <span className="text-[10.5px] text-emerald-600 font-semibold bg-emerald-50/70 px-1.5 py-0.5 rounded border border-emerald-100/40 flex items-center gap-1 w-fit select-all">
+                                    <span className="text-emerald-500 font-bold shrink-0">📞 WA:</span> {r.noWa}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
