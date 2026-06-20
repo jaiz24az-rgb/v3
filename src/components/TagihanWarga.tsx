@@ -8082,7 +8082,7 @@ export default function TagihanWarga({
                                     slot.lunas
                                       ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
                                       : isWargaOfficer
-                                      ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
                                       : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >
@@ -8327,7 +8327,7 @@ export default function TagihanWarga({
                                       : slot.lunas
                                       ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
                                       : isOfficer
-                                      ? 'bg-amber-55 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100/70 cursor-pointer font-sans'
                                       : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >

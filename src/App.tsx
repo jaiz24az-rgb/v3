@@ -1905,7 +1905,7 @@ export default function App() {
     }`}>
       
       {/* Top Header Banner */}
-      <header className={`sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs z-40 transition-all duration-300 ${
+      <header className={`sticky top-0 bg-white border-b border-slate-200/85 shadow-xs z-40 transition-all duration-300 ${
         isInputFocused ? 'max-md:-translate-y-full max-md:absolute max-md:opacity-0' : 'translate-y-0'
       }`}>
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -2264,7 +2264,7 @@ export default function App() {
       </main>
 
       {/* Styled Responsive Docked Bottom Navigation Panel */}
-      <div className={`fixed bottom-0 left-0 right-0 p-4 bg-white/85 backdrop-blur-md border-t border-slate-200/60 z-40 transition-all duration-300 ${
+      <div className={`fixed bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-slate-200/80 z-40 transition-all duration-300 ${
         isInputFocused
           ? 'translate-y-full opacity-0 pointer-events-none'
           : 'translate-y-0 opacity-100'
