@@ -81,7 +81,7 @@ export default function BukuKolektor({
   const [showDrawForm, setShowDrawForm] = useState(false);
   const [drawCollectorId, setDrawCollectorId] = useState('');
   const [customCollectorName, setCustomCollectorName] = useState('');
-  const [drawSector, setDrawSector] = useState<'rtTunai' | 'rombongTunai'>('rtTunai');
+  const [drawSector, setDrawSector] = useState<'rtPettyCash' | 'rombongTunai'>('rtPettyCash');
   const [drawAmount, setDrawAmount] = useState('');
   const [drawDate, setDrawDate] = useState(new Date().toISOString().split('T')[0]);
   const [drawNotes, setDrawNotes] = useState('');
@@ -162,7 +162,7 @@ export default function BukuKolektor({
   const setorBankTransfers = monthlyLedger.filter(entry => 
     entry.kategori === 'Setor Bank' && 
     entry.tipe === 'pengeluaran' &&
-    (entry.sumberKas === 'rtTunai' || entry.sumberKas === 'rombongTunai')
+    (entry.sumberKas === 'rtTunai' || entry.sumberKas === 'rtPettyCash' || entry.sumberKas === 'rombongTunai')
   );
 
   // Aggregates
@@ -178,7 +178,7 @@ export default function BukuKolektor({
   const remainingCashInBendahara = Math.max(0, totalPenarikan - totalDepositedToBank);
 
   // Reusable collector balance calculation
-  const getCollectorBalanceInfo = (colId: string, sector: 'rtTunai' | 'rombongTunai') => {
+  const getCollectorBalanceInfo = (colId: string, sector: 'rtPettyCash' | 'rombongTunai') => {
     const matchedUser = collectorsList.find(u => u.username === colId);
     const collectorName = matchedUser ? matchedUser.nama : colId;
     return getCollectorBalancesForPeriod(allowedLedger, colId, collectorName, sector, {
@@ -257,7 +257,7 @@ export default function BukuKolektor({
     const matchedUser = collectorsList.find(u => u.username === drawCollectorId);
     const collectorName = matchedUser ? matchedUser.nama : drawCollectorId;
 
-    const labelSektor = drawSector === 'rtTunai' ? 'RT 08' : 'Rombong Kuliner';
+    const labelSektor = drawSector === 'rtPettyCash' ? 'RT 08' : 'Rombong Kuliner';
     const notesStr = drawNotes ? ` (${drawNotes})` : '';
 
     // Record the penarikan entry
@@ -298,7 +298,7 @@ export default function BukuKolektor({
 
   const getKasBadgeColor = (sumber: keyof Balance) => {
     switch(sumber) {
-      case 'rtTunai': return 'bg-amber-100 border-amber-200 text-amber-850';
+      case 'rtTunai': return 'bg-indigo-100 border-indigo-200 text-indigo-850';
       case 'rtPettyCash': return 'bg-indigo-100 border-indigo-200 text-indigo-850';
       case 'rombongTunai': return 'bg-orange-100 border-orange-200 text-orange-850';
       case 'rtBank': return 'bg-sky-100 border-sky-200 text-sky-850';
@@ -309,8 +309,8 @@ export default function BukuKolektor({
 
   const getKasLabel = (sumber: keyof Balance) => {
     switch(sumber) {
-      case 'rtTunai': return 'RT Tunai';
-      case 'rtPettyCash': return 'RT Petty Cash';
+      case 'rtTunai': return 'Kas Kecil';
+      case 'rtPettyCash': return 'Kas Kecil';
       case 'rombongTunai': return 'Rombong Tunai';
       case 'rtBank': return 'RT Bank';
       case 'rombongBank': return 'Rombong Bank';
@@ -430,7 +430,7 @@ export default function BukuKolektor({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {collectorsList.map(u => {
-            const rtBal = getCollectorBalanceInfo(u.username, 'rtTunai');
+            const rtBal = getCollectorBalanceInfo(u.username, 'rtPettyCash');
             const rombongBal = getCollectorBalanceInfo(u.username, 'rombongTunai');
             const totalRemaining = rtBal.remaining + rombongBal.remaining;
             const hasFunds = totalRemaining > 0;
@@ -569,7 +569,7 @@ export default function BukuKolektor({
                 <button
                   type="button"
                   onClick={() => {
-                    const sector = 'rtTunai';
+                    const sector = 'rtPettyCash';
                     setDrawSector(sector);
                     if (drawCollectorId) {
                       const info = getCollectorBalanceInfo(drawCollectorId, sector);
@@ -577,13 +577,13 @@ export default function BukuKolektor({
                     }
                   }}
                   className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border cursor-pointer ${
-                    drawSector === 'rtTunai'
+                    drawSector === 'rtPettyCash'
                       ? 'bg-purple-600 border-purple-555 text-white'
                       : 'bg-slate-800 border-slate-705 text-slate-400'
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  RT Tunai
+                  Kas Kecil
                 </button>
                 <button
                   type="button"
@@ -616,7 +616,7 @@ export default function BukuKolektor({
                     <p className="text-slate-100 font-semibold mt-1">
                       Kolektor: <span className="text-purple-300 font-bold">{(collectorsList.find(u => u.username === drawCollectorId)?.nama || drawCollectorId)}</span>
                       {' '}| Sektor:{' '}
-                      <span className="text-purple-300 font-bold">{drawSector === 'rtTunai' ? 'RT Tunai' : 'Rombong Tunai'}</span>
+                      <span className="text-purple-300 font-bold">{drawSector === 'rtPettyCash' ? 'Kas Kecil' : 'Rombong Tunai'}</span>
                       {' '}| Periode:{' '}
                       <span className="text-indigo-300 font-bold">
                         {selectedMonth === 'semua' ? `Tahun ${selectedYear}` : `${INDONESIAN_MONTHS.find(m => m.value === selectedMonth)?.label} ${selectedYear}`}
@@ -722,7 +722,7 @@ export default function BukuKolektor({
           <div className="bg-purple-950/20 text-purple-200 border border-purple-900/40 p-3 rounded-xl text-[10.5px] leading-relaxed flex items-start gap-2 max-w-5xl">
             <AlertCircle className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
             <div>
-              <strong>Informasi Skema Pembukuan:</strong> Saldo kas digital sektoral (rtTunai / rombongTunai) sudah bertambah secara otomatis pada saat Kolektor menginput pelunasan iuran warga. Pengisian form penarikan ini <strong>tidak menduplikasi saldo digital kas</strong>, melainkan bertindak sebagai pencatat serah terima fisik uang tunai. Ini menurunkan <em>Sisa Tunai Kolektor</em> dan memindahkan simpanan ke <em>Sisa Tunai Bendahara</em> sebagai kontrol kelayakan sisa saldo tunai fisik sebelum didepositokan ke bank.
+              <strong>Informasi Skema Pembukuan:</strong> Saldo kas digital sektoral (rtPettyCash / rombongTunai) sudah bertambah secara otomatis pada saat Kolektor menginput pelunasan iuran warga. Pengisian form penarikan ini <strong>tidak menduplikasi saldo digital kas</strong>, melainkan bertindak sebagai pencatat serah terima fisik uang tunai. Ini menurunkan <em>Sisa Tunai Kolektor</em> dan memindahkan simpanan ke <em>Sisa Tunai Bendahara</em> sebagai kontrol kelayakan sisa saldo tunai fisik sebelum didepositokan ke bank.
             </div>
           </div>
         </div>

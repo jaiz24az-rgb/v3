@@ -709,7 +709,7 @@ export default function UserGuide({
                   <div className="bg-indigo-50 border border-indigo-200 p-3.5 rounded-xl space-y-2 text-xs">
                     <strong className="text-slate-800 block">⚠️ Perhatian Skema Pencatatan:</strong>
                     <p className="text-slate-600 font-medium leading-relaxed">
-                      Saat kolektor melunasi iuran, saldo digital sistem langsung bertambah ke `rtTunai`/`rombongTunai`. Oleh sebab itu, form penarikan tunai kolektor ke bendahara **TIDAK** menambah saldo kas utama lagi, melainkan hanya mencatatkan perpindahan tempat fisik uang dari tangan kolektor ke bendahara utama.
+                      Saat kolektor melunasi iuran, saldo digital sistem langsung bertambah ke `rtPettyCash` (Kas Kecil)/`rombongTunai`. Oleh sebab itu, form penarikan tunai kolektor ke bendahara **TIDAK** menambah saldo kas utama lagi, melainkan hanya mencatatkan perpindahan tempat fisik uang dari tangan kolektor ke bendahara utama.
                     </p>
                   </div>
                 </div>

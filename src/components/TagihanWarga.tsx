@@ -347,7 +347,7 @@ export default function TagihanWarga({
   const [isRombongCustomActive, setIsRombongCustomActive] = useState<boolean>(false);
   const [adminApprovalPin, setAdminApprovalPin] = useState<string>('');
 
-  const [paymentTargetKas, setPaymentTargetKas] = useState<keyof Balance>('rtTunai');
+  const [paymentTargetKas, setPaymentTargetKas] = useState<keyof Balance>('rtPettyCash');
   
   // Sukses Pembayaran State untuk Modal Notifikasi WhatsApp & Google Workspace Sync
   const [receiptSuccessInfo, setReceiptSuccessInfo] = useState<{
@@ -395,7 +395,7 @@ export default function TagihanWarga({
   const [corrNominal, setCorrNominal] = useState<number>(rateRT);
   const [corrTahun, setCorrTahun] = useState<number>(2026);
   const [corrTransferTargetWargaId, setCorrTransferTargetWargaId] = useState<string>('');
-  const [corrTargetKas, setCorrTargetKas] = useState<keyof Balance>('rtTunai');
+  const [corrTargetKas, setCorrTargetKas] = useState<keyof Balance>('rtPettyCash');
   const [corrNoCashFlow, setCorrNoCashFlow] = useState<boolean>(true);
   const [corrCatatan, setCorrCatatan] = useState<string>('');
 
@@ -2261,7 +2261,7 @@ export default function TagihanWarga({
           deskripsi: `Import Data Excel Warga: ${jsonData.length} Baris Data (KK & Anggota)`,
           jumlah: 0,
           tipe: 'pemasukan',
-          sumberKas: 'rtTunai',
+          sumberKas: 'rtPettyCash',
           kategori: 'Administrasi Warga',
           petugas: currentUser?.nama.split(' ')[0] || 'Admin'
         });
@@ -2791,7 +2791,7 @@ export default function TagihanWarga({
       deskripsi: `Pendaftaran Warga Baru: ${created.nama} (Blok ${created.blok}-${created.noRumah})`,
       jumlah: 0,
       tipe: 'pemasukan',
-      sumberKas: 'rtTunai',
+      sumberKas: 'rtPettyCash',
       kategori: 'Administrasi Warga',
       petugas: currentUser?.nama.split(' ')[0] || 'Admin'
     });
@@ -2837,7 +2837,7 @@ export default function TagihanWarga({
       deskripsi: `Modifikasi Data Warga: ${editingWarga.nama} (Blok ${editingWarga.blok}-${editingWarga.noRumah})`,
       jumlah: 0,
       tipe: 'pemasukan',
-      sumberKas: 'rtTunai',
+      sumberKas: 'rtPettyCash',
       kategori: 'Administrasi Warga',
       petugas: currentUser?.nama.split(' ')[0] || 'Admin'
     });
@@ -2955,7 +2955,7 @@ export default function TagihanWarga({
       alert('Anda harus masuk/login sebagai Admin terlebih dahulu untuk mencatat pembayaran.');
       return;
     }
-    setPaymentTargetKas('rtTunai');
+    setPaymentTargetKas('rtPettyCash');
     setPaymentDate(new Date().toISOString().split('T')[0]);
     const now = new Date();
     const hh = String(now.getHours()).padStart(2, '0');
@@ -3239,7 +3239,7 @@ export default function TagihanWarga({
     setCorrNominal(nominal);
     setCorrTahun(tahun);
     setCorrTransferTargetWargaId('');
-    setCorrTargetKas('rtTunai');
+    setCorrTargetKas('rtPettyCash');
     setCorrNoCashFlow(slot ? (slot.noCashFlow || false) : true);
     setCorrCatatan(slot?.catatan || '');
   };
@@ -3589,7 +3589,7 @@ export default function TagihanWarga({
       deskripsi: `Koreksi Massal Iuran RT Thn ${historyYear} - ${warga.nama}`,
       jumlah: 0,
       tipe: 'pemasukan',
-      sumberKas: 'rtTunai',
+      sumberKas: 'rtPettyCash',
       kategori: 'Iuran RT',
       petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
     });
@@ -5818,7 +5818,7 @@ export default function TagihanWarga({
                   onChange={(e) => setPaymentTargetKas(e.target.value as keyof Balance)}
                   className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
                 >
-                  <option value="rtTunai">[RT] RT Tunai (Sisa: Rp {kas.rtTunai.toLocaleString('id-ID')})</option>
+                  <option value="rtPettyCash">[RT] Kas Kecil (Sisa: Rp {kas.rtPettyCash.toLocaleString('id-ID')})</option>
                   <option value="rtBank">[RT] RT Bank / Setor Bank (Sisa: Rp {kas.rtBank.toLocaleString('id-ID')})</option>
                 </select>
               </div>
@@ -6375,9 +6375,8 @@ export default function TagihanWarga({
                         onChange={(e) => setCorrTargetKas(e.target.value as keyof Balance)}
                         className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                       >
-                        <option value="rtTunai">[RT] Tunai RT</option>
-                        <option value="rtBank">[RT] Bank RT</option>
-                        <option value="rtPettyCash">[RT] Petty Cash RT</option>
+                        <option value="rtPettyCash">[RT] Kas Kecil</option>
+                        <option value="rtBank">[RT] RT Bank</option>
                       </select>
                     </div>
 

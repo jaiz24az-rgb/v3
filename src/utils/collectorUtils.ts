@@ -151,7 +151,7 @@ export function getCollectorBalancesForPeriod(
   ledger: LedgerEntry[],
   colId: string,
   collectorName: string,
-  sector: 'rtTunai' | 'rombongTunai',
+  sector: 'rtPettyCash' | 'rombongTunai',
   filters: { month?: string; year?: number } = {}
 ): CollectorBalanceInfo {
   if (!colId) return { totalCollected: 0, totalPenarikan: 0, remaining: 0 };

@@ -652,7 +652,7 @@ export default function Undangan({
       deskripsi: `Pendaftaran Warga Baru: ${created.nama} (Blok ${created.blok}-${created.noRumah})`,
       jumlah: 0,
       tipe: 'pemasukan',
-      sumberKas: 'rtTunai',
+      sumberKas: 'rtPettyCash',
       kategori: 'Administrasi Warga',
       petugas: currentUser?.nama.split(' ')[0] || 'Admin'
     });
@@ -693,7 +693,7 @@ export default function Undangan({
       deskripsi: `Pendaftaran Rombong Baru: ${created.namaPemilik} (${created.noLapak})`,
       jumlah: 0,
       tipe: 'pemasukan',
-      sumberKas: 'rtTunai',
+      sumberKas: 'rtPettyCash',
       kategori: 'Administrasi Warga',
       petugas: currentUser?.nama.split(' ')[0] || 'Admin'
     });

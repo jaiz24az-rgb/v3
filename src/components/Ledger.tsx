@@ -236,21 +236,13 @@ export default function Ledger({
 
       if (isHandover) {
         // Exclude from changing running balances or debit/credit to prevent double-counting citizen payments
-      } else if (item.sumberKas === 'rtPettyCash') {
+      } else if (item.sumberKas === 'rtPettyCash' || item.sumberKas === 'rtTunai') {
         if (isPemasukan) {
           pcDebit = val;
           pcRunning += val;
         } else {
           pcKredit = val;
           pcRunning -= val;
-        }
-      } else if (item.sumberKas === 'rtTunai') {
-        if (isPemasukan) {
-          rtDebit = val;
-          rtRunning += val;
-        } else {
-          rtKredit = val;
-          rtRunning -= val;
         }
       } else if (item.sumberKas === 'rombongTunai') {
         if (isPemasukan) {
@@ -276,16 +268,16 @@ export default function Ledger({
         pcDebit,
         pcKredit,
         pcRunning,
-        rtDebit,
-        rtKredit,
-        rtRunning,
+        rtDebit: 0,
+        rtKredit: 0,
+        rtRunning: 0,
         rbDebit,
         rbKredit,
         rbRunning,
         bkDebit,
         bkKredit,
         bkRunning,
-        totalRunning: pcRunning + rtRunning + rbRunning + bkRunning
+        totalRunning: pcRunning + rbRunning + bkRunning
       };
     });
   }, [processedLedger]);
@@ -844,22 +836,17 @@ export default function Ledger({
                     <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-32">NO BUKTI</th>
                     <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 text-left min-w-[200px]">KAS / KETERANGAN TRANSAKSI</th>
                     <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-24">PETUGAS</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-slate-150/40">PETTY CASH</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-amber-50 text-amber-900 border-amber-200">IURAN RT</th>
+                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-slate-150/40">KAS KECIL RT</th>
                     <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-sky-50 text-sky-900 border-sky-250">IURAN ROMBONG</th>
                     <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-emerald-50 text-emerald-900 border-emerald-250">KAS BANK RT</th>
                     <th rowSpan={2} className="border-b border-slate-300 p-2.5 bg-indigo-50 text-indigo-950 font-black w-28">URUT TOTAL SALDO</th>
                     {isLoggedIn && <th rowSpan={2} className="p-2 border-l border-b border-slate-300 w-10">AKSI</th>}
                   </tr>
                   <tr className="bg-slate-50 text-slate-700 font-bold text-[9px] font-mono text-center border-b border-slate-300">
-                    {/* Petty cash */}
+                    {/* Kas Kecil */}
                     <th className="border-r border-slate-300 p-1 w-14">DEBIT</th>
                     <th className="border-r border-slate-300 p-1 w-14">KREDIT</th>
                     <th className="border-r border-slate-300 p-1 w-16 bg-slate-100/50">SALDO</th>
-                    {/* Iuran RT */}
-                    <th className="border-r border-slate-300 p-1 w-14 bg-amber-50/40">DEBIT</th>
-                    <th className="border-r border-slate-300 p-1 w-14 bg-amber-50/40">KREDIT</th>
-                    <th className="border-r border-slate-300 p-1 w-16 bg-amber-50">SALDO</th>
                     {/* Iuran Rombong */}
                     <th className="border-r border-slate-300 p-1 w-14 bg-sky-50/40">DEBIT</th>
                     <th className="border-r border-slate-300 p-1 w-14 bg-sky-50/40">KREDIT</th>
@@ -880,18 +867,11 @@ export default function Ledger({
                     </td>
                     <td className="border-r border-slate-300 p-2.5 font-semibold text-center">-</td>
                     
-                    {/* Petty Cash */}
+                    {/* Kas Kecil */}
                     <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
                     <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
                     <td className="border-r border-slate-300 p-2 text-right text-slate-800 font-mono bg-slate-100/50">
                       {saldoAwal.pc > 0 ? saldoAwal.pc.toLocaleString('id-ID') : 'Rp 0'}
-                    </td>
-                    
-                    {/* Iuran RT */}
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-300 p-2 text-right text-amber-800 font-mono bg-amber-50">
-                      {saldoAwal.rt > 0 ? saldoAwal.rt.toLocaleString('id-ID') : 'Rp 0'}
                     </td>
                     
                     {/* Rombong */}
@@ -917,7 +897,7 @@ export default function Ledger({
 
                   {visibleTabularRows.length === 0 ? (
                     <tr>
-                      <td colSpan={isLoggedIn ? 18 : 17} className="border-b border-slate-300 py-12 text-center text-slate-400 font-bold bg-slate-50/20 select-none font-sans">
+                      <td colSpan={isLoggedIn ? 15 : 14} className="border-b border-slate-300 py-12 text-center text-slate-400 font-bold bg-slate-50/20 select-none font-sans">
                         Tidak ada aliran transaksi kas terdaftar pada bulan/periode terpilih
                       </td>
                     </tr>
@@ -947,25 +927,15 @@ export default function Ledger({
                           </td>
                           
                           {/* Petty Cash */}
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.pcDebit > 0 ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                           {/* Petty Cash (Kas Kecil RT) */}
+                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.pcDebit > 0 ? 'text-blue-650 font-bold' : 'text-slate-400'}`}>
                             {row.pcDebit > 0 ? row.pcDebit.toLocaleString('id-ID') : '-'}
                           </td>
                           <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.pcKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
                             {row.pcKredit > 0 ? row.pcKredit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className="border-r border-slate-300 p-2 text-right text-slate-700 font-mono bg-slate-50/50">
+                          <td className="border-r border-slate-300 p-2 text-right text-slate-700 font-mono bg-slate-100/40">
                             {row.pcRunning.toLocaleString('id-ID')}
-                          </td>
-                          
-                          {/* Iuran RT */}
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.rtDebit > 0 ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
-                            {row.rtDebit > 0 ? row.rtDebit.toLocaleString('id-ID') : '-'}
-                          </td>
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.rtKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
-                            {row.rtKredit > 0 ? row.rtKredit.toLocaleString('id-ID') : '-'}
-                          </td>
-                          <td className="border-r border-slate-300 p-2 text-right text-amber-800 font-mono bg-amber-50/20">
-                            {row.rtRunning.toLocaleString('id-ID')}
                           </td>
                           
                           {/* Iuran Rombong */}
@@ -1032,6 +1002,7 @@ export default function Ledger({
                     <td className="border-r border-slate-300 p-3">-</td>
                     
                     {/* Petty Cash */}
+                    {/* Kas Kecil */}
                     <td className="border-r border-slate-200 p-2 text-right text-blue-700 font-mono bg-slate-150/40">
                       {totalsTabular.pcDebit > 0 ? totalsTabular.pcDebit.toLocaleString('id-ID') : '-'}
                     </td>
@@ -1040,17 +1011,6 @@ export default function Ledger({
                     </td>
                     <td className="border-r border-slate-300 p-2 text-right text-slate-900 font-mono bg-slate-200/65">
                       {totalsTabular.pcRunning.toLocaleString('id-ID')}
-                    </td>
-                    
-                    {/* Iuran RT */}
-                    <td className="border-r border-slate-200 p-2 text-right text-blue-700 font-mono bg-amber-50/40">
-                      {totalsTabular.rtDebit > 0 ? totalsTabular.rtDebit.toLocaleString('id-ID') : '-'}
-                    </td>
-                    <td className="border-r border-slate-200 p-2 text-right text-rose-700 font-mono bg-amber-50/40">
-                      {totalsTabular.rtKredit > 0 ? totalsTabular.rtKredit.toLocaleString('id-ID') : '-'}
-                    </td>
-                    <td className="border-r border-slate-300 p-2 text-right text-amber-950 font-mono bg-amber-100/50">
-                      {totalsTabular.rtRunning.toLocaleString('id-ID')}
                     </td>
                     
                     {/* Rombong */}
@@ -1489,8 +1449,7 @@ export default function Ledger({
                         <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 w-24">NO BUKTI</th>
                         <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 text-left">KETERANGAN ALIRAN KAS</th>
                         <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 w-20">PETUGAS</th>
-                        <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-slate-150/40">PETTY CASH</th>
-                        <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-amber-50 border-amber-250">IURAN RT</th>
+                        <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-slate-150/40">KAS KECIL RT</th>
                         <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-sky-50 border-sky-250">IURAN ROMBONG</th>
                         <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-emerald-50 border-emerald-250">KAS BANK RT</th>
                         <th rowSpan={2} className="border-b border-slate-400 p-1.5 bg-indigo-50 text-indigo-950 font-black w-24">SALDO GABUNG</th>
@@ -1499,9 +1458,6 @@ export default function Ledger({
                         <th className="border-r border-slate-300 p-1 w-12">D</th>
                         <th className="border-r border-slate-300 p-1 w-12">K</th>
                         <th className="border-r border-slate-350 p-1 w-14 bg-slate-100/50">SALDO</th>
-                        <th className="border-r border-slate-300 p-1 w-12 bg-amber-50">D</th>
-                        <th className="border-r border-slate-300 p-1 w-12 bg-amber-50">K</th>
-                        <th className="border-r border-slate-350 p-1 w-14 bg-amber-100/30">SALDO</th>
                         <th className="border-r border-slate-300 p-1 w-12 bg-sky-50">D</th>
                         <th className="border-r border-slate-300 p-1 w-12 bg-sky-50">K</th>
                         <th className="border-r border-slate-350 p-1 w-14 bg-sky-100/30">SALDO</th>
@@ -1521,12 +1477,6 @@ export default function Ledger({
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
                         <td className="border-r border-slate-450 p-1 text-right font-mono text-slate-800 bg-slate-100/40">
                           {saldoAwal.pc > 0 ? saldoAwal.pc.toLocaleString('id-ID') : 'Rp 0'}
-                        </td>
-                        
-                        <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
-                        <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-amber-900 bg-amber-50">
-                          {saldoAwal.rt > 0 ? saldoAwal.rt.toLocaleString('id-ID') : 'Rp 0'}
                         </td>
                         
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
@@ -1558,15 +1508,10 @@ export default function Ledger({
                           <td className="border-r border-slate-400 p-1.5 font-medium leading-tight text-slate-900">{row.deskripsi}</td>
                           <td className="border-r border-slate-400 p-1.5 capitalize text-slate-600 whitespace-nowrap">{row.petugas}</td>
                           
-                          {/* Petty Cash */}
+                          {/* Petty Cash (Kas Kecil RT) */}
                           <td className="border-r border-slate-300 p-1 text-right font-mono">{row.pcDebit > 0 ? row.pcDebit.toLocaleString('id-ID') : '-'}</td>
                           <td className="border-r border-slate-300 p-1 text-right font-mono">{row.pcKredit > 0 ? row.pcKredit.toLocaleString('id-ID') : '-'}</td>
                           <td className="border-r border-slate-450 p-1 text-right font-mono text-slate-705 bg-slate-50">{row.pcRunning.toLocaleString('id-ID')}</td>
-                          
-                          {/* RT */}
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.rtDebit > 0 ? row.rtDebit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.rtKredit > 0 ? row.rtKredit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-450 p-1 text-right font-mono text-amber-900 bg-amber-50/20">{row.rtRunning.toLocaleString('id-ID')}</td>
                           
                           {/* Rombong */}
                           <td className="border-r border-slate-300 p-1 text-right font-mono">{row.rbDebit > 0 ? row.rbDebit.toLocaleString('id-ID') : '-'}</td>
@@ -1590,15 +1535,10 @@ export default function Ledger({
                         <td className="border-r border-slate-400 p-1.5 tracking-wide">TOTAL DEBIT / KREDIT PERIODIK</td>
                         <td className="border-r border-slate-400 p-1.5">-</td>
                         
-                        {/* Petty Cash */}
+                        {/* Petty Cash (Kas Kecil RT) */}
                         <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono">{totalsTabular.pcDebit > 0 ? totalsTabular.pcDebit.toLocaleString('id-ID') : '-'}</td>
                         <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono">{totalsTabular.pcKredit > 0 ? totalsTabular.pcKredit.toLocaleString('id-ID') : '-'}</td>
                         <td className="border-r border-slate-450 p-1 text-right font-mono text-slate-900 bg-slate-200">{totalsTabular.pcRunning.toLocaleString('id-ID')}</td>
-                        
-                        {/* RT */}
-                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono">{totalsTabular.rtDebit > 0 ? totalsTabular.rtDebit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono">{totalsTabular.rtKredit > 0 ? totalsTabular.rtKredit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-amber-950 bg-amber-100">{totalsTabular.rtRunning.toLocaleString('id-ID')}</td>
                         
                         {/* Rombong */}
                         <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono">{totalsTabular.rbDebit > 0 ? totalsTabular.rbDebit.toLocaleString('id-ID') : '-'}</td>

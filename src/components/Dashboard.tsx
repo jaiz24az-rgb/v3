@@ -58,7 +58,6 @@ export default function Dashboard({
 
   // Precompute derived cash balances from the ledger entries (the ultimate truth of real transactional flows)
   const derivedKas = React.useMemo(() => {
-    let rtTunai = 0;
     let rtPettyCash = 0;
     let rtBank = 0;
     let rombongTunai = 0;
@@ -74,9 +73,7 @@ export default function Dashboard({
       const val = item.jumlah;
       const isPemasukan = item.tipe === 'pemasukan';
       
-      if (item.sumberKas === 'rtTunai') {
-        rtTunai += isPemasukan ? val : -val;
-      } else if (item.sumberKas === 'rtPettyCash') {
+      if (item.sumberKas === 'rtTunai' || item.sumberKas === 'rtPettyCash') {
         rtPettyCash += isPemasukan ? val : -val;
       } else if (item.sumberKas === 'rtBank') {
         rtBank += isPemasukan ? val : -val;
@@ -88,7 +85,7 @@ export default function Dashboard({
     });
 
     return {
-      rtTunai,
+      rtTunai: 0,
       rtPettyCash,
       rtBank,
       rombongTunai,
@@ -99,10 +96,10 @@ export default function Dashboard({
   const isAdminOrTreasurerOrSecretary = currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris' || currentUser?.role === 'audit';
   const activeKas = isAdminOrTreasurerOrSecretary ? derivedKas : kas;
 
-  const colBalancesRT = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rtTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
+  const colBalancesRT = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rtPettyCash') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
   const colBalancesRombong = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rombongTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
 
-  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (activeKas.rtTunai + activeKas.rtPettyCash + activeKas.rtBank));
+  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (activeKas.rtPettyCash + activeKas.rtBank));
   const totalRombong = isKolektor ? colBalancesRombong.remaining : (activeKas.rombongTunai + activeKas.rombongBank);
   const totalKeseluruhan = totalRT + totalRombong;
 
@@ -112,15 +109,15 @@ export default function Dashboard({
 
   // Quick transaction form states
   const [showQuickTx, setShowQuickTx] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tagihan' | 'petty' | 'bank' | 'umum'>('umum');
+  const [activeTab, setActiveTab] = useState<'tagihan' | 'petty' | 'bank'>('petty');
   
   const [newTx, setNewTx] = useState({
     tanggal: '',
     deskripsi: '',
     jumlah: '',
-    tipe: 'pemasukan' as 'pemasukan' | 'pengeluaran',
-    sumberKas: 'rtTunai' as keyof Balance,
-    kategori: 'Kas Umum',
+    tipe: 'pengeluaran' as 'pemasukan' | 'pengeluaran',
+    sumberKas: 'rtPettyCash' as keyof Balance,
+    kategori: 'Kas Kecil',
     petugas: '',
     fotoBase64: '',
     fotoNamaFile: ''
@@ -136,8 +133,8 @@ export default function Dashboard({
   const [sectorSetor, setSectorSetor] = useState<'rt' | 'rombong'>('rt');
 
   const kasLabels: Record<keyof Balance, { label: string; group: 'RT' | 'Rombong'; desc: string }> = {
-    rtTunai: { label: 'RT Tunai', group: 'RT', desc: 'Kas tunai utama RT 08' },
-    rtPettyCash: { label: 'RT Petty Cash', group: 'RT', desc: 'Kas kecil operasional RT' },
+    rtTunai: { label: 'Kas Umum (Lama)', group: 'RT', desc: 'Sektor Kas Tunai Umum (Telah Di-merger)' },
+    rtPettyCash: { label: 'Kas Kecil', group: 'RT', desc: 'Kas kecil RT (Gabungan Kas Tunai & Petty Cash)' },
     rtBank: { label: 'RT Bank', group: 'RT', desc: 'Rekening bank kas RT 08' },
     rombongTunai: { label: 'Rombong Tunai', group: 'Rombong', desc: 'Kas tunai iuran Rombong Kuliner' },
     rombongBank: { label: 'Rombong Bank', group: 'Rombong', desc: 'Rekening bank iuran Rombong' },
@@ -178,12 +175,14 @@ export default function Dashboard({
     e.preventDefault();
     const today = new Date().toISOString().split('T')[0];
 
-    if (activeTab === 'umum') {
+    if (activeTab === 'petty') {
       const parsedAmount = parseFloat(newTx.jumlah);
       if (!newTx.deskripsi || isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      if (newTx.tipe === 'pengeluaran' && activeKas[newTx.sumberKas] < parsedAmount) {
-        alert(`Peringatan: Saldo ${kasLabels[newTx.sumberKas].label} tidak mencukupi untuk transaksi ini!`);
+      const sKas = newTx.sumberKas || 'rtPettyCash';
+
+      if (newTx.tipe === 'pengeluaran' && activeKas[sKas] < parsedAmount) {
+        alert(`Peringatan: Saldo ${kasLabels[sKas].label} (Rp ${activeKas[sKas].toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
@@ -193,18 +192,18 @@ export default function Dashboard({
         deskripsi: newTx.deskripsi,
         jumlah: parsedAmount,
         tipe: newTx.tipe,
-        sumberKas: newTx.sumberKas,
-        kategori: newTx.kategori || 'Kas Umum',
-        petugas: newTx.petugas || 'Petugas RT',
+        sumberKas: sKas,
+        kategori: newTx.kategori || 'Kas Kecil',
+        petugas: newTx.petugas || 'Pemegang Kas Kecil',
         fotoBase64: newTx.fotoBase64 || undefined,
         fotoNamaFile: newTx.fotoNamaFile || undefined
       });
 
       const updatedBalance = { ...kas };
       if (newTx.tipe === 'pemasukan') {
-        updatedBalance[newTx.sumberKas] += parsedAmount;
+        updatedBalance[sKas] += parsedAmount;
       } else {
-        updatedBalance[newTx.sumberKas] -= parsedAmount;
+        updatedBalance[sKas] -= parsedAmount;
       }
       updateKas(updatedBalance);
 
@@ -213,9 +212,9 @@ export default function Dashboard({
         tanggal: '',
         deskripsi: '',
         jumlah: '',
-        tipe: 'pemasukan',
-        sumberKas: 'rtTunai',
-        kategori: 'Kas Umum',
+        tipe: 'pengeluaran',
+        sumberKas: 'rtPettyCash',
+        kategori: 'Kas Kecil',
         petugas: '',
         fotoBase64: '',
         fotoNamaFile: ''
@@ -227,7 +226,7 @@ export default function Dashboard({
       const parsedAmount = parseFloat(transferAmount);
       if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      const sourceKas: keyof Balance = sectorSetor === 'rt' ? 'rtTunai' : 'rombongTunai';
+      const sourceKas: keyof Balance = sectorSetor === 'rt' ? 'rtPettyCash' : 'rombongTunai';
       const targetKas: keyof Balance = sectorSetor === 'rt' ? 'rtBank' : 'rombongBank';
 
       if (activeKas[sourceKas] < parsedAmount) {
@@ -533,12 +532,12 @@ export default function Dashboard({
           </div>
 
           {/* Module Selector Sub-Tabs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 bg-slate-50 p-1.5 rounded-2xl border border-slate-150">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6 bg-slate-50 p-1.5 rounded-2xl border border-slate-150">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('tagihan');
-                setNewTx({ ...newTx, kategori: 'Setor Bank', tipe: 'pengeluaran', sumberKas: 'rtTunai' });
+                setNewTx({ ...newTx, kategori: 'Setor Bank', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
               }}
               className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
                 activeTab === 'tagihan'
@@ -547,13 +546,13 @@ export default function Dashboard({
               }`}
             >
               <Receipt className="w-3.5 h-3.5" />
-              Setor hasil tagihan
+              Setor hasil tagihan (Tunai ke Bank)
             </button>
             <button
               type="button"
               onClick={() => {
                 setActiveTab('petty');
-                setNewTx({ ...newTx, kategori: 'Petty Cash', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
+                setNewTx({ ...newTx, kategori: 'Kas Kecil', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
               }}
               className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
                 activeTab === 'petty'
@@ -562,7 +561,7 @@ export default function Dashboard({
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" />
-              Petty Cash
+              Buku Kas Kecil (Biaya RT)
             </button>
             <button
               type="button"
@@ -576,22 +575,7 @@ export default function Dashboard({
               }`}
             >
               <Landmark className="w-3.5 h-3.5" />
-              Catatan Bank
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('umum');
-                setNewTx({ ...newTx, kategori: 'Kas Umum', tipe: 'pemasukan', sumberKas: 'rtTunai' });
-              }}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-                activeTab === 'umum'
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              Pemasukan/Pengeluaran
+              Catatan Bank (Mutasi)
             </button>
           </div>
 
@@ -618,7 +602,7 @@ export default function Dashboard({
                         }`}
                       >
                         RT (Tunai ➔ Bank)
-                        <div className="text-[10px] opacity-75 font-mono">Sisa Tunai: Rp {activeKas.rtTunai.toLocaleString('id-ID')}</div>
+                        <div className="text-[10px] opacity-75 font-mono">Sisa Kas Kecil: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
                       </button>
                       <button
                         type="button"
@@ -683,16 +667,16 @@ export default function Dashboard({
               </div>
             )}
 
-            {/* 2. PETTY CASH TAB */}
+            {/* 2. KAS KECIL TAB */}
             {activeTab === 'petty' && (
               <div className="space-y-4 animate-in fade-in duration-150">
                 <div className="bg-amber-50 text-amber-900 border border-amber-200 p-3.5 rounded-xl text-xs leading-relaxed">
-                  💸 <strong>Buku Petty Cash:</strong> Mengelola kas kecil RT 08 khusus untuk pengeluaran dan pemasukan operasional <strong>di luar iuran bulanan wajib</strong>. cth: Pembelian sapu kebersihan, snack kader PKK, ATK print laporan, atau donasi kondisional.
+                  💸 <strong>Buku Kas Kecil RT:</strong> Mengelola kas kecil RT 08 untuk operasional umum dan tak terduga <strong>di luar iuran bulanan wajib</strong>. cth: Pembelian sapu kebersihan, snack kader PKK, ATK print laporan, sumbangan warga kondisional.
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tipe Petty Cash</label>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tipe Mutasi Buku Kas Kecil</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -703,7 +687,7 @@ export default function Dashboard({
                             : 'bg-white text-slate-500 border-slate-200'
                         }`}
                       >
-                        🔴 Pengeluaran Operasional
+                        🔴 Pengeluaran RT
                       </button>
                       <button
                         type="button"
@@ -714,20 +698,27 @@ export default function Dashboard({
                             : 'bg-white text-slate-500 border-slate-200'
                         }`}
                       >
-                        🟢 Pemasukan Operasional
+                        🟢 Penerimaan RT
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Akun Kas Petty Cash (Terkunci)</label>
-                    <div className="w-full bg-slate-100 border border-slate-250 rounded-xl px-3.5 py-3 text-xs text-slate-600 font-bold font-mono">
-                      [RT] RT Petty Cash (Sisa Terakhir: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')})
-                    </div>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Akun Rekening Penerima / Pengeluaran</label>
+                    <select
+                      value={newTx.sumberKas}
+                      onChange={e => setNewTx({ ...newTx, sumberKas: e.target.value as keyof Balance })}
+                      className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono font-bold"
+                    >
+                      <option value="rtPettyCash">[RT] Kas Kecil (Sisa: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')})</option>
+                      <option value="rtBank">[RT] RT Bank (Sisa: Rp {activeKas.rtBank.toLocaleString('id-ID')})</option>
+                      <option value="rombongTunai">[Rombong] Rombong Tunai (Sisa: Rp {activeKas.rombongTunai.toLocaleString('id-ID')})</option>
+                      <option value="rombongBank">[Rombong] Rombong Bank (Sisa: Rp {activeKas.rombongBank.toLocaleString('id-ID')})</option>
+                    </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Deskripsi Petty Cash (Kegunaan Real)</label>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Deskripsi Lengkap Transaksi (Buku Kas Kecil)</label>
                     <input
                       required
                       type="text"
@@ -762,7 +753,7 @@ export default function Dashboard({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Kategori Petty Cash</label>
+                    <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Kategori Transaksi Kas Kecil</label>
                     <input
                       required
                       type="text"
