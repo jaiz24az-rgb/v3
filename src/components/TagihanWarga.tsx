@@ -7957,9 +7957,7 @@ export default function TagihanWarga({
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
                       <th className="p-4 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
                       <th className="p-4 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
-                      <th className="p-4 text-center">Cetak PDF</th>
-                      {isWargaOfficer && <th className="p-4 text-center">Tagihan WA</th>}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && <th className="p-4 text-center">Aksi Pengurus</th>}
+                      <th className="p-4 text-center w-[120px]">Tindakan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -8118,83 +8116,82 @@ export default function TagihanWarga({
                         </div>
                       </td>
 
-                      {/* Single Invoice PDF Print */}
-                      <td className="p-4 text-center align-middle">
-                        <button
-                          onClick={() => printWargaInvoice(w, selectedBillingYear)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-102 hover:text-sky-800 text-xs font-bold font-mono transition border border-sky-200/50 cursor-pointer shadow-2xs"
-                          title="Cetak PDF invoice bulanan resmi plus akumulasi tunggakan sebelumnya"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Unduh PDF</span>
-                        </button>
-                      </td>
-
-                      {/* Action whatsapp billing helper */}
-                      {isWargaOfficer && (
-                        <td className="p-4 text-center align-middle">
+                      {/* Actions unified dropdown menu */}
+                      <td className="p-4 text-center align-middle relative">
+                        <div className="relative inline-block text-left">
                           <button
-                            onClick={() => {
-                              setSelectedWargaForWhatsApp(w);
-                              setTargetPhone(w.noWa || '');
+                            id={`warga-actions-btn-${w.id}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdownWarga(activeDropdownWarga === w.id ? null : w.id);
+                              setActiveDropdownRombong(null);
                             }}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs shadow-emerald-600/10 whitespace-nowrap"
-                            title="Kirim slip rincian tagihan via WhatsApp"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-800 text-xs font-bold border border-slate-205 cursor-pointer shadow-3xs transition"
+                            title="Pilih Tindakan / Aksi"
                           >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Kirim WA</span>
+                            <Settings className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Pilih</span>
                           </button>
-                        </td>
-                      )}
+                          
+                          {activeDropdownWarga === w.id && (
+                            <div className="absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  printWargaInvoice(w, selectedBillingYear);
+                                  setActiveDropdownWarga(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-50 transition text-left font-semibold cursor-pointer"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-sky-600" />
+                                <span>Unduh PDF</span>
+                              </button>
 
-                      {/* Admin/Bendahara Management Actions: Edit and Delete combined into local Settings dropdown */}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                        <td className="p-4 text-center align-middle relative">
-                          <div className="relative inline-block text-left">
-                            <button
-                              id={`warga-actions-btn-${w.id}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDropdownWarga(activeDropdownWarga === w.id ? null : w.id);
-                                setActiveDropdownRombong(null);
-                              }}
-                              className="p-1.5 text-slate-500 hover:text-slate-850 hover:bg-slate-100 rounded-lg transition cursor-pointer border border-slate-200 bg-white shadow-3xs"
-                              title="Aksi Pengurus"
-                            >
-                              <Settings className="w-4 h-4" />
-                            </button>
-                            
-                            {activeDropdownWarga === w.id && (
-                              <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                              {isWargaOfficer && (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setEditingWarga(w);
+                                    setSelectedWargaForWhatsApp(w);
+                                    setTargetPhone(w.noWa || '');
                                     setActiveDropdownWarga(null);
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-50 transition text-left font-semibold cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-50 transition text-left font-semibold cursor-pointer border-t border-slate-105"
                                 >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                  <span>Edit Data Warga</span>
+                                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Kirim WA</span>
                                 </button>
-                                {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                              )}
+
+                              {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingWarga(w);
+                                      setActiveDropdownWarga(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition text-left font-semibold cursor-pointer border-t border-slate-105"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Edit Data Warga</span>
+                                  </button>
                                   <button
                                     type="button"
                                     onClick={() => {
                                       handleDeleteWarga(w.id, w.nama);
                                       setActiveDropdownWarga(null);
                                     }}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-650 hover:bg-rose-50 transition border-t border-slate-105 text-left font-semibold cursor-pointer"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                                     <span>Kelola / Hapus</span>
                                   </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      )}
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                   })}
@@ -8224,9 +8221,7 @@ export default function TagihanWarga({
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
                       <th className="p-4 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
                       <th className="p-4 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
-                      <th className="p-4 text-center">Cetak PDF</th>
-                      {isOfficer && <th className="p-4 text-center">Rincian WA</th>}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && <th className="p-4 text-center">Aksi Pengurus</th>}
+                      <th className="p-4 text-center w-[120px]">Tindakan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -8373,83 +8368,82 @@ export default function TagihanWarga({
                         </div>
                       </td>
 
-                      {/* Single Invoice PDF Print */}
-                      <td className="p-4 text-center align-middle">
-                        <button
-                          onClick={() => printRombongInvoice(r, selectedBillingYear)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100/80 hover:text-emerald-800 text-xs font-bold font-mono transition border border-emerald-200/50 cursor-pointer shadow-2xs"
-                          title="Cetak PDF invoice bulanan resmi plus sewa dan iuran akumulasi tunggakan sebelumnya"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Unduh PDF</span>
-                        </button>
-                      </td>
-
-                      {/* WA slip generator */}
-                      {isOfficer && (
-                        <td className="p-4 text-center align-middle">
+                      {/* Actions unified dropdown menu */}
+                      <td className="p-4 text-center align-middle relative">
+                        <div className="relative inline-block text-left">
                           <button
-                            onClick={() => {
-                              setSelectedRombongForWhatsApp(r);
-                              setTargetPhone(r.noWa || '');
+                            id={`rombong-actions-btn-${r.id}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdownRombong(activeDropdownRombong === r.id ? null : r.id);
+                              setActiveDropdownWarga(null);
                             }}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 mx-auto bg-emerald-600 hover:bg-emerald-750 text-white cursor-pointer shadow-xs shadow-emerald-600/10 whitespace-nowrap"
-                            title="Kirim rincian iuran rombong via WhatsApp"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-800 text-xs font-bold border border-slate-205 cursor-pointer shadow-3xs transition"
+                            title="Pilih Tindakan / Aksi"
                           >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Kirim WA</span>
+                            <Settings className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Pilih</span>
                           </button>
-                        </td>
-                      )}
+                          
+                          {activeDropdownRombong === r.id && (
+                            <div className="absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  printRombongInvoice(r, selectedBillingYear);
+                                  setActiveDropdownRombong(null);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-sky-700 hover:bg-sky-50 transition text-left font-semibold cursor-pointer"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-sky-600" />
+                                <span>Unduh PDF</span>
+                              </button>
 
-                      {/* Admin/Bendahara Options: Edit and Delete combined into local Settings dropdown */}
-                      {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
-                        <td className="p-4 text-center align-middle relative">
-                          <div className="relative inline-block text-left">
-                            <button
-                              id={`rombong-actions-btn-${r.id}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDropdownRombong(activeDropdownRombong === r.id ? null : r.id);
-                                setActiveDropdownWarga(null);
-                              }}
-                              className="p-1.5 text-slate-500 hover:text-slate-850 hover:bg-slate-100 rounded-lg transition cursor-pointer border border-slate-200 bg-white shadow-3xs"
-                              title="Aksi Pengurus"
-                            >
-                              <Settings className="w-4 h-4" />
-                            </button>
-                            
-                            {activeDropdownRombong === r.id && (
-                              <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 text-left animate-in fade-in slide-in-from-top-1 duration-150">
+                              {isOfficer && (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setEditingRombong(r);
+                                    setSelectedRombongForWhatsApp(r);
+                                    setTargetPhone(r.noWa || '');
                                     setActiveDropdownRombong(null);
                                   }}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-750 hover:bg-emerald-50 transition text-left font-semibold cursor-pointer"
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-50 transition text-left font-semibold cursor-pointer border-t border-slate-105"
                                 >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                  <span>Edit Data Lapak</span>
+                                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Kirim WA</span>
                                 </button>
-                                {(currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                              )}
+
+                              {isLoggedIn && (currentUser?.role === 'admin' || currentUser?.role === 'bendahara') && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingRombong(r);
+                                      setActiveDropdownRombong(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition text-left font-semibold cursor-pointer border-t border-slate-105"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Edit Data Lapak</span>
+                                  </button>
                                   <button
                                     type="button"
                                     onClick={() => {
                                       handleDeleteRombong(r.id, r.namaPemilik);
                                       setActiveDropdownRombong(null);
                                     }}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 text-left font-semibold cursor-pointer"
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-650 hover:bg-rose-50 transition border-t border-slate-105 text-left font-semibold cursor-pointer"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                                     <span>Kelola / Hapus</span>
                                   </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      )}
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                   })}
