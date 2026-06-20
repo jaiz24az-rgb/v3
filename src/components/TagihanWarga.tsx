@@ -7955,9 +7955,9 @@ export default function TagihanWarga({
                 <table className="w-full min-w-[950px] text-left border-collapse table-auto">
                   <thead>
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
-                      <th className="p-4 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
-                      <th className="p-4 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
-                      <th className="p-4 text-center w-[120px]">Tindakan</th>
+                      <th className="p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
+                      <th className="p-2.5 sm:p-3 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
+                      <th className="p-2.5 sm:p-3 text-center w-[120px]">Tindakan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -7977,21 +7977,21 @@ export default function TagihanWarga({
                                 : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className={`p-4 min-w-[220px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                          <td className={`p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
                             isInactive 
                               ? 'bg-slate-100/60 md:bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
                               : isOverdue 
                                 ? 'bg-rose-50/60 md:bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
                                 : 'bg-white md:bg-white group-hover:bg-slate-50'
                           }`}>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             {w.fotoBase64 ? (
-                              <div className="w-10 h-10 rounded-full border border-slate-200 shadow-xs overflow-hidden shrink-0">
+                              <div className="w-8 h-8 rounded-full border border-slate-200 shadow-xs overflow-hidden shrink-0">
                                 <img src={w.fotoBase64} alt="Warga" className="w-full h-full object-cover" />
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-                                <User className="w-4 h-4 text-slate-400" />
+                              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+                                <User className="w-3.5 h-3.5 text-slate-400" />
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
@@ -8065,8 +8065,8 @@ export default function TagihanWarga({
                         </td>
 
                       {/* RT Month Grid */}
-                      <td className="p-4 text-center align-middle">
-                        <div className="flex flex-wrap gap-1.5 justify-center">
+                      <td className="p-2.5 sm:p-3 text-center align-middle">
+                        <div className="flex flex-wrap gap-1 justify-center">
                           {(() => {
                             const defaultMonths = showCurrentMonthOnly
                               ? [fullMonths[new Date().getMonth()] || 'Juni']
@@ -8082,7 +8082,7 @@ export default function TagihanWarga({
                                   key={m}
                                   onClick={() => !slot.lunas && isWargaOfficer && openPaymentModal(w, 'Iuran RT', slot.bulan, slot.nominal, 'iuranRT', selectedBillingYear)}
                                   disabled={slot.lunas || !isWargaOfficer}
-                                  className={`px-2 py-1 rounded-lg text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[72px] ${
+                                  className={`px-1.5 py-0.5 rounded-lg text-[10px] md:text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[62px] ${
                                     slot.lunas
                                       ? 'bg-emerald-600 text-white border border-emerald-700 shadow-sm cursor-default'
                                       : isWargaOfficer
@@ -8090,12 +8090,12 @@ export default function TagihanWarga({
                                       : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >
-                                  <span className="text-[10px] font-black">{slot.bulan} <span className={`text-[8px] font-normal ${slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
+                                  <span className="text-[9px] font-black">{slot.bulan} <span className={`text-[7.5px] font-normal ${slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
                                   {slot.lunas ? (
                                     <>
-                                      <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
+                                      <span className="text-[8px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
                                       {slot.tanggalBayar && (
-                                        <span className="text-[7.5px] text-emerald-100 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88]">
+                                        <span className="text-[7px] text-emerald-100 font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.85]">
                                           {(() => {
                                             const p = slot.tanggalBayar.split('-');
                                             const datePart = p.length === 3 ? `${p[2]}/${p[1]}` : slot.tanggalBayar;
@@ -8105,7 +8105,7 @@ export default function TagihanWarga({
                                       )}
                                     </>
                                   ) : (
-                                    <span className="text-[8px] mt-0.5 block opacity-95">
+                                    <span className="text-[7.5px] mt-0.5 block opacity-95">
                                       Bayar ❯
                                     </span>
                                   )}
@@ -8117,7 +8117,7 @@ export default function TagihanWarga({
                       </td>
 
                       {/* Actions unified dropdown menu */}
-                      <td className="p-4 text-center align-middle relative">
+                      <td className="p-2.5 sm:p-3 text-center align-middle relative">
                         <div className="relative inline-block text-left">
                           <button
                             id={`warga-actions-btn-${w.id}`}
@@ -8219,9 +8219,9 @@ export default function TagihanWarga({
                 <table className="w-full min-w-[850px] text-left border-collapse table-auto">
                   <thead>
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
-                      <th className="p-4 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
-                      <th className="p-4 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
-                      <th className="p-4 text-center w-[120px]">Tindakan</th>
+                      <th className="p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
+                      <th className="p-2.5 sm:p-3 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
+                      <th className="p-2.5 sm:p-3 text-center w-[120px]">Tindakan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -8233,7 +8233,7 @@ export default function TagihanWarga({
                       return (
                         <tr 
                           key={r.id} 
-                          className={`group transition duration-150 border-b border-slate-100 ${
+                          className={`group transition duration-155 border-b border-slate-100 ${
                             isInactive 
                               ? 'bg-slate-100/40 opacity-70 hover:bg-slate-100/60'
                               : isOverdue 
@@ -8241,21 +8241,21 @@ export default function TagihanWarga({
                                 : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className={`p-4 min-w-[220px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                          <td className={`p-2.5 sm:p-3 min-w-[220px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
                             isInactive 
                               ? 'bg-slate-100/60 md:bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
                               : isOverdue 
                                 ? 'bg-rose-50/60 md:bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
                                 : 'bg-white md:bg-white group-hover:bg-slate-50'
                           }`}>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             {r.fotoBase64 ? (
-                              <div className="w-10 h-10 rounded-full border border-slate-200 shadow-xs overflow-hidden shrink-0">
+                              <div className="w-8 h-8 rounded-full border border-slate-200 shadow-xs overflow-hidden shrink-0">
                                 <img src={r.fotoBase64} alt="Rombong" className="w-full h-full object-cover" />
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-                                <Store className="w-4 h-4 text-slate-400" />
+                              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+                                <Store className="w-3.5 h-3.5 text-slate-400" />
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
@@ -8309,8 +8309,8 @@ export default function TagihanWarga({
                         </td>
 
                       {/* Rombong Month Grid */}
-                      <td className="p-4 text-center align-middle">
-                        <div className="flex flex-wrap gap-1.5 justify-center">
+                      <td className="p-2.5 sm:p-3 text-center align-middle">
+                        <div className="flex flex-wrap gap-1 justify-center">
                           {(() => {
                             const defaultMonths = showCurrentMonthOnly
                               ? [fullMonths[new Date().getMonth()] || 'Juni']
@@ -8328,7 +8328,7 @@ export default function TagihanWarga({
                                   key={m}
                                   onClick={() => !slot.lunas && isOfficer && openRombongPaymentModal(r, 'Iuran Rombong', slot.bulan, slot.nominal, 'iuranRombong', selectedBillingYear)}
                                   disabled={slot.lunas || !isOfficer}
-                                  className={`px-2 py-1 rounded-lg text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[72px] ${
+                                  className={`px-1.5 py-0.5 rounded-lg text-[10px] md:text-[11px] font-bold font-mono text-center transition flex flex-col items-center justify-center min-w-[62px] ${
                                     isPendingApp
                                       ? 'bg-amber-500 text-white border border-amber-600 shadow-sm cursor-default animate-pulse'
                                       : slot.lunas
@@ -8338,16 +8338,16 @@ export default function TagihanWarga({
                                       : 'bg-slate-50 text-slate-450 border border-slate-150 cursor-default font-sans'
                                   }`}
                                 >
-                                  <span className="text-[10px] font-black">{slot.bulan} <span className={`text-[8px] font-normal ${isPendingApp ? 'text-amber-100' : slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
+                                  <span className="text-[9px] font-black">{slot.bulan} <span className={`text-[7.5px] font-normal ${isPendingApp ? 'text-amber-100' : slot.lunas ? 'text-emerald-200' : 'opacity-75'}`}>'{String(selectedBillingYear).slice(-2)}</span></span>
                                   {slot.lunas ? (
                                     <>
                                       {isPendingApp ? (
-                                        <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-amber-600/30 px-1 py-0.2 rounded">PENDING ⌛</span>
+                                        <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-amber-600/30 px-1 py-0.1 rounded">PENDING ⌛</span>
                                       ) : (
-                                        <span className="text-[8.5px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
+                                        <span className="text-[8px] mt-0.5 block text-white font-extrabold bg-emerald-750/30 px-1 py-0.2 rounded">LUNAS ✓</span>
                                       )}
                                       {slot.tanggalBayar && (
-                                        <span className={`text-[7.5px] font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.88] ${isPendingApp ? 'text-amber-100' : 'text-emerald-100'}`}>
+                                        <span className={`text-[7px] font-mono mt-0.5 leading-none whitespace-nowrap scale-[0.85] ${isPendingApp ? 'text-amber-100' : 'text-emerald-100'}`}>
                                           {(() => {
                                             const p = slot.tanggalBayar.split('-');
                                             const datePart = p.length === 3 ? `${p[2]}/${p[1]}` : slot.tanggalBayar;
@@ -8357,7 +8357,7 @@ export default function TagihanWarga({
                                       )}
                                     </>
                                   ) : (
-                                    <span className="text-[8px] mt-0.5 block opacity-95">
+                                    <span className="text-[7.5px] mt-0.5 block opacity-95">
                                       Bayar ❯
                                     </span>
                                   )}
@@ -8369,7 +8369,7 @@ export default function TagihanWarga({
                       </td>
 
                       {/* Actions unified dropdown menu */}
-                      <td className="p-4 text-center align-middle relative">
+                      <td className="p-2.5 sm:p-3 text-center align-middle relative">
                         <div className="relative inline-block text-left">
                           <button
                             id={`rombong-actions-btn-${r.id}`}
