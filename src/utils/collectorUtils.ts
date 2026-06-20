@@ -177,14 +177,22 @@ export function getCollectorBalancesForPeriod(
 
   // Calculate collections
   const collectorCashPayments = filteredLedger.filter(entry => {
-    if (!isBillingPayment(entry) || entry.sumberKas !== sector) return false;
+    if (!isBillingPayment(entry)) return false;
+    const matchesSector = sector === 'rtPettyCash'
+      ? (entry.sumberKas === 'rtPettyCash' || entry.sumberKas === 'rtTunai')
+      : (entry.sumberKas === sector);
+    if (!matchesSector) return false;
     return isCollectorMatch(entry.petugas, colId, collectorName);
   });
   const totalCollected = collectorCashPayments.reduce((acc, entry) => acc + entry.jumlah, 0);
 
   // Calculate penarikans
   const collectorPenarikans = filteredLedger.filter(entry => {
-    if (!isPenarikanKolektor(entry) || entry.sumberKas !== sector) return false;
+    if (!isPenarikanKolektor(entry)) return false;
+    const matchesSector = sector === 'rtPettyCash'
+      ? (entry.sumberKas === 'rtPettyCash' || entry.sumberKas === 'rtTunai')
+      : (entry.sumberKas === sector);
+    if (!matchesSector) return false;
     return isPenarikanForCollector(entry.deskripsi, colId, collectorName);
   });
   const totalPenarikan = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
