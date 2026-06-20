@@ -197,9 +197,61 @@ export function getCollectorBalancesForPeriod(
   });
   const totalPenarikan = collectorPenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
 
+  // Cumulative collections (up to the selected month and year)
+  const cumulativeCashPayments = ledger.filter(entry => {
+    if (!isBillingPayment(entry)) return false;
+    const matchesSector = sector === 'rtPettyCash'
+      ? (entry.sumberKas === 'rtPettyCash' || entry.sumberKas === 'rtTunai')
+      : (entry.sumberKas === sector);
+    if (!matchesSector) return false;
+    if (!isCollectorMatch(entry.petugas, colId, collectorName)) return false;
+
+    // Filter up to the selected period
+    const entryParts = entry.tanggal.split('-');
+    if (entryParts.length !== 3) return true;
+    const entryYear = parseInt(entryParts[0], 10);
+    const entryMonth = parseInt(entryParts[1], 10);
+
+    if (filters.year) {
+      if (entryYear > filters.year) return false;
+      if (entryYear === filters.year && filters.month && filters.month !== 'semua') {
+        const filterMonthNum = parseInt(filters.month, 10);
+        if (entryMonth > filterMonthNum) return false;
+      }
+    }
+    return true;
+  });
+  const cumulativeCollected = cumulativeCashPayments.reduce((acc, entry) => acc + entry.jumlah, 0);
+
+  // Cumulative penarikans (up to the selected month and year)
+  const cumulativePenarikans = ledger.filter(entry => {
+    if (!isPenarikanKolektor(entry)) return false;
+    const matchesSector = sector === 'rtPettyCash'
+      ? (entry.sumberKas === 'rtPettyCash' || entry.sumberKas === 'rtTunai')
+      : (entry.sumberKas === sector);
+    if (!matchesSector) return false;
+    if (!isPenarikanForCollector(entry.deskripsi, colId, collectorName)) return false;
+
+    // Filter up to the selected period
+    const entryParts = entry.tanggal.split('-');
+    if (entryParts.length !== 3) return true;
+    const entryYear = parseInt(entryParts[0], 10);
+    const entryMonth = parseInt(entryParts[1], 10);
+
+    if (filters.year) {
+      if (entryYear > filters.year) return false;
+      if (entryYear === filters.year && filters.month && filters.month !== 'semua') {
+        const filterMonthNum = parseInt(filters.month, 10);
+        if (entryMonth > filterMonthNum) return false;
+      }
+    }
+    return true;
+  });
+  const cumulativePenarikan = cumulativePenarikans.reduce((acc, entry) => acc + entry.jumlah, 0);
+
   return {
     totalCollected,
     totalPenarikan,
-    remaining: Math.max(0, totalCollected - totalPenarikan)
+    remaining: Math.max(0, cumulativeCollected - cumulativePenarikan)
   };
 }

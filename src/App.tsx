@@ -1031,7 +1031,7 @@ export default function App() {
             const updatedUsers = [...users];
             let needsSave = false;
             for (const initialUser of INITIAL_USERS) {
-              const exists = users.some(u => u.id === initialUser.id || u.username.toLowerCase() === initialUser.username.toLowerCase());
+              const exists = users.some(u => u.id === initialUser.id);
               if (!exists) {
                 await saveAppUser(initialUser);
                 updatedUsers.push(initialUser);
@@ -1204,11 +1204,17 @@ export default function App() {
       } else {
         usersInitCheckDone.current = true;
         const list: AppUser[] = [];
-        snapshot.forEach((docSnap) => list.push(docSnap.data() as AppUser));
+        snapshot.forEach((docSnap) => {
+          const u = docSnap.data() as AppUser;
+          if (u) {
+            if (!u.id) u.id = docSnap.id;
+            list.push(u);
+          }
+        });
 
         // Ensure all built-in/initial users exist in DB
         INITIAL_USERS.forEach((initialUser) => {
-          const exists = list.some(u => u.id === initialUser.id || u.username.toLowerCase() === initialUser.username.toLowerCase());
+          const exists = list.some(u => u.id === initialUser.id);
           if (!exists) {
             setDoc(doc(db, 'app_users', initialUser.id), initialUser)
               .catch((err) => handleFirestoreError(err, OperationType.WRITE, `app_users/${initialUser.id}`));

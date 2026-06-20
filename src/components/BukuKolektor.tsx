@@ -172,10 +172,44 @@ export default function BukuKolektor({
   const totalDepositedToBank = setorBankTransfers.reduce((acc, entry) => acc + entry.jumlah, 0);
   
   // Sisa Tunai di Tangan Kolektor (Fisik di lapangan belum diserahterimakan)
-  const remainingCashInCollector = Math.max(0, totalCashCollected - totalPenarikan);
+  const remainingCashInCollector = collectorsList.reduce((sum, u) => {
+    const collectorName = u.nama;
+    const rtBal = getCollectorBalancesForPeriod(allowedLedger, u.username, collectorName, 'rtPettyCash', {
+      month: selectedMonth,
+      year: selectedYear
+    });
+    const rombongBal = getCollectorBalancesForPeriod(allowedLedger, u.username, collectorName, 'rombongTunai', {
+      month: selectedMonth,
+      year: selectedYear
+    });
+    return sum + rtBal.remaining + rombongBal.remaining;
+  }, 0);
 
   // Sisa Tunai di Tangan Bendahara (Sudah ditarik bendahara tapi belum disetor ke bank)
-  const remainingCashInBendahara = Math.max(0, totalPenarikan - totalDepositedToBank);
+  const remainingCashInBendahara = (() => {
+    const cumulativeLedger = allowedLedger.filter(entry => {
+      const { year, month } = parseEntryDate(entry.tanggal);
+      if (selectedYear) {
+        if (year > selectedYear) return false;
+        if (year === selectedYear && selectedMonth !== 'semua') {
+          if (month > (selectedMonth as number)) return false;
+        }
+      }
+      return true;
+    });
+
+    const cumPenarikans = cumulativeLedger.filter(entry => isPenarikanKolektor(entry));
+    const cumDeposits = cumulativeLedger.filter(entry => 
+      entry.kategori === 'Setor Bank' || 
+      entry.deskripsi.includes('Setor Bank') || 
+      entry.deskripsi.includes('Penyetoran')
+    );
+
+    const totalCumPenarikan = cumPenarikans.reduce((sum, entry) => sum + entry.jumlah, 0);
+    const totalCumDeposits = cumDeposits.reduce((sum, entry) => sum + entry.jumlah, 0);
+
+    return Math.max(0, totalCumPenarikan - totalCumDeposits);
+  })();
 
   // Reusable collector balance calculation
   const getCollectorBalanceInfo = (colId: string, sector: 'rtPettyCash' | 'rombongTunai') => {

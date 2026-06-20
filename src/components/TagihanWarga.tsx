@@ -266,6 +266,10 @@ export default function TagihanWarga({
   const [selectedBillingYear, setSelectedBillingYear] = useState<number>(2026);
   const [selectedKeaktifan, setSelectedKeaktifan] = useState<'aktif' | 'nonaktif' | 'pindah_sementara' | 'semua'>('aktif');
 
+  // WhatsApp Message Content Settings (Current month vs. prior arrears)
+  const [waIncludeCurrent, setWaIncludeCurrent] = useState<boolean>(true);
+  const [waIncludeArrears, setWaIncludeArrears] = useState<boolean>(true);
+
   // Block management state
   const [showBlockManageModal, setShowBlockManageModal] = useState(false);
   const [showPrintBillingModal, setShowPrintBillingModal] = useState(false);
@@ -459,9 +463,8 @@ export default function TagihanWarga({
   ];
 
   const isMonthDue = (monthName: string, year: number) => {
-    // Current year is 2026 based on metadata
-    const currentYearNum = 2026;
-    const currentMonthIdx = 4; // May (0-indexed represents index 4)
+    const currentYearNum = new Date().getFullYear();
+    const currentMonthIdx = new Date().getMonth(); // Dynamic based on current month (June = 5)
 
     if (year < currentYearNum) return true; // past years: all months are due
     if (year > currentYearNum) return false; // future years: no months are due yet
@@ -4204,34 +4207,63 @@ export default function TagihanWarga({
     });
     
     const priorArrears = getWargaArrearsBeforeYear(warga, selectedBillingYear);
-    const unpaidCount = unpaidRT.length;
+
+    const currentYearNum = new Date().getFullYear();
+    const currentMonthName = fullMonths[new Date().getMonth()] || '';
+    const isSelYearCurrent = selectedBillingYear === currentYearNum;
+
+    const hasUnpaidCurrentMonth = isSelYearCurrent && unpaidRT.includes(currentMonthName);
+    const unpaidCurrentMonthName = hasUnpaidCurrentMonth ? currentMonthName : null;
+    const unpaidPriorMonths = isSelYearCurrent 
+      ? unpaidRT.filter(m => m !== currentMonthName)
+      : unpaidRT;
+
+    const displayCurrentMonth = waIncludeCurrent && unpaidCurrentMonthName;
+    const displayPriorArrears = waIncludeArrears && (unpaidPriorMonths.length > 0 || priorArrears > 0);
 
     let message = `*TAGIHAN IURAN BULANAN RT 08 PERUMTAS 3*\n`;
     message += `Kepada Yth. Bapak/Ibu: *${warga.nama}*\n`;
     message += `Alamat: *Blok ${warga.blok} No. ${warga.noRumah}*\n\n`;
 
-    if (unpaidCount === 0 && priorArrears === 0) {
-      message += `Selamat! Saat ini Anda *Bebas Tunggakan* (Lunas seluruh iuran). Terima kasih banyak atas partisipasi aktif Bapak/Ibu! 🎉`;
+    if (!displayCurrentMonth && !displayPriorArrears) {
+      const isActuallyLunas = unpaidRT.length === 0 && priorArrears === 0;
+      if (isActuallyLunas) {
+        message += `Selamat! Saat ini Anda *Bebas Tunggakan* (Lunas seluruh iuran). Terima kasih banyak atas partisipasi aktif Bapak/Ibu! 🎉`;
+      } else {
+        message += `Saat ini tidak ada rincian tagihan sesuai filter penagihan terpilih yang perlu dikirimkan.`;
+      }
     } else {
-      message += `Berikut rincian tunggakan iuran bulanan Anda untuk tahun aktif *${selectedBillingYear}* & tunggakan sebelumnya:\n`;
-      let totalTunggakan = 0;
+      message += `Berikut rincian tagihan iuran bulanan Anda:\n`;
+      let grandTotalAccumulated = 0;
 
-      if (unpaidRT.length > 0) {
-        let sub = 0;
-        unpaidRT.forEach(m => {
-          sub += getDefaultRtRate(selectedBillingYear, m, rateRT);
-        });
-        totalTunggakan += sub;
-        const firstMonthRate = getDefaultRtRate(selectedBillingYear, unpaidRT[0], rateRT);
-        message += `• *Iuran RT (${selectedBillingYear})* (Rp ${firstMonthRate.toLocaleString('id-ID')} / bln): ${unpaidRT.join(', ')} (Subtotal: Rp ${sub.toLocaleString('id-ID')})\n`;
+      if (displayCurrentMonth) {
+        const rate = getDefaultRtRate(selectedBillingYear, unpaidCurrentMonthName, rateRT);
+        grandTotalAccumulated += rate;
+        message += `• *Tagihan Bulan Ini (${unpaidCurrentMonthName} ${selectedBillingYear})*: Rp ${rate.toLocaleString('id-ID')}\n`;
       }
 
-      if (priorArrears > 0) {
-        message += `• *Tunggakan Tahun Lalu/Sebelum*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
+      if (displayPriorArrears) {
+        if (unpaidPriorMonths.length > 0) {
+          let sub = 0;
+          unpaidPriorMonths.forEach(m => {
+            sub += getDefaultRtRate(selectedBillingYear, m, rateRT);
+          });
+          grandTotalAccumulated += sub;
+          const firstMonthRate = getDefaultRtRate(selectedBillingYear, unpaidPriorMonths[0], rateRT);
+          let monthLabel = `Tunggakan Bulan Sebelumnya`;
+          if (!isSelYearCurrent) {
+            monthLabel = `Tunggakan Tahun ${selectedBillingYear}`;
+          }
+          message += `• *${monthLabel}* (${unpaidPriorMonths.join(', ')} @ Rp ${firstMonthRate.toLocaleString('id-ID')}): Rp ${sub.toLocaleString('id-ID')}\n`;
+        }
+
+        if (priorArrears > 0) {
+          grandTotalAccumulated += priorArrears;
+          message += `• *Tunggakan Tahun Sebelumnya*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
+        }
       }
 
-      const grandTotalAccumulated = totalTunggakan + priorArrears;
-      message += `\n*Total Tunggakan Kumulatif: Rp ${grandTotalAccumulated.toLocaleString('id-ID')}*\n\n`;
+      message += `\n*Total Tagihan: Rp ${grandTotalAccumulated.toLocaleString('id-ID')}*\n\n`;
       message += `Mohon untuk dapat melakukan pembayaran melalui Pengurus RT ${adminNameFormatted} / ${bendaharaNameFormatted}.\n`;
       message += `Terima kasih banyak atas perhatian dan partisipasi Bapak/Ibu demi kenyamanan lingkungan Perumtas 3 RT 08. 🙏`;
     }
@@ -4266,34 +4298,63 @@ export default function TagihanWarga({
     });
 
     const priorArrears = getRombongArrearsBeforeYear(rombong, selectedBillingYear);
-    const unpaidCount = unpaidRombong.length;
+
+    const currentYearNum = new Date().getFullYear();
+    const currentMonthName = fullMonths[new Date().getMonth()] || '';
+    const isSelYearCurrent = selectedBillingYear === currentYearNum;
+
+    const hasUnpaidCurrentMonth = isSelYearCurrent && unpaidRombong.includes(currentMonthName);
+    const unpaidCurrentMonthName = hasUnpaidCurrentMonth ? currentMonthName : null;
+    const unpaidPriorMonths = isSelYearCurrent 
+      ? unpaidRombong.filter(m => m !== currentMonthName)
+      : unpaidRombong;
+
+    const displayCurrentMonth = waIncludeCurrent && unpaidCurrentMonthName;
+    const displayPriorArrears = waIncludeArrears && (unpaidPriorMonths.length > 0 || priorArrears > 0);
 
     let message = `*TAGIHAN KETERTIBAN & SEWA LAHAN ROMBONG RT 08 PERUMTAS 3*\n`;
     message += `Kepada Yth. Bapak/Ibu Pemilik: *${rombong.namaPemilik}*\n`;
     message += `Lapak: *${rombong.noLapak} (${rombong.lokasi})*\n\n`;
 
-    if (unpaidCount === 0 && priorArrears === 0) {
-      message += `Selamat! Saat ini usaha Anda *Bebas Tunggakan* (Lunas sewa dan iuran). Terima kasih atas kerja samanya! 🎉`;
+    if (!displayCurrentMonth && !displayPriorArrears) {
+      const isActuallyLunas = unpaidRombong.length === 0 && priorArrears === 0;
+      if (isActuallyLunas) {
+        message += `Selamat! Saat ini usaha Anda *Bebas Tunggakan* (Lunas sewa dan iuran). Terima kasih atas kerja samanya! 🎉`;
+      } else {
+        message += `Saat ini tidak ada rincian tagihan sesuai filter penagihan terpilih yang perlu dikirimkan.`;
+      }
     } else {
-      message += `Berikut rincian tunggakan sewa & iuran untuk rombong kuliner Anda sesuai tahun aktif *${selectedBillingYear}* & tunggakan sebelumnya:\n`;
-      let totalTunggakan = 0;
+      message += `Berikut rincian tagihan sewa & iuran untuk rombong kuliner Anda:\n`;
+      let grandTotalAccumulated = 0;
 
-      if (unpaidRombong.length > 0) {
-        let sub = 0;
-        unpaidRombong.forEach(m => {
-          sub += getDefaultRombongRate(selectedBillingYear, m, rateRombong);
-        });
-        totalTunggakan += sub;
-        const firstMonthRate = getDefaultRombongRate(selectedBillingYear, unpaidRombong[0], rateRombong);
-        message += `• *Iuran Rombong (${selectedBillingYear})* (Rp ${firstMonthRate.toLocaleString('id-ID')} / bln): ${unpaidRombong.join(', ')} (Subtotal: Rp ${sub.toLocaleString('id-ID')})\n`;
+      if (displayCurrentMonth) {
+        const rate = getDefaultRombongRate(selectedBillingYear, unpaidCurrentMonthName, rateRombong);
+        grandTotalAccumulated += rate;
+        message += `• *Sewa Lahan Bulan Ini (${unpaidCurrentMonthName} ${selectedBillingYear})*: Rp ${rate.toLocaleString('id-ID')}\n`;
       }
 
-      if (priorArrears > 0) {
-        message += `• *Tunggakan Tahun Lalu/Sebelum*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
+      if (displayPriorArrears) {
+        if (unpaidPriorMonths.length > 0) {
+          let sub = 0;
+          unpaidPriorMonths.forEach(m => {
+            sub += getDefaultRombongRate(selectedBillingYear, m, rateRombong);
+          });
+          grandTotalAccumulated += sub;
+          const firstMonthRate = getDefaultRombongRate(selectedBillingYear, unpaidPriorMonths[0], rateRombong);
+          let monthLabel = `Tunggakan Bulan Sebelumnya`;
+          if (!isSelYearCurrent) {
+            monthLabel = `Tunggakan Tahun ${selectedBillingYear}`;
+          }
+          message += `• *${monthLabel}* (${unpaidPriorMonths.join(', ')} @ Rp ${firstMonthRate.toLocaleString('id-ID')}): Rp ${sub.toLocaleString('id-ID')}\n`;
+        }
+
+        if (priorArrears > 0) {
+          grandTotalAccumulated += priorArrears;
+          message += `• *Tunggakan Tahun Sebelumnya*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
+        }
       }
 
-      const grandTotalAccumulated = totalTunggakan + priorArrears;
-      message += `\n*Total Tunggakan Kumulatif: Rp ${grandTotalAccumulated.toLocaleString('id-ID')}*\n\n`;
+      message += `\n*Total Tagihan: Rp ${grandTotalAccumulated.toLocaleString('id-ID')}*\n\n`;
       message += `Mohon pembayaran dapat dikoordinasikan dengan Pengurus RT ${adminNameFormatted} / ${bendaharaNameFormatted}.\n`;
       message += `Sukses selalu untuk usahanya! Terima kasih banyak atas kerjasamanya. 🙏`;
     }
@@ -6661,6 +6722,37 @@ export default function TagihanWarga({
             </p>
           </div>
 
+          <div className="mb-4 bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2.5 shadow-xs text-slate-700">
+            <p className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider font-mono">Opsi Konten Pesan WA:</p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs select-none">
+                <input 
+                  type="checkbox" 
+                  checked={waIncludeCurrent} 
+                  onChange={(e) => setWaIncludeCurrent(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <span className="font-bold text-slate-800">Tagihan Bulan Ini (Current)</span>
+                  <p className="text-[10px] text-slate-500">Iuran bulan aktif berjalan</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs select-none">
+                <input 
+                  type="checkbox" 
+                  checked={waIncludeArrears} 
+                  onChange={(e) => setWaIncludeArrears(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <span className="font-bold text-slate-800">Tunggakan Sebelumnya (Arrears)</span>
+                  <p className="text-[10px] text-slate-500">Tunggakan bulan/tahun sebelumnya jika ada</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
           <div className="mb-5">
             <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Preview Pesan Tagihan:</label>
             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-xs font-mono max-h-48 overflow-y-auto whitespace-pre-line text-slate-700 leading-relaxed scrollbar">
@@ -6726,6 +6818,37 @@ export default function TagihanWarga({
             <p className="text-[10px] text-slate-400 mt-1">
               * Jika dikosongkan, WhatsApp akan meminta Anda memilih kontak setelah aplikasi WhatsApp terbuka.
             </p>
+          </div>
+
+          <div className="mb-4 bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2.5 shadow-xs text-slate-700">
+            <p className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider font-mono">Opsi Konten Pesan WA:</p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs select-none">
+                <input 
+                  type="checkbox" 
+                  checked={waIncludeCurrent} 
+                  onChange={(e) => setWaIncludeCurrent(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <span className="font-bold text-slate-800">Tagihan Bulan Ini (Current)</span>
+                  <p className="text-[10px] text-slate-500">Iuran bulan aktif berjalan</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs select-none">
+                <input 
+                  type="checkbox" 
+                  checked={waIncludeArrears} 
+                  onChange={(e) => setWaIncludeArrears(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer mt-0.5 accent-emerald-600"
+                />
+                <div>
+                  <span className="font-bold text-slate-800">Tunggakan Sebelumnya (Arrears)</span>
+                  <p className="text-[10px] text-slate-500">Tunggakan bulan/tahun sebelumnya jika ada</p>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="mb-5">
@@ -8725,6 +8848,37 @@ export default function TagihanWarga({
                         Berikut adalah daftar draf tagihan untuk draf pesan WhatsApp per {activeSubTab === 'warga' ? 'warga' : 'rombong'} sesuai filter aktif.
                         Anda dapat menyalin (Copy) draf pesan dengan klik tombol <strong>Salin Format WA</strong>, atau buka chat instan dengan klik <strong>Kirim WA</strong> secara cepat.
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-slate-205 p-4 rounded-2xl space-y-3.5 shadow-xs text-slate-700">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">🔧 Pengaturan Konten Pesan WhatsApp Masal / Batch:</p>
+                        <p className="text-[11.5px] text-slate-550 mt-0.5">Atur apakah draf pesan akan menyertakan tagihan bulan aktif saat ini, tunggakan bulan sebelumnya, atau keduanya.</p>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-4 shrink-0 bg-slate-50 p-2.5 border border-slate-200 rounded-xl">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs select-none">
+                          <input 
+                            type="checkbox" 
+                            checked={waIncludeCurrent} 
+                            onChange={(e) => setWaIncludeCurrent(e.target.checked)}
+                            className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer accent-emerald-600"
+                          />
+                          <span className="font-bold text-slate-800">Tagihan Bulan Berjalan (Current)</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer text-xs select-none">
+                          <input 
+                            type="checkbox" 
+                            checked={waIncludeArrears} 
+                            onChange={(e) => setWaIncludeArrears(e.target.checked)}
+                            className="w-4 h-4 text-emerald-650 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer accent-emerald-600"
+                          />
+                          <span className="font-bold text-slate-800">Tunggakan Sebelumnya (Arrears)</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
 
