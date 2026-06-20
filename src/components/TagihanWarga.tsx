@@ -7954,8 +7954,8 @@ export default function TagihanWarga({
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[950px] text-left border-collapse table-auto">
                   <thead>
-                    <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider">
-                      <th className="p-4 min-w-[220px]">Warga &amp; Rumah</th>
+                    <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
+                      <th className="p-4 min-w-[220px] sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
                       <th className="p-4 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-4 text-center">Cetak PDF</th>
                       {isWargaOfficer && <th className="p-4 text-center">Tagihan WA</th>}
@@ -7971,15 +7971,21 @@ export default function TagihanWarga({
                       return (
                         <tr 
                           key={w.id} 
-                          className={`transition duration-150 border-b border-slate-100 ${
+                          className={`group transition duration-150 border-b border-slate-100 ${
                             isInactive 
-                              ? 'bg-slate-50/30 opacity-70 hover:bg-slate-100/30'
+                              ? 'bg-slate-100/40 opacity-70 hover:bg-slate-100/60'
                               : isOverdue 
-                                ? 'bg-rose-50/45 hover:bg-rose-100/40 border-l-[3.5px] border-l-rose-500' 
-                                : 'hover:bg-slate-50/50'
+                                ? 'bg-rose-50/50 hover:bg-rose-100/50 border-l-[3.5px] border-l-rose-500' 
+                                : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className="p-4 min-w-[220px]">
+                          <td className={`p-4 min-w-[220px] sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                            isInactive 
+                              ? 'bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
+                              : isOverdue 
+                                ? 'bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
+                                : 'bg-white group-hover:bg-slate-50'
+                          }`}>
                           <div className="flex items-center gap-3">
                             {w.fotoBase64 ? (
                               <div className="w-10 h-10 rounded-full border border-slate-200 shadow-xs overflow-hidden shrink-0">
@@ -8215,8 +8221,8 @@ export default function TagihanWarga({
               <div className="overflow-x-auto animate-in fade-in duration-200">
                 <table className="w-full min-w-[850px] text-left border-collapse table-auto">
                   <thead>
-                    <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider">
-                      <th className="p-4 min-w-[220px]">Pemilik &amp; Lapak Rombong</th>
+                    <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
+                      <th className="p-4 min-w-[220px] sticky left-0 bg-slate-100 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
                       <th className="p-4 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-4 text-center">Cetak PDF</th>
                       {isOfficer && <th className="p-4 text-center">Rincian WA</th>}
@@ -8232,15 +8238,21 @@ export default function TagihanWarga({
                       return (
                         <tr 
                           key={r.id} 
-                          className={`transition duration-150 border-b border-slate-100 ${
+                          className={`group transition duration-150 border-b border-slate-100 ${
                             isInactive 
-                              ? 'bg-slate-50/30 opacity-70 hover:bg-slate-100/30'
+                              ? 'bg-slate-100/40 opacity-70 hover:bg-slate-100/60'
                               : isOverdue 
-                                ? 'bg-rose-50/45 hover:bg-rose-100/40 border-l-[3.5px] border-l-rose-500' 
-                                : 'hover:bg-slate-50/50'
+                                ? 'bg-rose-50/50 hover:bg-rose-100/50 border-l-[3.5px] border-l-rose-500' 
+                                : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className="p-4 min-w-[220px]">
+                          <td className={`p-4 min-w-[220px] sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                            isInactive 
+                              ? 'bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
+                              : isOverdue 
+                                ? 'bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
+                                : 'bg-white group-hover:bg-slate-50'
+                          }`}>
                           <div className="flex items-center gap-3">
                             {r.fotoBase64 ? (
                               <div className="w-10 h-10 rounded-full border border-slate-200 shadow-xs overflow-hidden shrink-0">
