@@ -134,7 +134,7 @@ export default function Dashboard({
 
   const kasLabels: Record<keyof Balance, { label: string; group: 'RT' | 'Rombong'; desc: string }> = {
     rtTunai: { label: 'Kas Umum (Lama)', group: 'RT', desc: 'Sektor Kas Tunai Umum (Telah Di-merger)' },
-    rtPettyCash: { label: 'Kas Kecil', group: 'RT', desc: 'Kas kecil RT (Gabungan Kas Tunai & Petty Cash)' },
+    rtPettyCash: { label: 'Kas Kecil', group: 'RT', desc: 'Kas Kecil RT (Akun Pengeluaran & Operasional RT)' },
     rtBank: { label: 'RT Bank', group: 'RT', desc: 'Rekening bank kas RT 08' },
     rombongTunai: { label: 'Rombong Tunai', group: 'Rombong', desc: 'Kas tunai iuran Rombong Kuliner' },
     rombongBank: { label: 'Rombong Bank', group: 'Rombong', desc: 'Rekening bank iuran Rombong' },
@@ -278,18 +278,18 @@ export default function Dashboard({
       if (!newTx.deskripsi || isNaN(parsedAmount) || parsedAmount <= 0) return;
 
       if (newTx.tipe === 'pengeluaran' && activeKas.rtPettyCash < parsedAmount) {
-        alert(`Peringatan: Saldo Petty Cash (Rp ${activeKas.rtPettyCash.toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
+        alert(`Peringatan: Saldo Kas Kecil (Rp ${activeKas.rtPettyCash.toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
       addLedgerEntry({
         tanggal: newTx.tanggal || today,
         tanggalInput: today,
-        deskripsi: `${newTx.deskripsi} (Buku Petty Cash)`,
+        deskripsi: `${newTx.deskripsi} (Buku Kas Kecil)`,
         jumlah: parsedAmount,
         tipe: newTx.tipe,
         sumberKas: 'rtPettyCash',
-        kategori: newTx.kategori || 'Petty Cash',
+        kategori: newTx.kategori || 'Kas Kecil',
         petugas: newTx.petugas || 'Pemegang Kas Kecil',
         fotoBase64: newTx.fotoBase64 || undefined,
         fotoNamaFile: newTx.fotoNamaFile || undefined
@@ -310,7 +310,7 @@ export default function Dashboard({
         jumlah: '',
         tipe: 'pengeluaran',
         sumberKas: 'rtPettyCash',
-        kategori: 'Petty Cash',
+        kategori: 'Kas Kecil',
         petugas: '',
         fotoBase64: '',
         fotoNamaFile: ''
@@ -330,8 +330,8 @@ export default function Dashboard({
       }
 
       const customDesc = transferDesc || (bankType === 'bank_ke_petty' 
-        ? 'Mutasi Bank: Pengisian Saldo Petty Cash (Tarik Tunai)' 
-        : 'Mutasi Bank: Penyetoran Sisa Petty Cash ');
+        ? 'Mutasi Bank: Pengisian Saldo Kas Kecil (Tarik Tunai)' 
+        : 'Mutasi Bank: Penyetoran Sisa Kas Kecil');
       const effectiveDate = transferDate || today;
 
       // 1. Debit out of source
@@ -460,7 +460,7 @@ export default function Dashboard({
                 <PlusCircle className="w-5 h-5 shrink-0" />
                 <div className="text-left leading-tight">
                   <span className="block font-bold text-sm tracking-wide">Input Transaksi & Catat Mutasi Kas RT</span>
-                  <span className="block text-[9.5px] text-sky-100 font-normal mt-0.5">Formulir Setor Tagihan Bank, Petty Cash, & Pengeluaran Kas Umum</span>
+                  <span className="block text-[9.5px] text-sky-100 font-normal mt-0.5">Formulir Setor Tagihan Bank, Kas Kecil, & Pengeluaran Kas Umum</span>
                 </div>
               </button>
 
@@ -776,7 +776,7 @@ export default function Dashboard({
                   </div>
 
                   <div className="md:col-span-2 bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4 flex flex-col items-center justify-center gap-2">
-                    <label className="block text-xs font-bold text-slate-700 font-mono mb-1 text-center w-full">Foto Nota / Bukti Transaksi Petty Cash</label>
+                    <label className="block text-xs font-bold text-slate-700 font-mono mb-1 text-center w-full">Foto Nota / Bukti Transaksi Kas Kecil</label>
                     {newTx.fotoBase64 ? (
                       <div className="relative group w-32 h-32 border rounded-xl overflow-hidden shadow-xs bg-white">
                         <img src={newTx.fotoBase64} alt="Preview Bukti" className="w-full h-full object-cover" />
@@ -832,7 +832,7 @@ export default function Dashboard({
             {activeTab === 'bank' && (
               <div className="space-y-4 animate-in fade-in duration-150">
                 <div className="bg-emerald-50 text-emerald-900 border border-emerald-200 p-3.5 rounded-xl text-xs leading-relaxed">
-                  🏦 <strong>Pemindahbukuan Bank ⇄ Petty Cash:</strong> Berfungsi mencatat pencairan dana bank ke laci kas operasional, maupun penyetoran kelebihan petty cash secara formal.
+                  🏦 <strong>Pemindahbukuan Bank ⇄ Kas Kecil:</strong> Berfungsi mencatat pencairan dana bank ke laci kas operasional, maupun penyetoran kelebihan kas kecil secara formal.
                 </div>
 
                 {/* Switch direction */}
@@ -846,7 +846,7 @@ export default function Dashboard({
                         : 'bg-white text-slate-500 border-slate-200'
                     }`}
                   >
-                    📥 Tarik Bank ➔ Isi Petty Cash
+                    📥 Tarik Bank ➔ Isi Kas Kecil
                     <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Bank: Rp {activeKas.rtBank.toLocaleString('id-ID')}</div>
                   </button>
                   <button
@@ -858,8 +858,8 @@ export default function Dashboard({
                         : 'bg-white text-slate-500 border-slate-200'
                     }`}
                   >
-                    📤 Setor Sisa Petty Cash ➔ Bank
-                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Petty: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
+                    📤 Setor Sisa Kas Kecil ➔ Bank
+                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Kas Kecil: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
                   </button>
                 </div>
 
@@ -892,8 +892,8 @@ export default function Dashboard({
                     <input
                       type="text"
                       placeholder={bankType === 'bank_ke_petty' 
-                        ? 'Mutasi Bank: Penarikan dana rekening mengisi Petty Cash operasional' 
-                        : 'Mutasi Bank: Penyetoran kelebihan sisa Petty Cash ke rekening'
+                        ? 'Mutasi Bank: Penarikan dana rekening mengisi Kas Kecil operasional' 
+                        : 'Mutasi Bank: Penyetoran kelebihan sisa Kas Kecil ke rekening'
                       }
                       value={transferDesc}
                       onChange={e => setTransferDesc(e.target.value)}

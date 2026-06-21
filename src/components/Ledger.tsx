@@ -143,8 +143,13 @@ export default function Ledger({
         const originalKategori = entry.kategori;
         if (kategori === 'Kas Kas Rombong') {
           kategori = 'Kas Rombong';
-        } else if (kategori === 'Operasional Petty Cash' || kategori === 'Mutasi Bank-Petty') {
-          kategori = 'Petty Cash';
+        } else if (
+          kategori === 'Operasional Petty Cash' ||
+          kategori === 'Mutasi Bank-Petty' ||
+          kategori === 'Petty Cash' ||
+          kategori === 'Kas Kecil'
+        ) {
+          kategori = 'Kas Kecil';
         }
         return { ...entry, kategori, originalKategori };
       })
@@ -427,9 +432,9 @@ export default function Ledger({
         'No Bukti Transaksi',
         'Keterangan',
         'Penerima/Petugas',
-        'Petty Cash (Debit)',
-        'Petty Cash (Kredit)',
-        'Saldo Petty Cash',
+        'Kas Kecil (Debit)',
+        'Kas Kecil (Kredit)',
+        'Saldo Kas Kecil',
         'Iuran RT (Debit)',
         'Iuran RT (Kredit)',
         'Saldo Iuran RT',
