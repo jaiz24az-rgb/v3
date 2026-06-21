@@ -1852,8 +1852,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[780px] text-left border-collapse table-auto text-xs">
                       <thead>
-                        <tr className="bg-slate-50 text-slate-600 text-[10px] font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider">
-                          <th className="p-4 min-w-[180px]">Nama Warga &amp; Rumah</th>
+                        <tr className="bg-slate-50 text-slate-600 text-[10px] font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
+                          <th className="p-4 min-w-[175px] sm:min-w-[230px] w-[175px] sm:w-[230px] sticky left-0 bg-slate-50 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Nama Warga &amp; Rumah</th>
                           <th className="p-4 text-center">Registrasi KTP / KK</th>
                           <th className="p-4 text-center">Anggota Keluarga</th>
                           <th className="p-4 text-center">Aksi Pengurus</th>
@@ -1861,8 +1861,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filtered.map((w) => (
-                          <tr key={w.id} className="hover:bg-slate-50/40 transition duration-100">
-                            <td className="p-4 min-w-[180px]">
+                          <tr key={w.id} className="group hover:bg-slate-50/40 transition duration-100">
+                            <td className="p-4 min-w-[175px] sm:min-w-[230px] w-[175px] sm:w-[230px] sticky left-0 z-5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] bg-white group-hover:bg-slate-50 transition duration-100">
                             <button
                               type="button"
                               onClick={() => {
