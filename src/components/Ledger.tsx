@@ -241,7 +241,7 @@ export default function Ledger({
 
       if (isHandover) {
         // Exclude from changing running balances or debit/credit to prevent double-counting citizen payments
-      } else if (item.sumberKas === 'rtPettyCash' || item.sumberKas === 'rtTunai') {
+      } else if (item.sumberKas === 'rtPettyCash' || item.sumberKas === 'rtTunai' || item.sumberKas === 'rtBank') {
         if (isPemasukan) {
           pcDebit = val;
           pcRunning += val;
@@ -257,7 +257,7 @@ export default function Ledger({
           rbKredit = val;
           rbRunning -= val;
         }
-      } else if (item.sumberKas === 'rtBank' || item.sumberKas === 'rombongBank') {
+      } else if (item.sumberKas === 'rombongBank') {
         if (isPemasukan) {
           bkDebit = val;
           bkRunning += val;
@@ -432,18 +432,18 @@ export default function Ledger({
         'No Bukti Transaksi',
         'Keterangan',
         'Penerima/Petugas',
-        'Kas Kecil (Debit)',
-        'Kas Kecil (Kredit)',
-        'Saldo Kas Kecil',
+        'Kas Umum RT (Debit)',
+        'Kas Umum RT (Kredit)',
+        'Saldo Kas Umum RT',
         'Iuran RT (Debit)',
         'Iuran RT (Kredit)',
         'Saldo Iuran RT',
         'Iuran Rombong (Debit)',
         'Iuran Rombong (Kredit)',
         'Saldo Rombong',
-        'Bank (Debit)',
-        'Bank (Kredit)',
-        'Saldo Bank',
+        'Bank Rombong (Debit)',
+        'Bank Rombong (Kredit)',
+        'Saldo Bank Rombong',
         'Saldo Cash + Bank'
       ];
 
@@ -841,9 +841,9 @@ export default function Ledger({
                     <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-32">NO BUKTI</th>
                     <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 text-left min-w-[200px]">KAS / KETERANGAN TRANSAKSI</th>
                     <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-24">PETUGAS</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-slate-150/40">KAS KECIL RT</th>
+                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-slate-150/40">KAS UMUM RT (KECIL & BANK)</th>
                     <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-sky-50 text-sky-900 border-sky-250">IURAN ROMBONG</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-emerald-50 text-emerald-900 border-emerald-250">KAS BANK RT</th>
+                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-emerald-50 text-emerald-900 border-emerald-250">BANK ROMBONG</th>
                     <th rowSpan={2} className="border-b border-slate-300 p-2.5 bg-indigo-50 text-indigo-950 font-black w-28">URUT TOTAL SALDO</th>
                     {isLoggedIn && <th rowSpan={2} className="p-2 border-l border-b border-slate-300 w-10">AKSI</th>}
                   </tr>

@@ -5877,14 +5877,14 @@ export default function TagihanWarga({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-605 mb-1.5 font-mono">Target Penerimaan Kas Pelunasan (Rekomendasi: Bank)</label>
+                <label className="block text-xs font-semibold text-slate-605 mb-1.5 font-mono">Target Penerimaan Kas Pelunasan (Tunai / Bank RT)</label>
                 <select
                   value={paymentTargetKas}
                   onChange={(e) => setPaymentTargetKas(e.target.value as keyof Balance)}
                   className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
                 >
-                  <option value="rtPettyCash">[RT] Kas Kecil (Sisa: Rp {kas.rtPettyCash.toLocaleString('id-ID')})</option>
-                  <option value="rtBank">[RT] RT Bank / Setor Bank (Sisa: Rp {kas.rtBank.toLocaleString('id-ID')})</option>
+                  <option value="rtPettyCash">Iuran RT Tunai (Sisa: Rp {kas.rtPettyCash.toLocaleString('id-ID')})</option>
+                  <option value="rtBank">Iuran RT Bank (Sisa: Rp {kas.rtBank.toLocaleString('id-ID')})</option>
                 </select>
               </div>
 
@@ -6438,10 +6438,10 @@ export default function TagihanWarga({
                       <select
                         value={corrTargetKas}
                         onChange={(e) => setCorrTargetKas(e.target.value as keyof Balance)}
-                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono font-bold"
                       >
-                        <option value="rtPettyCash">[RT] Kas Kecil</option>
-                        <option value="rtBank">[RT] RT Bank</option>
+                        <option value="rtPettyCash">Iuran RT Tunai</option>
+                        <option value="rtBank">Iuran RT Bank</option>
                       </select>
                     </div>
 
