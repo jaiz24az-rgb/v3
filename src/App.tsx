@@ -777,6 +777,17 @@ export default function App() {
           if (d.rtAddress !== undefined) setRtAddress(d.rtAddress);
           if (d.rtEmail !== undefined) setRtEmail(d.rtEmail);
           if (d.lettersList) setLettersList(d.lettersList);
+          if (d.appName !== undefined) setAppName(d.appName);
+          if (d.appLogo !== undefined) setAppLogo(d.appLogo);
+          if (d.labelWargaSingular !== undefined) setLabelWargaSingular(d.labelWargaSingular);
+          if (d.labelWargaPlural !== undefined) setLabelWargaPlural(d.labelWargaPlural);
+          if (d.labelRombongSingular !== undefined) setLabelRombongSingular(d.labelRombongSingular);
+          if (d.labelRombongPlural !== undefined) setLabelRombongPlural(d.labelRombongPlural);
+          if (d.bankNama !== undefined) setBankNama(d.bankNama);
+          if (d.bankNoRek !== undefined) setBankNoRek(d.bankNoRek);
+          if (d.bankPenerima !== undefined) setBankPenerima(d.bankPenerima);
+          if (d.bankCatatanVendor !== undefined) setBankCatatanVendor(d.bankCatatanVendor);
+          if (d.meetingNotulen !== undefined) setMeetingNotulen(d.meetingNotulen);
           
           console.log('✓ Sinkronisasi data sukses dari server lokal.');
         } else {
@@ -795,7 +806,18 @@ export default function App() {
             rtTitle,
             rtAddress,
             rtEmail,
-            lettersList
+            lettersList,
+            appName,
+            appLogo,
+            labelWargaSingular,
+            labelWargaPlural,
+            labelRombongSingular,
+            labelRombongPlural,
+            bankNama,
+            bankNoRek,
+            bankPenerima,
+            bankCatatanVendor,
+            meetingNotulen
           };
           
           try {
@@ -853,7 +875,18 @@ export default function App() {
         rtTitle,
         rtAddress,
         rtEmail,
-        lettersList
+        lettersList,
+        appName,
+        appLogo,
+        labelWargaSingular,
+        labelWargaPlural,
+        labelRombongSingular,
+        labelRombongPlural,
+        bankNama,
+        bankNoRek,
+        bankPenerima,
+        bankCatatanVendor,
+        meetingNotulen
       };
 
       try {
@@ -879,6 +912,8 @@ export default function App() {
   }, [
     lettersList, kas, ledger, wargaList, rombongList, usersList, 
     blocksList, yearsList, rateRT, rateRombong, rtTitle, rtAddress, rtEmail,
+    appName, appLogo, labelWargaSingular, labelWargaPlural, labelRombongSingular, labelRombongPlural,
+    bankNama, bankNoRek, bankPenerima, bankCatatanVendor, meetingNotulen,
     localSyncEnabled, localServerStatus, localServerIp
   ]);
 
@@ -1027,18 +1062,7 @@ export default function App() {
         const users = await getAppUsers();
         if (isMounted) {
           if (users.length > 0) {
-            // Ensure built-in accounts exist
-            const updatedUsers = [...users];
-            let needsSave = false;
-            for (const initialUser of INITIAL_USERS) {
-              const exists = users.some(u => u.id === initialUser.id);
-              if (!exists) {
-                await saveAppUser(initialUser);
-                updatedUsers.push(initialUser);
-                needsSave = true;
-              }
-            }
-            setUsersList(updatedUsers);
+            setUsersList(users);
           } else {
             // Seed initial users
             for (const u of usersList) {
@@ -1212,15 +1236,7 @@ export default function App() {
           }
         });
 
-        // Ensure all built-in/initial users exist in DB
-        INITIAL_USERS.forEach((initialUser) => {
-          const exists = list.some(u => u.id === initialUser.id);
-          if (!exists) {
-            setDoc(doc(db, 'app_users', initialUser.id), initialUser)
-              .catch((err) => handleFirestoreError(err, OperationType.WRITE, `app_users/${initialUser.id}`));
-          }
-        });
-
+        // Simply update local list state from fetched content in DB
         setUsersList(list);
       }
     }, (err) => {
@@ -2640,7 +2656,18 @@ export default function App() {
                             rateRombong,
                             rtTitle,
                             rtAddress,
-                            rtEmail
+                            rtEmail,
+                            appName,
+                            appLogo,
+                            labelWargaSingular,
+                            labelWargaPlural,
+                            labelRombongSingular,
+                            labelRombongPlural,
+                            bankNama,
+                            bankNoRek,
+                            bankPenerima,
+                            bankCatatanVendor,
+                            meetingNotulen
                           });
 
                           // 2. Delete all ledger entries
@@ -2712,7 +2739,18 @@ export default function App() {
                             rateRombong: 130000,
                             rtTitle: 'PENGURUS RUKUN TETANGGA 08 RUKUN WARGA 04',
                             rtAddress: 'PERUMTAS 3 RT. 008 RW.004 DESA POPOH-WONOAYU-SIDOARJO.',
-                            rtEmail: ''
+                            rtEmail: '',
+                            appName: 'Kas Perumtas 3 RT 08',
+                            appLogo: '',
+                            labelWargaSingular: 'Warga',
+                            labelWargaPlural: 'Warga',
+                            labelRombongSingular: 'Rombong',
+                            labelRombongPlural: 'Lapak Rombong',
+                            bankNama: 'Bank Mandiri',
+                            bankNoRek: '',
+                            bankPenerima: '',
+                            bankCatatanVendor: '',
+                            meetingNotulen: ''
                           });
 
                           for (const entry of ledger) {

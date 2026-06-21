@@ -53,30 +53,77 @@ export default function Ledger({
   onTriggerLogin
 }: LedgerProps) {
   const printContentViaIframe = (htmlContent: string) => {
-    const iframe = document.createElement('iframe');
-    iframe.className = 'print-iframe-helper';
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '1px';
-    iframe.style.height = '1px';
-    iframe.style.border = '0';
-    iframe.style.zIndex = '-9999';
-    iframe.style.opacity = '0.01';
-    document.body.appendChild(iframe);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Mobile print approach: append div directly to body, add a print-only style to hide everything else
+      const container = document.createElement('div');
+      container.id = 'mobile-print-container';
+      container.innerHTML = htmlContent;
+      document.body.appendChild(container);
 
-    const doc = iframe.contentWindow?.document;
-    if (doc) {
-      doc.open();
-      const cleanedHtml = htmlContent.replace(
-        'window.print();',
-        'window.print(); try { window.frameElement.remove(); } catch(e) {}'
-      ).replace(
-        'window.print()',
-        'window.print(); try { window.frameElement.remove(); } catch(e) {}'
-      );
-      doc.write(cleanedHtml);
-      doc.close();
+      const style = document.createElement('style');
+      style.id = 'mobile-print-style';
+      style.innerHTML = `
+        @media print {
+          body > *:not(#mobile-print-container) {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          #mobile-print-container, #mobile-print-container * {
+            visibility: visible !important;
+            display: block !important;
+          }
+          #mobile-print-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            background: white !important;
+            color: black !important;
+            padding: 10px !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Give browser a short delayed moment to digest the style and DOM before opening print dialog
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          container.remove();
+          style.remove();
+        }, 1500);
+      }, 500);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.className = 'print-iframe-helper';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '1px';
+      iframe.style.height = '1px';
+      iframe.style.border = '0';
+      iframe.style.zIndex = '-9999';
+      iframe.style.opacity = '0.01';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        const cleanedHtml = htmlContent.replace(
+          'window.print();',
+          'window.print(); try { window.frameElement.remove(); } catch(e) {}'
+        ).replace(
+          'window.print()',
+          'window.print(); try { window.frameElement.remove(); } catch(e) {}'
+        ).replace(
+          'window.print( )',
+          'window.print(); try { window.frameElement.remove(); } catch(e) {}'
+        );
+        doc.write(cleanedHtml);
+        doc.close();
+      }
     }
   };
 
