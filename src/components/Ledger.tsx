@@ -56,23 +56,49 @@ export default function Ledger({
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // Mobile print approach: append div directly to body, add a print-only style to hide everything else
+      // Clean up any existing print containers and temp styles first to prevent duplication
+      document.getElementById('mobile-print-container')?.remove();
+      document.querySelectorAll('.mobile-temp-print-style').forEach(el => el.remove());
+      const oldStyle = document.getElementById('mobile-print-style');
+      if (oldStyle) oldStyle.remove();
+
+      // Use DOMParser to parse the HTML string cleanly
+      const parser = new DOMParser();
+      const parsedDoc = parser.parseFromString(htmlContent, 'text/html');
+
+      // Keep original document title to restore later
+      const originalTitle = document.title;
+      const printTitle = parsedDoc.querySelector('title')?.textContent;
+      if (printTitle) {
+        document.title = printTitle;
+      }
+
+      // Extract styles and copy them to the main head
+      const docStyles = parsedDoc.querySelectorAll('style');
+      const tempStyles: HTMLStyleElement[] = [];
+      docStyles.forEach((styleEl) => {
+        const newStyle = document.createElement('style');
+        newStyle.className = 'mobile-temp-print-style';
+        newStyle.innerHTML = styleEl.innerHTML;
+        document.head.appendChild(newStyle);
+        tempStyles.push(newStyle);
+      });
+
+      // Extract body content and append to body
+      const bodyContent = parsedDoc.body.innerHTML;
       const container = document.createElement('div');
       container.id = 'mobile-print-container';
-      container.innerHTML = htmlContent;
+      container.innerHTML = bodyContent;
       document.body.appendChild(container);
 
+      // Create print-specific hiding styles
       const style = document.createElement('style');
       style.id = 'mobile-print-style';
       style.innerHTML = `
         @media print {
-          body > *:not(#mobile-print-container) {
+          body > *:not(#mobile-print-container):not(.mobile-temp-print-style) {
             display: none !important;
             visibility: hidden !important;
-          }
-          #mobile-print-container, #mobile-print-container * {
-            visibility: visible !important;
-            display: block !important;
           }
           #mobile-print-container {
             position: absolute !important;
@@ -81,7 +107,8 @@ export default function Ledger({
             width: 100% !important;
             background: white !important;
             color: black !important;
-            padding: 10px !important;
+            display: block !important;
+            visibility: visible !important;
           }
         }
       `;
@@ -92,9 +119,11 @@ export default function Ledger({
         window.print();
         setTimeout(() => {
           container.remove();
+          tempStyles.forEach(el => el.remove());
           style.remove();
-        }, 1500);
-      }, 500);
+          document.title = originalTitle;
+        }, 2000);
+      }, 600);
     } else {
       const iframe = document.createElement('iframe');
       iframe.className = 'print-iframe-helper';

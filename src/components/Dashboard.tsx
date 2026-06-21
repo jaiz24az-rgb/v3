@@ -135,7 +135,7 @@ export default function Dashboard({
   const kasLabels: Record<keyof Balance, { label: string; group: 'RT' | 'Rombong'; desc: string }> = {
     rtTunai: { label: 'Kas Umum (Lama)', group: 'RT', desc: 'Sektor Kas Tunai Umum (Telah Di-merger)' },
     rtPettyCash: { label: 'Kas Kecil', group: 'RT', desc: 'Kas Kecil RT (Akun Pengeluaran & Operasional RT)' },
-    rtBank: { label: 'RT Bank', group: 'RT', desc: 'Rekening bank kas RT 08' },
+    rtBank: { label: 'Kas Umum', group: 'RT', desc: 'Rekening bank / Kas Umum RT 08' },
     rombongTunai: { label: 'Rombong Tunai', group: 'Rombong', desc: 'Kas tunai iuran Rombong Kuliner' },
     rombongBank: { label: 'Rombong Bank', group: 'Rombong', desc: 'Rekening bank iuran Rombong' },
   };
@@ -711,7 +711,7 @@ export default function Dashboard({
                       className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono font-bold"
                     >
                       <option value="rtPettyCash">[RT] Kas Kecil (Sisa: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')})</option>
-                      <option value="rtBank">[RT] RT Bank (Sisa: Rp {activeKas.rtBank.toLocaleString('id-ID')})</option>
+                      <option value="rtBank">[RT] Kas Umum (Sisa: Rp {activeKas.rtBank.toLocaleString('id-ID')})</option>
                       <option value="rombongTunai">[Rombong] Rombong Tunai (Sisa: Rp {activeKas.rombongTunai.toLocaleString('id-ID')})</option>
                       <option value="rombongBank">[Rombong] Rombong Bank (Sisa: Rp {activeKas.rombongBank.toLocaleString('id-ID')})</option>
                     </select>
@@ -846,8 +846,8 @@ export default function Dashboard({
                         : 'bg-white text-slate-500 border-slate-200'
                     }`}
                   >
-                    📥 Tarik Bank ➔ Isi Kas Kecil
-                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Bank: Rp {activeKas.rtBank.toLocaleString('id-ID')}</div>
+                    📥 Tarik Kas Umum ➔ Isi Kas Kecil
+                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Kas Umum: Rp {activeKas.rtBank.toLocaleString('id-ID')}</div>
                   </button>
                   <button
                     type="button"
@@ -858,7 +858,7 @@ export default function Dashboard({
                         : 'bg-white text-slate-500 border-slate-200'
                     }`}
                   >
-                    📤 Setor Sisa Kas Kecil ➔ Bank
+                    📤 Setor Sisa Kas Kecil ➔ Kas Umum
                     <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Kas Kecil: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
                   </button>
                 </div>
