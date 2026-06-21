@@ -192,6 +192,10 @@ export default function TagihanWarga({
   const adminNameFormatted = adminUser ? formatGreetingName(cleanSignatureName(adminUser.nama), 'Bapak') : 'Bapak Sutriadi';
   const bendaharaNameFormatted = bendaharaUser ? formatGreetingName(cleanSignatureName(bendaharaUser.nama), 'Bapak') : 'Bapak Heri';
 
+  const getFallbackPetugasName = () => {
+    return adminUser ? cleanSignatureName(adminUser.nama) : 'Sutriadi (Admin)';
+  };
+
   const isKolektor2 = isLoggedIn && currentUser && (
     currentUser.username.toLowerCase().includes('kolektor2') || 
     currentUser.nama.toLowerCase().includes('kolektor2')
@@ -3355,7 +3359,7 @@ export default function TagihanWarga({
         tipe: 'pemasukan',
         sumberKas: corrTargetKas,
         kategori: 'Koreksi Data',
-        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
       });
 
       if (corrNominal !== initialNominal) {
@@ -3451,7 +3455,7 @@ export default function TagihanWarga({
         tipe: 'pemasukan',
         sumberKas: corrTargetKas,
         kategori: 'Koreksi Data',
-        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
       });
     } else {
       if (!corrStatusLunas) {
@@ -3467,7 +3471,7 @@ export default function TagihanWarga({
           tipe: 'pengeluaran',
           sumberKas: corrTargetKas,
           kategori: 'Koreksi Data',
-          petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+          petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
         });
       } else {
         // Adjustment Difference
@@ -3484,7 +3488,7 @@ export default function TagihanWarga({
             tipe: 'pemasukan',
             sumberKas: corrTargetKas,
             kategori: 'Koreksi Data',
-            petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+            petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
           });
         }
       }
@@ -3594,7 +3598,7 @@ export default function TagihanWarga({
       tipe: 'pemasukan',
       sumberKas: 'rtPettyCash',
       kategori: 'Iuran RT',
-      petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+      petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
     });
 
     setIsBatchEdit(false);
@@ -3673,7 +3677,7 @@ export default function TagihanWarga({
         tipe: 'pemasukan',
         sumberKas: corrRombongTargetKas,
         kategori: 'Koreksi Data',
-        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
       });
 
       if (corrRombongNominal !== initialNominal) {
@@ -3768,7 +3772,7 @@ export default function TagihanWarga({
         tipe: 'pemasukan',
         sumberKas: corrRombongTargetKas,
         kategori: 'Koreksi Data',
-        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+        petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
       });
     } else {
       if (!corrRombongStatusLunas) {
@@ -3783,7 +3787,7 @@ export default function TagihanWarga({
           tipe: 'pengeluaran',
           sumberKas: corrRombongTargetKas,
           kategori: 'Koreksi Data',
-          petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+          petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
         });
       } else {
         const diff = corrRombongNominal - initialNominal;
@@ -3799,7 +3803,7 @@ export default function TagihanWarga({
             tipe: 'pemasukan',
             sumberKas: corrRombongTargetKas,
             kategori: 'Koreksi Data',
-            petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : 'Sutriadi (Admin)'
+            petugas: currentUser?.nama ? cleanSignatureName(currentUser.nama) : getFallbackPetugasName()
           });
         }
       }
@@ -7955,7 +7959,7 @@ export default function TagihanWarga({
                 <table className="w-full min-w-[850px] text-left border-collapse table-auto">
                   <thead>
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
-                      <th className="p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
+                      <th className="p-2.5 sm:p-3 min-w-[175px] sm:min-w-[230px] w-[175px] sm:w-[230px] sticky left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Warga &amp; Rumah</th>
                       <th className="p-2.5 sm:p-3 text-center">Iuran RT<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRT / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-2.5 sm:p-3 text-center w-[120px]">Tindakan</th>
                     </tr>
@@ -7977,12 +7981,12 @@ export default function TagihanWarga({
                                 : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className={`p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                          <td className={`p-2.5 sm:p-3 min-w-[175px] sm:min-w-[230px] w-[175px] sm:w-[230px] sticky left-0 z-5 md:z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
                             isInactive 
-                              ? 'bg-slate-100/60 md:bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
+                              ? 'bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
                               : isOverdue 
-                                ? 'bg-rose-50/60 md:bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
-                                : 'bg-white md:bg-white group-hover:bg-slate-50'
+                                ? 'bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
+                                : 'bg-white group-hover:bg-slate-50'
                           }`}>
                           <div className="flex items-center gap-2">
                             {w.fotoBase64 ? (
@@ -8222,7 +8226,7 @@ export default function TagihanWarga({
                 <table className="w-full min-w-[800px] text-left border-collapse table-auto">
                   <thead>
                     <tr className="bg-slate-50/70 text-slate-600 text-xs font-extrabold font-mono border-b border-slate-150 uppercase tracking-wider relative">
-                      <th className="p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 md:shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
+                      <th className="p-2.5 sm:p-3 min-w-[175px] sm:min-w-[230px] w-[175px] sm:w-[230px] sticky left-0 bg-slate-50 md:bg-slate-100 z-10 md:z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">Pemilik &amp; Lapak Rombong</th>
                       <th className="p-2.5 sm:p-3 text-center">Iuran Rombong<br/><span className="text-[10px] lowercase text-slate-400 font-normal">(rp ${(rateRombong / 1000).toLocaleString('id-ID')}k / bln)</span></th>
                       <th className="p-2.5 sm:p-3 text-center w-[120px]">Tindakan</th>
                     </tr>
@@ -8244,12 +8248,12 @@ export default function TagihanWarga({
                                 : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className={`p-2.5 sm:p-3 min-w-[280px] sm:min-w-[340px] w-[340px] md:sticky md:left-0 z-5 md:z-10 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
+                          <td className={`p-2.5 sm:p-3 min-w-[175px] sm:min-w-[230px] w-[175px] sm:w-[230px] sticky left-0 z-5 md:z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] transition duration-150 ${
                             isInactive 
-                              ? 'bg-slate-100/60 md:bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
+                              ? 'bg-[#f1f5f9] group-hover:bg-[#e2e8f0]'
                               : isOverdue 
-                                ? 'bg-rose-50/60 md:bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
-                                : 'bg-white md:bg-white group-hover:bg-slate-50'
+                                ? 'bg-[#fff1f2] group-hover:bg-[#ffe4e6]' 
+                                : 'bg-white group-hover:bg-slate-50'
                           }`}>
                           <div className="flex items-center gap-2">
                             {r.fotoBase64 ? (

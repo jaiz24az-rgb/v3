@@ -1873,13 +1873,17 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                             >
                               {w.nama}
                             </button>
-                            <div className="text-slate-450 text-[11px] font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
-                              <Home className="w-3 h-3 text-sky-500 shrink-0" />
-                              <span>Blok {w.blok} No. {w.noRumah}</span>
+                            <div className="text-slate-450 text-[11px] font-mono mt-0.5 flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Home className="w-3 h-3 text-sky-500 shrink-0" />
+                                <span>Blok {w.blok} No. {w.noRumah}</span>
+                              </div>
                               {w.noWa && (
-                                <span className="text-[9px] text-emerald-600 font-semibold bg-emerald-50 px-1 py-0.2 rounded flex items-center gap-0.5 whitespace-nowrap border border-emerald-100">
-                                  ● WA: {w.noWa}
-                                </span>
+                                <div className="pl-0.5">
+                                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-1 border border-emerald-100/50 w-fit select-all">
+                                    <span className="text-emerald-500 font-bold shrink-0">📞 WA:</span> {w.noWa}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </td>
