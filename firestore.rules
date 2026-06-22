@@ -27,7 +27,7 @@ service cloud.firestore {
         && (!('rtAddress' in data) || (data.rtAddress is string && data.rtAddress.size() <= 2000))
         && (!('rtEmail' in data) || (data.rtEmail is string && data.rtEmail.size() <= 500))
         && (!('appName' in data) || (data.appName is string && data.appName.size() <= 500))
-        && (!('appLogo' in data) || (data.appLogo is string && data.appLogo.size() <= 10000))
+        && (!('appLogo' in data) || (data.appLogo is string && data.appLogo.size() <= 500000))
         && (!('labelWargaSingular' in data) || (data.labelWargaSingular is string && data.labelWargaSingular.size() <= 100))
         && (!('labelWargaPlural' in data) || (data.labelWargaPlural is string && data.labelWargaPlural.size() <= 100))
         && (!('labelRombongSingular' in data) || (data.labelRombongSingular is string && data.labelRombongSingular.size() <= 100))

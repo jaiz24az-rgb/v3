@@ -4045,8 +4045,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                               const file = e.target.files?.[0];
                               if (file) {
                                 try {
-                                  // Limit logo dimensions to 250x250 pixels at 0.5 quality (typically < 10KB total base64)
-                                  const base64 = await compressImage(file, 250, 250, 0.5);
+                                  // Limit logo dimensions to 400x400 pixels at 0.7 quality
+                                  const base64 = await compressImage(file, 400, 400, 0.7);
                                   updateAppLogo(base64);
                                   // Trigger a small custom event/toast or let state update handle it
                                 } catch (err) {
