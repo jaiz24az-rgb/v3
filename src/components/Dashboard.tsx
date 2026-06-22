@@ -18,7 +18,6 @@ import {
   ArrowLeftRight,
   Briefcase,
   Landmark,
-  BookOpen,
   Receipt,
   Camera,
   Trash2,
@@ -1224,28 +1223,6 @@ export default function Dashboard({
             </div>
           );
         })()
-      )}
-
-      {currentUser?.role === 'admin' && (
-        <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-md text-white animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-bold text-sky-400 font-mono uppercase tracking-widest">
-              <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse" />
-              <span>Menu Pengurus &amp; Recovery Admin</span>
-            </div>
-            <h4 className="text-sm font-extrabold text-white">Buku Panduan &amp; Sistem Pemulihan PIN</h4>
-            <p className="text-xs text-slate-405 leading-relaxed font-sans max-w-xl text-slate-350">
-              Halaman khusus Administrator untuk melihat panduan operasi sistem, ekspor-impor database backup, ganti info RT, reset sistem iuran, dan backup PIN pengawas.
-            </p>
-          </div>
-          <button
-            onClick={() => onNavigateToTab?.('panduan')}
-            className="w-full md:w-auto bg-sky-500 hover:bg-sky-400 active:scale-95 text-slate-950 font-extrabold text-xs px-5 py-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap self-stretch md:self-center shrink-0"
-          >
-            <BookOpen className="w-4 h-4 text-slate-950 shrink-0" />
-            <span>Buka Manual &amp; Recovery</span>
-          </button>
-        </div>
       )}
 
     </div>
