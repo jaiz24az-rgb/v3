@@ -31,7 +31,12 @@ service cloud.firestore {
         && (!('labelWargaSingular' in data) || (data.labelWargaSingular is string && data.labelWargaSingular.size() <= 100))
         && (!('labelWargaPlural' in data) || (data.labelWargaPlural is string && data.labelWargaPlural.size() <= 100))
         && (!('labelRombongSingular' in data) || (data.labelRombongSingular is string && data.labelRombongSingular.size() <= 100))
-        && (!('labelRombongPlural' in data) || (data.labelRombongPlural is string && data.labelRombongPlural.size() <= 100));
+        && (!('labelRombongPlural' in data) || (data.labelRombongPlural is string && data.labelRombongPlural.size() <= 100))
+        && (!('bankNama' in data) || (data.bankNama is string && data.bankNama.size() <= 200))
+        && (!('bankNoRek' in data) || (data.bankNoRek is string && data.bankNoRek.size() <= 100))
+        && (!('bankPenerima' in data) || (data.bankPenerima is string && data.bankPenerima.size() <= 200))
+        && (!('bankCatatanVendor' in data) || (data.bankCatatanVendor is string && data.bankCatatanVendor.size() <= 2000))
+        && (!('meetingNotulen' in data) || (data.meetingNotulen is string && data.meetingNotulen.size() <= 20000));
     }
 
     // Settings collection rules
