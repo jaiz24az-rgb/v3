@@ -58,6 +58,7 @@ export default function Dashboard({
   // Precompute derived cash balances from the ledger entries (the ultimate truth of real transactional flows)
   const derivedKas = React.useMemo(() => {
     let rtPettyCash = 0;
+    let rtTunai = 0;
     let rtBank = 0;
     let rombongTunai = 0;
     let rombongBank = 0;
@@ -72,19 +73,34 @@ export default function Dashboard({
       const val = item.jumlah;
       const isPemasukan = item.tipe === 'pemasukan';
       
-      if (item.sumberKas === 'rtTunai' || item.sumberKas === 'rtPettyCash') {
-        rtPettyCash += isPemasukan ? val : -val;
-      } else if (item.sumberKas === 'rtBank') {
+      if (item.sumberKas === 'rtBank') {
         rtBank += isPemasukan ? val : -val;
       } else if (item.sumberKas === 'rombongTunai') {
         rombongTunai += isPemasukan ? val : -val;
       } else if (item.sumberKas === 'rombongBank') {
         rombongBank += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rtTunai' || item.sumberKas === 'rtPettyCash') {
+        const desc = (item.deskripsi || '').toLowerCase();
+        const isTagihan = 
+          item.kategori === 'Iuran RT' || 
+          item.kategori === 'Setor Bank' ||
+          desc.includes('iuran rt') || 
+          desc.includes('tagihan rt') || 
+          desc.includes('koreksi edit iuran') ||
+          desc.includes('koreksi batalkan iuran') ||
+          desc.includes('setor bank') ||
+          desc.includes('setor hasil tagihan');
+
+        if (isTagihan) {
+          rtTunai += isPemasukan ? val : -val;
+        } else {
+          rtPettyCash += isPemasukan ? val : -val;
+        }
       }
     });
 
     return {
-      rtTunai: 0,
+      rtTunai,
       rtPettyCash,
       rtBank,
       rombongTunai,
@@ -98,7 +114,7 @@ export default function Dashboard({
   const colBalancesRT = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rtPettyCash') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
   const colBalancesRombong = currentUser ? getCollectorBalancesForPeriod(ledger, currentUser.username, currentUser.nama, 'rombongTunai') : { totalCollected: 0, totalPenarikan: 0, remaining: 0 };
 
-  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (activeKas.rtPettyCash + activeKas.rtBank));
+  const totalRT = isKolektor2 ? 0 : (isKolektor ? colBalancesRT.remaining : (activeKas.rtPettyCash + activeKas.rtTunai + activeKas.rtBank));
   const totalRombong = isKolektor ? colBalancesRombong.remaining : (activeKas.rombongTunai + activeKas.rombongBank);
   const totalKeseluruhan = totalRT + totalRombong;
 
@@ -132,9 +148,9 @@ export default function Dashboard({
   const [sectorSetor, setSectorSetor] = useState<'rt' | 'rombong'>('rt');
 
   const kasLabels: Record<keyof Balance, { label: string; group: 'RT' | 'Rombong'; desc: string }> = {
-    rtTunai: { label: 'Kas Umum (Lama)', group: 'RT', desc: 'Sektor Kas Tunai Umum (Telah Di-merger)' },
-    rtPettyCash: { label: 'Kas Kecil', group: 'RT', desc: 'Kas Kecil RT (Akun Pengeluaran & Operasional RT)' },
-    rtBank: { label: 'Kas Umum', group: 'RT', desc: 'Rekening bank / Kas Umum RT 08' },
+    rtTunai: { label: 'Iuran RT Tunai', group: 'RT', desc: 'Sisa Hasil Tagihan Iuran Warga (Tunai)' },
+    rtPettyCash: { label: 'Kas Kecil RT', group: 'RT', desc: 'Sisa Kas Kecil (Biaya RT / Operasional RT)' },
+    rtBank: { label: 'Kas Umum Bank', group: 'RT', desc: 'Rekening bank / Kas Umum RT 08' },
     rombongTunai: { label: 'Rombong Tunai', group: 'Rombong', desc: 'Kas tunai iuran Rombong Kuliner' },
     rombongBank: { label: 'Rombong Bank', group: 'Rombong', desc: 'Rekening bank iuran Rombong' },
   };
@@ -225,7 +241,7 @@ export default function Dashboard({
       const parsedAmount = parseFloat(transferAmount);
       if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      const sourceKas: keyof Balance = sectorSetor === 'rt' ? 'rtPettyCash' : 'rombongTunai';
+      const sourceKas: keyof Balance = sectorSetor === 'rt' ? 'rtTunai' : 'rombongTunai';
       const targetKas: keyof Balance = sectorSetor === 'rt' ? 'rtBank' : 'rombongBank';
 
       if (activeKas[sourceKas] < parsedAmount) {
@@ -491,19 +507,42 @@ export default function Dashboard({
               title={`Sektor Rombong: ${rombongProportion.toFixed(1)}%`}
             />
           </div>
-          <div className="flex flex-wrap justify-start gap-x-6 gap-y-2 mt-4 text-xs font-medium">
-            {!isKolektor2 && (
+          <div className="flex flex-col gap-2 mt-4 text-xs font-medium">
+            <div className="flex flex-wrap justify-start gap-x-6 gap-y-2">
+              {!isKolektor2 && (
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-sky-400 shrink-0" />
+                  <span className="text-slate-300">{isKolektor ? 'Saldo Tunai RT:' : 'Total Sektor RT:'}</span>
+                  <span className="text-sky-300 font-mono font-bold">Rp {totalRT.toLocaleString('id-ID')}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-sky-400 shrink-0" />
-                <span className="text-slate-300">{isKolektor ? 'Saldo Tunai RT:' : 'Total Sektor RT:'}</span>
-                <span className="text-sky-300 font-mono">Rp {totalRT.toLocaleString('id-ID')}</span>
+                <span className="w-3 h-3 rounded-full bg-emerald-400 shrink-0" />
+                <span className="text-slate-300">{isKolektor ? 'Saldo Tunai Rombong:' : 'Total Sektor Rombong:'}</span>
+                <span className="text-emerald-300 font-mono font-bold">Rp {totalRombong.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+
+            {/* Rincian RT Tunai & Kas Kecil */}
+            {!isKolektor && !isKolektor2 && (
+              <div className="mt-2 pl-5 border-l border-slate-700 flex flex-col gap-1.5 text-[11px] text-slate-400 font-mono leading-relaxed">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                  <span>Sisa Kas Kecil (Operasional RT):</span>
+                  <span className="text-indigo-300 font-bold">Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span>Sisa Hasil Tagihan Iuran Warga (Tunai):</span>
+                  <span className="text-amber-300 font-bold">Rp {activeKas.rtTunai.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-450 shrink-0" />
+                  <span>Kas Umum Rekening Bank RT:</span>
+                  <span className="text-sky-350 font-bold">Rp {activeKas.rtBank.toLocaleString('id-ID')}</span>
+                </div>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-400 shrink-0" />
-              <span className="text-slate-300">{isKolektor ? 'Saldo Tunai Rombong:' : 'Total Sektor Rombong:'}</span>
-              <span className="text-emerald-300 font-mono">Rp {totalRombong.toLocaleString('id-ID')}</span>
-            </div>
           </div>
         </div>
       </div>
@@ -602,6 +641,7 @@ export default function Dashboard({
                       >
                         RT (Tunai ➔ Bank)
                         <div className="text-[10px] opacity-75 font-mono">Sisa Kas Kecil: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
+                        <div className="text-[10px] opacity-95 font-mono font-bold text-amber-300">Sisa Hasil Tagihan: Rp {activeKas.rtTunai.toLocaleString('id-ID')}</div>
                       </button>
                       <button
                         type="button"

@@ -127,7 +127,9 @@ export default function BukuKolektor({
   const allowedLedger = ledger.filter(entry => {
     if (isKolektor2) {
       const isRombongKas = entry.sumberKas === 'rombongTunai' || entry.sumberKas === 'rombongBank';
-      const isRombongDesc = entry.deskripsi.toLowerCase().includes('rombong') || entry.deskripsi.toLowerCase().includes('lapak') || entry.kategori.toLowerCase().includes('rombong');
+      const desc = (entry.deskripsi || '').toLowerCase();
+      const cat = (entry.kategori || '').toLowerCase();
+      const isRombongDesc = desc.includes('rombong') || desc.includes('lapak') || cat.includes('rombong');
       return isRombongKas || isRombongDesc;
     }
     return true;
@@ -172,18 +174,25 @@ export default function BukuKolektor({
   const totalDepositedToBank = setorBankTransfers.reduce((acc, entry) => acc + entry.jumlah, 0);
   
   // Sisa Tunai di Tangan Kolektor (Fisik di lapangan belum diserahterimakan)
-  const remainingCashInCollector = collectorsList.reduce((sum, u) => {
+  const remainingRTInCollector = collectorsList.reduce((sum, u) => {
     const collectorName = u.nama;
     const rtBal = getCollectorBalancesForPeriod(allowedLedger, u.username, collectorName, 'rtPettyCash', {
       month: selectedMonth,
       year: selectedYear
     });
+    return sum + rtBal.remaining;
+  }, 0);
+
+  const remainingRombongInCollector = collectorsList.reduce((sum, u) => {
+    const collectorName = u.nama;
     const rombongBal = getCollectorBalancesForPeriod(allowedLedger, u.username, collectorName, 'rombongTunai', {
       month: selectedMonth,
       year: selectedYear
     });
-    return sum + rtBal.remaining + rombongBal.remaining;
+    return sum + rombongBal.remaining;
   }, 0);
+
+  const remainingCashInCollector = remainingRTInCollector + remainingRombongInCollector;
 
   // Sisa Tunai di Tangan Bendahara (Sudah ditarik bendahara tapi belum disetor ke bank)
   const remainingCashInBendahara = (() => {
@@ -199,11 +208,12 @@ export default function BukuKolektor({
     });
 
     const cumPenarikans = cumulativeLedger.filter(entry => isPenarikanKolektor(entry));
-    const cumDeposits = cumulativeLedger.filter(entry => 
-      entry.kategori === 'Setor Bank' || 
-      entry.deskripsi.includes('Setor Bank') || 
-      entry.deskripsi.includes('Penyetoran')
-    );
+    const cumDeposits = cumulativeLedger.filter(entry => {
+      const desc = (entry.deskripsi || '').toLowerCase();
+      return entry.kategori === 'Setor Bank' || 
+             desc.includes('setor bank') || 
+             desc.includes('penyetoran');
+    });
 
     const totalCumPenarikan = cumPenarikans.reduce((sum, entry) => sum + entry.jumlah, 0);
     const totalCumDeposits = cumDeposits.reduce((sum, entry) => sum + entry.jumlah, 0);
@@ -234,28 +244,32 @@ export default function BukuKolektor({
   // Filter lists based on search bar text
   const query = searchTerm.toLowerCase();
   
-  const filteredCashList = cashPayments.filter(entry => 
-    entry.deskripsi.toLowerCase().includes(query) || 
-    entry.petugas.toLowerCase().includes(query) ||
-    entry.sumberKas.toLowerCase().includes(query)
-  );
+  const filteredCashList = cashPayments.filter(entry => {
+    const desc = (entry.deskripsi || '').toLowerCase();
+    const pet = (entry.petugas || '').toLowerCase();
+    const sum = (entry.sumberKas || '').toLowerCase();
+    return desc.includes(query) || pet.includes(query) || sum.includes(query);
+  });
 
-  const filteredBankList = bankPayments.filter(entry => 
-    entry.deskripsi.toLowerCase().includes(query) || 
-    entry.petugas.toLowerCase().includes(query) ||
-    entry.sumberKas.toLowerCase().includes(query)
-  );
+  const filteredBankList = bankPayments.filter(entry => {
+    const desc = (entry.deskripsi || '').toLowerCase();
+    const pet = (entry.petugas || '').toLowerCase();
+    const sum = (entry.sumberKas || '').toLowerCase();
+    return desc.includes(query) || pet.includes(query) || sum.includes(query);
+  });
 
-  const filteredPenarikanList = penarikanTransfers.filter(entry =>
-    entry.deskripsi.toLowerCase().includes(query) ||
-    entry.petugas.toLowerCase().includes(query) ||
-    entry.sumberKas.toLowerCase().includes(query)
-  );
+  const filteredPenarikanList = penarikanTransfers.filter(entry => {
+    const desc = (entry.deskripsi || '').toLowerCase();
+    const pet = (entry.petugas || '').toLowerCase();
+    const sum = (entry.sumberKas || '').toLowerCase();
+    return desc.includes(query) || pet.includes(query) || sum.includes(query);
+  });
 
-  const filteredSetorList = setorBankTransfers.filter(entry => 
-    entry.deskripsi.toLowerCase().includes(query) || 
-    entry.petugas.toLowerCase().includes(query)
-  );
+  const filteredSetorList = setorBankTransfers.filter(entry => {
+    const desc = (entry.deskripsi || '').toLowerCase();
+    const pet = (entry.petugas || '').toLowerCase();
+    return desc.includes(query) || pet.includes(query);
+  });
 
   // Filter officers list is declared at the top of the component
 
@@ -964,6 +978,25 @@ export default function BukuKolektor({
           }`}>
             Rp {remainingCashInCollector.toLocaleString('id-ID')}
           </p>
+
+          {/* Breakdown Rincian Sumber Dana */}
+          <div className="mt-3 space-y-1 text-[11px] font-mono border-t border-dashed border-amber-200/60 pt-2">
+            <div className="flex justify-between items-center text-slate-650">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                <span>Iuran RT Warga:</span>
+              </span>
+              <span className="font-bold text-slate-800">Rp {remainingRTInCollector.toLocaleString('id-ID')}</span>
+            </div>
+            <div className="flex justify-between items-center text-slate-650">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span>Sewa Rombong:</span>
+              </span>
+              <span className="font-bold text-slate-800">Rp {remainingRombongInCollector.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-1.5 mt-2.5 text-[10.5px] font-medium text-slate-500 leading-normal border-t border-slate-100 pt-2 font-sans">
             <span className="font-extrabold text-slate-700">Pemberlakuan</span>
             <span>kuasa fisik kas kolektor</span>

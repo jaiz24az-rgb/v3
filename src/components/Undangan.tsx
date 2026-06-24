@@ -40,6 +40,7 @@ import {
   RotateCcw,
   RefreshCw,
   Store,
+  Save,
   Camera
 } from 'lucide-react';
 import { AppUser, OfficialLetter, WargaBill, LedgerEntry, FamilyMember, RombongBill, Balance } from '../types';
@@ -299,6 +300,41 @@ export default function Undangan({
 
   // Main Tab control
   const [activeTab, setActiveTab] = useState<'buku' | 'undangan' | 'registrasi'>('registrasi');
+
+  // Local state for Section 4 and 5 settings to avoid cursor jumping and race conditions
+  const [localAppLogo, setLocalAppLogo] = useState(appLogo);
+  const [localAppName, setLocalAppName] = useState(appName);
+  const [localRtTitle, setLocalRtTitle] = useState(rtTitle);
+  const [localRtAddress, setLocalRtAddress] = useState(rtAddress);
+  const [localRtEmail, setLocalRtEmail] = useState(rtEmail);
+  const [localLabelWargaSingular, setLocalLabelWargaSingular] = useState(labelWargaSingular);
+  const [localLabelWargaPlural, setLocalLabelWargaPlural] = useState(labelWargaPlural);
+  const [localLabelRombongSingular, setLocalLabelRombongSingular] = useState(labelRombongSingular);
+  const [localLabelRombongPlural, setLocalLabelRombongPlural] = useState(labelRombongPlural);
+
+  useEffect(() => { setLocalAppLogo(appLogo); }, [appLogo]);
+  useEffect(() => { setLocalAppName(appName); }, [appName]);
+  useEffect(() => { setLocalRtTitle(rtTitle); }, [rtTitle]);
+  useEffect(() => { setLocalRtAddress(rtAddress); }, [rtAddress]);
+  useEffect(() => { setLocalRtEmail(rtEmail); }, [rtEmail]);
+  useEffect(() => { setLocalLabelWargaSingular(labelWargaSingular); }, [labelWargaSingular]);
+  useEffect(() => { setLocalLabelWargaPlural(labelWargaPlural); }, [labelWargaPlural]);
+  useEffect(() => { setLocalLabelRombongSingular(labelRombongSingular); }, [labelRombongSingular]);
+  useEffect(() => { setLocalLabelRombongPlural(labelRombongPlural); }, [labelRombongPlural]);
+
+  const handleSaveIdentitasNomenklatur = () => {
+    updateAppLogo(localAppLogo);
+    updateAppName(localAppName);
+    updateRtTitle(localRtTitle);
+    updateRtAddress(localRtAddress);
+    updateRtEmail(localRtEmail);
+    updateLabelWargaSingular(localLabelWargaSingular);
+    updateLabelWargaPlural(localLabelWargaPlural);
+    updateLabelRombongSingular(localLabelRombongSingular);
+    updateLabelRombongPlural(localLabelRombongPlural);
+    showToast('Identitas KOP Surat & Pengaturan Nomenklatur berhasil disimpan!');
+  };
+
   const [newBlockInput, setNewBlockInput] = useState('');
   const [newYearInput, setNewYearInput] = useState('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -4026,7 +4062,7 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                   <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                     <div className="w-16 h-16 rounded-2xl bg-slate-950 p-1 flex items-center justify-center border border-sky-400/20 shadow-inner shrink-0 relative overflow-hidden">
                       <img 
-                        src={appLogo || '/favicon.png'} 
+                        src={localAppLogo || '/favicon.png'} 
                         alt="Logo Preview" 
                         className="w-full h-full object-cover rounded-xl" 
                         referrerPolicy="no-referrer"
@@ -4047,8 +4083,7 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                                 try {
                                   // Limit logo dimensions to 400x400 pixels at 0.7 quality
                                   const base64 = await compressImage(file, 400, 400, 0.7);
-                                  updateAppLogo(base64);
-                                  // Trigger a small custom event/toast or let state update handle it
+                                  setLocalAppLogo(base64);
                                 } catch (err) {
                                   alert('Gagal memuat atau memampatkan gambar logo.');
                                 }
@@ -4057,12 +4092,12 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                             className="hidden"
                           />
                         </label>
-                        {appLogo && (
+                        {localAppLogo && (
                           <button
                             type="button"
                             disabled={currentUser?.role !== 'admin'}
                             onClick={() => {
-                              updateAppLogo('');
+                              setLocalAppLogo('');
                             }}
                             className="bg-white hover:bg-rose-50 border border-rose-200 hover:border-rose-300 text-rose-600 font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1 transition cursor-pointer active:scale-95"
                           >
@@ -4082,8 +4117,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                   <input
                     type="text"
                     disabled={currentUser?.role !== 'admin'}
-                    value={appName}
-                    onChange={(e) => updateAppName(e.target.value)}
+                    value={localAppName}
+                    onChange={(e) => setLocalAppName(e.target.value)}
                     placeholder="Contoh: Kas Perumtas 3 RT 08"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-100 disabled:text-slate-400 focus:bg-white transition"
                   />
@@ -4095,8 +4130,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                   <input
                     type="text"
                     disabled={currentUser?.role !== 'admin'}
-                    value={rtTitle}
-                    onChange={(e) => updateRtTitle(e.target.value)}
+                    value={localRtTitle}
+                    onChange={(e) => setLocalRtTitle(e.target.value)}
                     placeholder="Contoh: PENGURUS RUKUN TETANGGA 008 RUKUN WARGA 004"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-100 disabled:text-slate-400 focus:bg-white transition"
                   />
@@ -4109,8 +4144,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                     <textarea
                       rows={2}
                       disabled={currentUser?.role !== 'admin'}
-                      value={rtAddress}
-                      onChange={(e) => updateRtAddress(e.target.value)}
+                      value={localRtAddress}
+                      onChange={(e) => setLocalRtAddress(e.target.value)}
                       placeholder="Contoh: PERUMTAS 3 RT.008 RW.004 DESA POPOH KEC WONOAYU KABUPATEN SIDOARJO 61261"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-100 disabled:text-slate-400 focus:bg-white transition resize-none leading-relaxed"
                     />
@@ -4122,8 +4157,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                     <input
                       type="text"
                       disabled={currentUser?.role !== 'admin'}
-                      value={rtEmail}
-                      onChange={(e) => updateRtEmail(e.target.value)}
+                      value={localRtEmail}
+                      onChange={(e) => setLocalRtEmail(e.target.value)}
                       placeholder="Contoh: tas3.rt.08@gmail.com"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-100 disabled:text-slate-400 focus:bg-white transition"
                     />
@@ -4148,8 +4183,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                         <input
                           type="text"
                           disabled={currentUser?.role !== 'admin'}
-                          value={labelWargaSingular}
-                          onChange={(e) => updateLabelWargaSingular(e.target.value)}
+                          value={localLabelWargaSingular}
+                          onChange={(e) => setLocalLabelWargaSingular(e.target.value)}
                           placeholder="Warga"
                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 transition"
                         />
@@ -4160,8 +4195,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                         <input
                           type="text"
                           disabled={currentUser?.role !== 'admin'}
-                          value={labelWargaPlural}
-                          onChange={(e) => updateLabelWargaPlural(e.target.value)}
+                          value={localLabelWargaPlural}
+                          onChange={(e) => setLocalLabelWargaPlural(e.target.value)}
                           placeholder="Warga"
                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 transition"
                         />
@@ -4179,8 +4214,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                         <input
                           type="text"
                           disabled={currentUser?.role !== 'admin'}
-                          value={labelRombongSingular}
-                          onChange={(e) => updateLabelRombongSingular(e.target.value)}
+                          value={localLabelRombongSingular}
+                          onChange={(e) => setLocalLabelRombongSingular(e.target.value)}
                           placeholder="Rombong"
                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
                         />
@@ -4191,8 +4226,8 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                         <input
                           type="text"
                           disabled={currentUser?.role !== 'admin'}
-                          value={labelRombongPlural}
-                          onChange={(e) => updateLabelRombongPlural(e.target.value)}
+                          value={localLabelRombongPlural}
+                          onChange={(e) => setLocalLabelRombongPlural(e.target.value)}
                           placeholder="Lapak Rombong"
                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
                         />
@@ -4200,6 +4235,20 @@ _Pesan Whatsapp ini dikirim secara resmi melalui Sistem Informasi Administrasi R
                     </div>
                   </div>
                 </div>
+
+                {/* Save Changes button for Identity and Nomenclature */}
+                {currentUser?.role === 'admin' && (
+                  <div className="flex justify-end pt-4 bg-transparent">
+                    <button
+                      type="button"
+                      onClick={handleSaveIdentitasNomenklatur}
+                      className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-6 py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer font-sans"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Simpan Perubahan Identitas &amp; Nomenklatur</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -4,17 +4,17 @@ export function isBillingPayment(entry: LedgerEntry): boolean {
   if (entry.tipe !== 'pemasukan') return false;
   // Exclude unapproved custom rombong payments from being withdrawable or recognized in cash collected totals until approved by Admin
   if (entry.isCustomRombong && !entry.approvedByAdmin) return false;
+  const desc = (entry.deskripsi || '').toLowerCase();
+  const cat = (entry.kategori || '').toLowerCase();
   // Exclude internal bank transfers, collector withdrawals, and adjustments
   if (
     entry.kategori === 'Penarikan Dana Kolektor' || 
     entry.kategori === 'Pemberdayaan Kas RT' ||
     entry.kategori === 'Transfer Kas' ||
     entry.kategori === 'Penyesuaian Saldo' ||
-    entry.deskripsi.includes('Penyesuaian Saldo')
+    desc.includes('penyesuaian saldo')
   ) return false;
 
-  const desc = entry.deskripsi.toLowerCase();
-  const cat = entry.kategori.toLowerCase();
   return (
     cat.includes('iuran') || 
     cat.includes('pendapatan rombong') ||

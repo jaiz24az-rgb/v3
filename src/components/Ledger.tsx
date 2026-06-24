@@ -279,10 +279,11 @@ export default function Ledger({
     });
 
     const seqCounters: Record<string, { ksub: number; bsub: number }> = {};
-    let pcRunning = 0;
-    let rtRunning = 0;
-    let rbRunning = 0;
-    let bkRunning = 0;
+    let rtTunaiRunning = 0;
+    let rtPettyCashRunning = 0;
+    let rtBankRunning = 0;
+    let rbRunning = 0; // rombongTunai
+    let bkRunning = 0; // rombongBank
 
     return sortedAll.map((item) => {
       const dateParts = item.tanggal.split('-');
@@ -306,8 +307,9 @@ export default function Ledger({
         noBukti = `KSUB.${yy}.${mm}.${String(seqCounters[monthKey].ksub).padStart(3, '0')}`;
       }
 
-      let pcDebit = 0, pcKredit = 0;
-      let rtDebit = 0, rtKredit = 0;
+      let rtTunaiDebit = 0, rtTunaiKredit = 0;
+      let rtPettyCashDebit = 0, rtPettyCashKredit = 0;
+      let rtBankDebit = 0, rtBankKredit = 0;
       let rbDebit = 0, rbKredit = 0;
       let bkDebit = 0, bkKredit = 0;
 
@@ -317,48 +319,71 @@ export default function Ledger({
 
       if (isHandover) {
         // Exclude from changing running balances or debit/credit to prevent double-counting citizen payments
-      } else if (item.sumberKas === 'rtPettyCash' || item.sumberKas === 'rtTunai' || item.sumberKas === 'rtBank') {
-        if (isPemasukan) {
-          pcDebit = val;
-          pcRunning += val;
-        } else {
-          pcKredit = val;
-          pcRunning -= val;
-        }
-      } else if (item.sumberKas === 'rombongTunai') {
-        if (isPemasukan) {
-          rbDebit = val;
-          rbRunning += val;
-        } else {
-          rbKredit = val;
-          rbRunning -= val;
-        }
-      } else if (item.sumberKas === 'rombongBank') {
-        if (isPemasukan) {
-          bkDebit = val;
-          bkRunning += val;
-        } else {
-          bkKredit = val;
-          bkRunning -= val;
+      } else {
+        if (item.sumberKas === 'rtTunai') {
+          if (isPemasukan) {
+            rtTunaiDebit = val;
+            rtTunaiRunning += val;
+          } else {
+            rtTunaiKredit = val;
+            rtTunaiRunning -= val;
+          }
+        } else if (item.sumberKas === 'rtPettyCash') {
+          if (isPemasukan) {
+            rtPettyCashDebit = val;
+            rtPettyCashRunning += val;
+          } else {
+            rtPettyCashKredit = val;
+            rtPettyCashRunning -= val;
+          }
+        } else if (item.sumberKas === 'rtBank') {
+          if (isPemasukan) {
+            rtBankDebit = val;
+            rtBankRunning += val;
+          } else {
+            rtBankKredit = val;
+            rtBankRunning -= val;
+          }
+        } else if (item.sumberKas === 'rombongTunai') {
+          if (isPemasukan) {
+            rbDebit = val;
+            rbRunning += val;
+          } else {
+            rbKredit = val;
+            rbRunning -= val;
+          }
+        } else if (item.sumberKas === 'rombongBank') {
+          if (isPemasukan) {
+            bkDebit = val;
+            bkRunning += val;
+          } else {
+            bkKredit = val;
+            bkRunning -= val;
+          }
         }
       }
 
       return {
         ...item,
         noBukti,
-        pcDebit,
-        pcKredit,
-        pcRunning,
-        rtDebit: 0,
-        rtKredit: 0,
-        rtRunning: 0,
+        rtTunaiDebit,
+        rtTunaiKredit,
+        rtTunaiRunning,
+        rtPettyCashDebit,
+        rtPettyCashKredit,
+        rtPettyCashRunning,
+        rtBankDebit,
+        rtBankKredit,
+        rtBankRunning,
         rbDebit,
         rbKredit,
         rbRunning,
         bkDebit,
         bkKredit,
         bkRunning,
-        totalRunning: pcRunning + rbRunning + bkRunning
+        totalRTRunning: rtTunaiRunning + rtPettyCashRunning + rtBankRunning,
+        totalRombongRunning: rbRunning + bkRunning,
+        totalRunning: rtTunaiRunning + rtPettyCashRunning + rtBankRunning + rbRunning + bkRunning
       };
     });
   }, [processedLedger]);
@@ -375,29 +400,35 @@ export default function Ledger({
   // Calculate opening balances based strictly on transactions prior to the selected period
   const saldoAwal = React.useMemo(() => {
     if (!startBoundaryDate) {
-      return { pc: 0, rt: 0, rb: 0, bk: 0, total: 0 };
+      return { rtTunai: 0, rtPettyCash: 0, rtBank: 0, rb: 0, bk: 0, totalRT: 0, totalRombong: 0, total: 0 };
     }
 
     const priorEntries = tabularData.filter(e => e.tanggal < startBoundaryDate);
     if (priorEntries.length === 0) {
-      return { pc: 0, rt: 0, rb: 0, bk: 0, total: 0 };
+      return { rtTunai: 0, rtPettyCash: 0, rtBank: 0, rb: 0, bk: 0, totalRT: 0, totalRombong: 0, total: 0 };
     }
 
     const lastPrior = priorEntries[priorEntries.length - 1];
     return {
-      pc: lastPrior.pcRunning,
-      rt: lastPrior.rtRunning,
+      rtTunai: lastPrior.rtTunaiRunning,
+      rtPettyCash: lastPrior.rtPettyCashRunning,
+      rtBank: lastPrior.rtBankRunning,
       rb: lastPrior.rbRunning,
       bk: lastPrior.bkRunning,
+      totalRT: lastPrior.totalRTRunning,
+      totalRombong: lastPrior.totalRombongRunning,
       total: lastPrior.totalRunning
     };
   }, [tabularData, startBoundaryDate]);
 
   // General Filtered Ledger list for the portrait mode "Jurnal"
   const filteredLedger = processedLedger.filter(entry => {
-    const matchesSearch = entry.deskripsi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          entry.kategori.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          entry.petugas.toLowerCase().includes(searchTerm.toLowerCase());
+    const desc = (entry.deskripsi || '').toLowerCase();
+    const cat = (entry.kategori || '').toLowerCase();
+    const pet = (entry.petugas || '').toLowerCase();
+    const matchesSearch = desc.includes(searchTerm.toLowerCase()) ||
+                          cat.includes(searchTerm.toLowerCase()) ||
+                          pet.includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'semua' || entry.tipe === selectedType;
     const matchesCategory = selectedCategory === 'Semua' || entry.kategori === selectedCategory;
 
@@ -440,9 +471,12 @@ export default function Ledger({
   // Filtered tabular rows (sorted ascending) for the tabular spreadsheet display
   const visibleTabularRows = React.useMemo(() => {
     return tabularData.filter(entry => {
-      const matchesSearch = entry.deskripsi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            entry.kategori.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            entry.petugas.toLowerCase().includes(searchTerm.toLowerCase());
+      const desc = (entry.deskripsi || '').toLowerCase();
+      const cat = (entry.kategori || '').toLowerCase();
+      const pet = (entry.petugas || '').toLowerCase();
+      const matchesSearch = desc.includes(searchTerm.toLowerCase()) ||
+                            cat.includes(searchTerm.toLowerCase()) ||
+                            pet.includes(searchTerm.toLowerCase());
       const matchesType = selectedType === 'semua' || entry.tipe === selectedType;
       const matchesCategory = selectedCategory === 'Semua' || entry.kategori === selectedCategory;
 
@@ -465,37 +499,45 @@ export default function Ledger({
 
   // Sum periodic totals for the spreadsheet footer
   const totalsTabular = React.useMemo(() => {
-    let sumPcDebit = 0, sumPcKredit = 0;
-    let sumRtDebit = 0, sumRtKredit = 0;
+    let sumRtTunaiDebit = 0, sumRtTunaiKredit = 0;
+    let sumRtPettyCashDebit = 0, sumRtPettyCashKredit = 0;
+    let sumRtBankDebit = 0, sumRtBankKredit = 0;
     let sumRbDebit = 0, sumRbKredit = 0;
     let sumBkDebit = 0, sumBkKredit = 0;
 
     visibleTabularRows.forEach(row => {
-      sumPcDebit += row.pcDebit;
-      sumPcKredit += row.pcKredit;
-      sumRtDebit += row.rtDebit;
-      sumRtKredit += row.rtKredit;
-      sumRbDebit += row.rbDebit;
-      sumRbKredit += row.rbKredit;
-      sumBkDebit += row.bkDebit;
-      sumBkKredit += row.bkKredit;
+      sumRtTunaiDebit += row.rtTunaiDebit || 0;
+      sumRtTunaiKredit += row.rtTunaiKredit || 0;
+      sumRtPettyCashDebit += row.rtPettyCashDebit || 0;
+      sumRtPettyCashKredit += row.rtPettyCashKredit || 0;
+      sumRtBankDebit += row.rtBankDebit || 0;
+      sumRtBankKredit += row.rtBankKredit || 0;
+      sumRbDebit += row.rbDebit || 0;
+      sumRbKredit += row.rbKredit || 0;
+      sumBkDebit += row.bkDebit || 0;
+      sumBkKredit += row.bkKredit || 0;
     });
 
     const lastRow = visibleTabularRows[visibleTabularRows.length - 1];
     
     return {
-      pcDebit: sumPcDebit,
-      pcKredit: sumPcKredit,
-      pcRunning: lastRow ? lastRow.pcRunning : saldoAwal.pc,
-      rtDebit: sumRtDebit,
-      rtKredit: sumRtKredit,
-      rtRunning: lastRow ? lastRow.rtRunning : saldoAwal.rt,
+      rtTunaiDebit: sumRtTunaiDebit,
+      rtTunaiKredit: sumRtTunaiKredit,
+      rtTunaiRunning: lastRow ? lastRow.rtTunaiRunning : saldoAwal.rtTunai,
+      rtPettyCashDebit: sumRtPettyCashDebit,
+      rtPettyCashKredit: sumRtPettyCashKredit,
+      rtPettyCashRunning: lastRow ? lastRow.rtPettyCashRunning : saldoAwal.rtPettyCash,
+      rtBankDebit: sumRtBankDebit,
+      rtBankKredit: sumRtBankKredit,
+      rtBankRunning: lastRow ? lastRow.rtBankRunning : saldoAwal.rtBank,
       rbDebit: sumRbDebit,
       rbKredit: sumRbKredit,
       rbRunning: lastRow ? lastRow.rbRunning : saldoAwal.rb,
       bkDebit: sumBkDebit,
       bkKredit: sumBkKredit,
       bkRunning: lastRow ? lastRow.bkRunning : saldoAwal.bk,
+      totalRTRunning: lastRow ? lastRow.totalRTRunning : saldoAwal.totalRT,
+      totalRombongRunning: lastRow ? lastRow.totalRombongRunning : saldoAwal.totalRombong,
       totalRunning: lastRow ? lastRow.totalRunning : saldoAwal.total
     };
   }, [visibleTabularRows, saldoAwal]);
@@ -508,19 +550,24 @@ export default function Ledger({
         'No Bukti Transaksi',
         'Keterangan',
         'Penerima/Petugas',
-        'Kas Umum RT (Debit)',
-        'Kas Umum RT (Kredit)',
-        'Saldo Kas Umum RT',
-        'Iuran RT (Debit)',
-        'Iuran RT (Kredit)',
-        'Saldo Iuran RT',
-        'Iuran Rombong (Debit)',
-        'Iuran Rombong (Kredit)',
-        'Saldo Rombong',
-        'Bank Rombong (Debit)',
-        'Bank Rombong (Kredit)',
-        'Saldo Bank Rombong',
-        'Saldo Cash + Bank'
+        'Iuran RT Tunai (Debit)',
+        'Iuran RT Tunai (Kredit)',
+        'Saldo Iuran RT Tunai',
+        'Kas Kecil (Debit)',
+        'Kas Kecil (Kredit)',
+        'Saldo Kas Kecil',
+        'RT Bank (Debit)',
+        'RT Bank (Kredit)',
+        'Saldo RT Bank',
+        'Total Saldo RT',
+        'Rombong Tunai (Debit)',
+        'Rombong Tunai (Kredit)',
+        'Saldo Rombong Tunai',
+        'Rombong Bank (Debit)',
+        'Rombong Bank (Kredit)',
+        'Saldo Rombong Bank',
+        'Total Saldo Rombong',
+        'Grand Total Kas Umum'
       ];
 
       const rowSaldoAwal = [
@@ -530,16 +577,21 @@ export default function Ledger({
         '',
         '',
         '',
-        saldoAwal.pc,
+        saldoAwal.rtTunai,
         '',
         '',
-        saldoAwal.rt,
+        saldoAwal.rtPettyCash,
+        '',
+        '',
+        saldoAwal.rtBank,
+        saldoAwal.totalRT,
         '',
         '',
         saldoAwal.rb,
         '',
         '',
         saldoAwal.bk,
+        saldoAwal.totalRombong,
         saldoAwal.total
       ];
 
@@ -548,18 +600,23 @@ export default function Ledger({
         row.noBukti,
         `"${row.deskripsi.replace(/"/g, '""')}"`,
         `"${row.petugas.replace(/"/g, '""')}"`,
-        row.pcDebit || '',
-        row.pcKredit || '',
-        row.pcRunning,
-        row.rtDebit || '',
-        row.rtKredit || '',
-        row.rtRunning,
+        row.rtTunaiDebit || '',
+        row.rtTunaiKredit || '',
+        row.rtTunaiRunning,
+        row.rtPettyCashDebit || '',
+        row.rtPettyCashKredit || '',
+        row.rtPettyCashRunning,
+        row.rtBankDebit || '',
+        row.rtBankKredit || '',
+        row.rtBankRunning,
+        row.totalRTRunning,
         row.rbDebit || '',
         row.rbKredit || '',
         row.rbRunning,
         row.bkDebit || '',
         row.bkKredit || '',
         row.bkRunning,
+        row.totalRombongRunning,
         row.totalRunning
       ]);
 
@@ -568,18 +625,23 @@ export default function Ledger({
         '',
         'TOTAL PERIODIK',
         '',
-        totalsTabular.pcDebit,
-        totalsTabular.pcKredit,
-        totalsTabular.pcRunning,
-        totalsTabular.rtDebit,
-        totalsTabular.rtKredit,
-        totalsTabular.rtRunning,
+        totalsTabular.rtTunaiDebit,
+        totalsTabular.rtTunaiKredit,
+        totalsTabular.rtTunaiRunning,
+        totalsTabular.rtPettyCashDebit,
+        totalsTabular.rtPettyCashKredit,
+        totalsTabular.rtPettyCashRunning,
+        totalsTabular.rtBankDebit,
+        totalsTabular.rtBankKredit,
+        totalsTabular.rtBankRunning,
+        totalsTabular.totalRTRunning,
         totalsTabular.rbDebit,
         totalsTabular.rbKredit,
         totalsTabular.rbRunning,
         totalsTabular.bkDebit,
         totalsTabular.bkKredit,
         totalsTabular.bkRunning,
+        totalsTabular.totalRombongRunning,
         totalsTabular.totalRunning
       ];
 
@@ -910,75 +972,111 @@ export default function Ledger({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-[1400px] border-collapse border-spacing-0 text-[11px] font-sans">
+              <table className="min-w-[1750px] border-collapse border-spacing-0 text-[10px] font-sans">
                 <thead>
-                  <tr className="bg-slate-100 text-slate-800 text-center font-bold font-mono border-b border-slate-300">
-                    <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-20">TANGGAL</th>
-                    <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-32">NO BUKTI</th>
-                    <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 text-left min-w-[200px]">KAS / KETERANGAN TRANSAKSI</th>
-                    <th rowSpan={2} className="border-r border-b border-slate-300 p-2.5 w-24">PETUGAS</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-slate-150/40">KAS UMUM RT (KECIL & BANK)</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-sky-50 text-sky-900 border-sky-250">IURAN ROMBONG</th>
-                    <th colSpan={3} className="border-r border-b border-slate-300 p-1.5 bg-emerald-50 text-emerald-900 border-emerald-250">BANK ROMBONG</th>
-                    <th rowSpan={2} className="border-b border-slate-300 p-2.5 bg-indigo-50 text-indigo-950 font-black w-28">URUT TOTAL SALDO</th>
-                    {isLoggedIn && <th rowSpan={2} className="p-2 border-l border-b border-slate-300 w-10">AKSI</th>}
+                  <tr className="bg-slate-900 text-white text-center font-bold font-mono border-b border-slate-300 text-[10px]">
+                    <th rowSpan={3} className="border-r border-b border-slate-300 p-2 w-16 text-center text-white">TANGGAL</th>
+                    <th rowSpan={3} className="border-r border-b border-slate-300 p-2 w-24 text-center text-white">NO BUKTI</th>
+                    <th rowSpan={3} className="border-r border-b border-slate-300 p-2 text-left min-w-[180px] text-white">KAS / KETERANGAN TRANSAKSI</th>
+                    <th rowSpan={3} className="border-r border-b border-slate-300 p-2 w-20 text-center text-white">PETUGAS</th>
+                    <th colSpan={10} className="border-r border-b border-slate-300 p-1.5 bg-slate-850 text-white">TOTAL KAS RT (IURAN, KECIL & BANK)</th>
+                    <th colSpan={7} className="border-r border-b border-slate-300 p-1.5 bg-sky-900 text-white">TOTAL KAS ROMBONG (TUNAI & BANK)</th>
+                    <th rowSpan={3} className="border-b border-slate-300 p-2 bg-indigo-950 text-white font-black w-24 text-center">GRAND TOTAL KAS (KAS UMUM)</th>
+                    {isLoggedIn && <th rowSpan={3} className="p-2 border-l border-b border-slate-300 w-10 text-white">AKSI</th>}
                   </tr>
-                  <tr className="bg-slate-50 text-slate-700 font-bold text-[9px] font-mono text-center border-b border-slate-300">
-                    {/* Kas Kecil */}
-                    <th className="border-r border-slate-300 p-1 w-14">DEBIT</th>
-                    <th className="border-r border-slate-300 p-1 w-14">KREDIT</th>
-                    <th className="border-r border-slate-300 p-1 w-16 bg-slate-100/50">SALDO</th>
-                    {/* Iuran Rombong */}
-                    <th className="border-r border-slate-300 p-1 w-14 bg-sky-50/40">DEBIT</th>
-                    <th className="border-r border-slate-300 p-1 w-14 bg-sky-50/40">KREDIT</th>
-                    <th className="border-r border-slate-300 p-1 w-16 bg-sky-50">SALDO</th>
-                    {/* Bank */}
-                    <th className="border-r border-slate-300 p-1 w-14 bg-emerald-50/40">DEBIT</th>
-                    <th className="border-r border-slate-300 p-1 w-14 bg-emerald-50/40">KREDIT</th>
-                    <th className="border-r border-slate-300 p-1 w-16 bg-emerald-50">SALDO</th>
+                  <tr className="bg-slate-800 text-white text-center font-bold text-[9px] font-mono border-b border-slate-300">
+                    <th colSpan={3} className="border-r border-slate-300 p-1 bg-amber-950 text-amber-100">IURAN RT (rtTunai)</th>
+                    <th colSpan={3} className="border-r border-slate-300 p-1 bg-slate-700 text-slate-100">KAS KECIL (rtPettyCash)</th>
+                    <th colSpan={3} className="border-r border-slate-300 p-1 bg-indigo-950 text-indigo-100">RT BANK (rtBank)</th>
+                    <th rowSpan={2} className="border-r border-slate-300 p-1 bg-amber-900 text-white text-center leading-tight">TOTAL SALDO RT</th>
+                    
+                    <th colSpan={3} className="border-r border-slate-300 p-1 bg-sky-950 text-sky-100">ROMBONG TUNAI (rombongTunai)</th>
+                    <th colSpan={3} className="border-r border-slate-300 p-1 bg-emerald-950 text-emerald-100">ROMBONG BANK (rombongBank)</th>
+                    <th rowSpan={2} className="border-r border-slate-300 p-1 bg-sky-900 text-white text-center leading-tight">TOTAL SALDO RB</th>
+                  </tr>
+                  <tr className="bg-slate-100 text-slate-700 font-bold text-[8px] font-mono text-center border-b border-slate-300">
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-amber-50">DEBIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-amber-50">KREDIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-12 bg-amber-100/55">SALDO</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-slate-50">DEBIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-slate-50">KREDIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-12 bg-slate-200/55">SALDO</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-indigo-50">DEBIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-indigo-50">KREDIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-12 bg-indigo-100/55">SALDO</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-sky-50">DEBIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-sky-50">KREDIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-12 bg-sky-100/55">SALDO</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-emerald-50">DEBIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-11 bg-emerald-50">KREDIT</th>
+                    <th className="border-r border-slate-300 p-0.5 w-12 bg-emerald-100/55">SALDO</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {/* Row 1: Saldo Awal */}
-                  <tr className="bg-slate-50 text-slate-900 font-extrabold font-sans hover:bg-slate-100/70 transition">
-                    <td className="border-r border-slate-300 p-2.5 text-center font-mono">-</td>
-                    <td className="border-r border-slate-300 p-2.5 font-mono text-center">-</td>
-                    <td className="border-r border-slate-300 p-2.5 tracking-wide text-slate-700 bg-slate-100/30">
-                      📌 SALDO AWAL PERIODE KAS SEBELUMNYA
+                  <tr className="bg-amber-50/15 text-slate-900 font-extrabold font-sans hover:bg-slate-100/70 transition">
+                    <td className="border-r border-slate-300 p-2 text-center font-mono">-</td>
+                    <td className="border-r border-slate-300 p-2 font-mono text-center">-</td>
+                    <td className="border-r border-slate-300 p-2 tracking-wide text-slate-700 bg-slate-100/30">
+                      📌 SALDO AWAL PERIODE SEBELUMNYA
                     </td>
-                    <td className="border-r border-slate-300 p-2.5 font-semibold text-center">-</td>
+                    <td className="border-r border-slate-300 p-2 font-semibold text-center">-</td>
                     
-                    {/* Kas Kecil */}
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-300 p-2 text-right text-slate-800 font-mono bg-slate-100/50">
-                      {saldoAwal.pc > 0 ? saldoAwal.pc.toLocaleString('id-ID') : 'Rp 0'}
+                    {/* rtTunai */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-slate-800 font-mono bg-amber-100/50">
+                      {saldoAwal.rtTunai > 0 ? saldoAwal.rtTunai.toLocaleString('id-ID') : 'Rp 0'}
+                    </td>
+
+                    {/* rtPettyCash */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-slate-800 font-mono bg-slate-100/55">
+                      {saldoAwal.rtPettyCash > 0 ? saldoAwal.rtPettyCash.toLocaleString('id-ID') : 'Rp 0'}
+                    </td>
+
+                    {/* rtBank */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-slate-800 font-mono bg-indigo-100/50">
+                      {saldoAwal.rtBank > 0 ? saldoAwal.rtBank.toLocaleString('id-ID') : 'Rp 0'}
+                    </td>
+
+                    {/* Total RT */}
+                    <td className="border-r border-slate-300 p-1.5 text-right text-amber-950 font-mono bg-amber-100 font-black">
+                      {saldoAwal.totalRT > 0 ? saldoAwal.totalRT.toLocaleString('id-ID') : 'Rp 0'}
                     </td>
                     
-                    {/* Rombong */}
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-300 p-2 text-right text-sky-800 font-mono bg-sky-50">
+                    {/* Rombong Tunai */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-sky-800 font-mono bg-sky-50">
                       {saldoAwal.rb > 0 ? saldoAwal.rb.toLocaleString('id-ID') : 'Rp 0'}
                     </td>
                     
-                    {/* Bank */}
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-200 p-2 text-right text-slate-400 font-mono">-</td>
-                    <td className="border-r border-slate-300 p-2 text-right text-emerald-800 font-mono bg-emerald-50">
+                    {/* Rombong Bank */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-slate-400 font-mono">-</td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-emerald-800 font-mono bg-emerald-50">
                       {saldoAwal.bk > 0 ? saldoAwal.bk.toLocaleString('id-ID') : 'Rp 0'}
                     </td>
+
+                    {/* Total RB */}
+                    <td className="border-r border-slate-300 p-1.5 text-right text-sky-950 font-mono bg-sky-100 font-black">
+                      {saldoAwal.totalRombong > 0 ? saldoAwal.totalRombong.toLocaleString('id-ID') : 'Rp 0'}
+                    </td>
                     
-                    {/* Total */}
-                    <td className="p-2 text-right font-mono bg-indigo-50/70 text-indigo-950 font-black">
+                    {/* Grand Total */}
+                    <td className="p-2 text-right font-mono bg-indigo-55 text-indigo-950 font-black text-center text-[11px] border-b border-indigo-200">
                       {saldoAwal.total > 0 ? saldoAwal.total.toLocaleString('id-ID') : 'Rp 0'}
                     </td>
-                    {isLoggedIn && <td className="border-l border-slate-300 p-2.5 bg-slate-50"></td>}
+                    {isLoggedIn && <td className="border-l border-slate-300 p-2 bg-slate-50"></td>}
                   </tr>
 
                   {visibleTabularRows.length === 0 ? (
                     <tr>
-                      <td colSpan={isLoggedIn ? 15 : 14} className="border-b border-slate-300 py-12 text-center text-slate-400 font-bold bg-slate-50/20 select-none font-sans">
+                      <td colSpan={isLoggedIn ? 23 : 22} className="border-b border-slate-300 py-12 text-center text-slate-400 font-bold bg-slate-50/20 select-none font-sans">
                         Tidak ada aliran transaksi kas terdaftar pada bulan/periode terpilih
                       </td>
                     </tr>
@@ -991,65 +1089,96 @@ export default function Ledger({
 
                       return (
                         <tr key={row.id} className="hover:bg-slate-50 border-b border-slate-150 transition">
-                          <td className="border-r border-slate-300 p-2.5 text-center font-mono font-medium text-slate-600" title={row.tanggalInput ? `Tanggal Input: ${row.tanggalInput}` : 'Tanggal Transaksi'}>
+                          <td className="border-r border-slate-300 p-2 text-center font-mono font-medium text-slate-600" title={row.tanggalInput ? `Tanggal Input: ${row.tanggalInput}` : 'Tanggal Transaksi'}>
                             <div>{row.tanggal}</div>
                             {row.tanggalInput && row.tanggalInput !== row.tanggal && (
-                              <div className="text-[10px] text-slate-400 font-normal">In: {row.tanggalInput}</div>
+                              <div className="text-[9px] text-slate-400 font-normal">In: {row.tanggalInput}</div>
                             )}
                           </td>
-                          <td className={`border-r border-slate-300 p-2.5 font-mono text-center text-[9px] ${codeColorClass}`}>
+                          <td className={`border-r border-slate-300 p-2 font-mono text-center text-[9px] ${codeColorClass}`}>
                             {row.noBukti}
                           </td>
-                          <td className={`border-r border-slate-300 p-2.5 max-w-xs truncate ${descColorClass}`} title={row.deskripsi}>
+                          <td className={`border-r border-slate-300 p-2 max-w-xs truncate ${descColorClass}`} title={row.deskripsi}>
                             {row.deskripsi}
                           </td>
-                          <td className="border-r border-slate-300 p-2.5 text-slate-600 font-semibold capitalize truncate max-w-[80px]" title={row.petugas}>
+                          <td className="border-r border-slate-300 p-2 text-slate-600 font-semibold capitalize truncate max-w-[80px]" title={row.petugas}>
                             {row.petugas}
                           </td>
                           
-                          {/* Petty Cash */}
-                           {/* Petty Cash (Kas Kecil RT) */}
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.pcDebit > 0 ? 'text-blue-650 font-bold' : 'text-slate-400'}`}>
-                            {row.pcDebit > 0 ? row.pcDebit.toLocaleString('id-ID') : '-'}
+                          {/* rtTunai */}
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rtTunaiDebit > 0 ? 'text-blue-650 font-bold' : 'text-slate-400'}`}>
+                            {row.rtTunaiDebit > 0 ? row.rtTunaiDebit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.pcKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
-                            {row.pcKredit > 0 ? row.pcKredit.toLocaleString('id-ID') : '-'}
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rtTunaiKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                            {row.rtTunaiKredit > 0 ? row.rtTunaiKredit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className="border-r border-slate-300 p-2 text-right text-slate-700 font-mono bg-slate-100/40">
-                            {row.pcRunning.toLocaleString('id-ID')}
+                          <td className="border-r border-slate-300 p-1.5 text-right text-slate-700 font-mono bg-amber-50/20">
+                            {row.rtTunaiRunning.toLocaleString('id-ID')}
+                          </td>
+
+                          {/* rtPettyCash */}
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rtPettyCashDebit > 0 ? 'text-blue-650 font-bold' : 'text-slate-400'}`}>
+                            {row.rtPettyCashDebit > 0 ? row.rtPettyCashDebit.toLocaleString('id-ID') : '-'}
+                          </td>
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rtPettyCashKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                            {row.rtPettyCashKredit > 0 ? row.rtPettyCashKredit.toLocaleString('id-ID') : '-'}
+                          </td>
+                          <td className="border-r border-slate-300 p-1.5 text-right text-slate-700 font-mono bg-slate-50/40">
+                            {row.rtPettyCashRunning.toLocaleString('id-ID')}
+                          </td>
+
+                          {/* rtBank */}
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rtBankDebit > 0 ? 'text-blue-650 font-bold' : 'text-slate-400'}`}>
+                            {row.rtBankDebit > 0 ? row.rtBankDebit.toLocaleString('id-ID') : '-'}
+                          </td>
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rtBankKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                            {row.rtBankKredit > 0 ? row.rtBankKredit.toLocaleString('id-ID') : '-'}
+                          </td>
+                          <td className="border-r border-slate-300 p-1.5 text-right text-slate-700 font-mono bg-indigo-50/20">
+                            {row.rtBankRunning.toLocaleString('id-ID')}
+                          </td>
+
+                          {/* Total RT */}
+                          <td className="border-r border-slate-300 p-1.5 text-right font-mono bg-amber-50 font-bold text-amber-950">
+                            {row.totalRTRunning.toLocaleString('id-ID')}
                           </td>
                           
-                          {/* Iuran Rombong */}
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.rbDebit > 0 ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                          {/* Rombong Tunai */}
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rbDebit > 0 ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
                             {row.rbDebit > 0 ? row.rbDebit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.rbKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.rbKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
                             {row.rbKredit > 0 ? row.rbKredit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className="border-r border-slate-300 p-2 text-right text-sky-800 font-mono bg-sky-50/20">
+                          <td className="border-r border-slate-300 p-1.5 text-right text-sky-800 font-mono bg-sky-50/15">
                             {row.rbRunning.toLocaleString('id-ID')}
                           </td>
                           
-                          {/* Bank */}
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.bkDebit > 0 ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                          {/* Rombong Bank */}
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.bkDebit > 0 ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
                             {row.bkDebit > 0 ? row.bkDebit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className={`border-r border-slate-200 p-2 text-right font-mono ${row.bkKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
+                          <td className={`border-r border-slate-200 p-1.5 text-right font-mono ${row.bkKredit > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
                             {row.bkKredit > 0 ? row.bkKredit.toLocaleString('id-ID') : '-'}
                           </td>
-                          <td className="border-r border-slate-300 p-2 text-right text-emerald-800 font-mono bg-emerald-50/20">
+                          <td className="border-r border-slate-300 p-1.5 text-right text-emerald-800 font-mono bg-emerald-50/15">
                             {row.bkRunning.toLocaleString('id-ID')}
                           </td>
+
+                          {/* Total RB */}
+                          <td className="border-r border-slate-300 p-1.5 text-right font-mono bg-sky-50 font-bold text-sky-950">
+                            {row.totalRombongRunning.toLocaleString('id-ID')}
+                          </td>
                           
-                          {/* Safe cash total */}
-                          <td className="p-2 text-right font-mono bg-indigo-50/20 text-indigo-950 font-bold">
+                          {/* Grand Total */}
+                          <td className="p-2 text-right font-mono bg-indigo-50/20 text-indigo-950 font-black text-center text-[10.5px]">
                             {row.totalRunning.toLocaleString('id-ID')}
                           </td>
 
                           {/* Action revert */}
                           {canModify && (
-                            <td className="border-l border-slate-300 p-2 text-center bg-slate-50/30">
-                              <div className="flex items-center justify-center gap-1.5">
+                            <td className="border-l border-slate-300 p-1 text-center bg-slate-50/30">
+                              <div className="flex items-center justify-center gap-1">
                                 <button
                                   onClick={() => {
                                     const orig = ledger.find(l => l.id === row.id);
@@ -1077,47 +1206,78 @@ export default function Ledger({
                   
                   {/* Row 4: Saldo Akhir */}
                   <tr className="bg-slate-100 text-slate-900 font-black font-sans border-t-2 border-slate-400 hover:bg-slate-150/55 transition">
-                    <td className="border-r border-slate-300 p-3 text-center font-mono text-[10px]">TOTAL</td>
+                    <td className="border-r border-slate-300 p-3 text-center font-mono text-[9px]">TOTAL</td>
                     <td className="border-r border-slate-300 p-3 font-mono">-</td>
                     <td className="border-r border-slate-300 p-3 tracking-wide uppercase">TOTAL DEBIT / KREDIT PERIODIK</td>
                     <td className="border-r border-slate-300 p-3">-</td>
                     
-                    {/* Petty Cash */}
-                    {/* Kas Kecil */}
-                    <td className="border-r border-slate-200 p-2 text-right text-blue-700 font-mono bg-slate-150/40">
-                      {totalsTabular.pcDebit > 0 ? totalsTabular.pcDebit.toLocaleString('id-ID') : '-'}
+                    {/* rtTunai */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-blue-700 font-mono bg-amber-50">
+                      {totalsTabular.rtTunaiDebit > 0 ? totalsTabular.rtTunaiDebit.toLocaleString('id-ID') : '-'}
                     </td>
-                    <td className="border-r border-slate-200 p-2 text-right text-rose-700 font-mono bg-slate-150/40">
-                      {totalsTabular.pcKredit > 0 ? totalsTabular.pcKredit.toLocaleString('id-ID') : '-'}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-rose-700 font-mono bg-amber-50">
+                      {totalsTabular.rtTunaiKredit > 0 ? totalsTabular.rtTunaiKredit.toLocaleString('id-ID') : '-'}
                     </td>
-                    <td className="border-r border-slate-300 p-2 text-right text-slate-900 font-mono bg-slate-200/65">
-                      {totalsTabular.pcRunning.toLocaleString('id-ID')}
+                    <td className="border-r border-slate-300 p-1.5 text-right text-slate-900 font-mono bg-amber-100/50">
+                      {totalsTabular.rtTunaiRunning.toLocaleString('id-ID')}
+                    </td>
+
+                    {/* rtPettyCash */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-blue-700 font-mono bg-slate-150/40">
+                      {totalsTabular.rtPettyCashDebit > 0 ? totalsTabular.rtPettyCashDebit.toLocaleString('id-ID') : '-'}
+                    </td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-rose-700 font-mono bg-slate-150/40">
+                      {totalsTabular.rtPettyCashKredit > 0 ? totalsTabular.rtPettyCashKredit.toLocaleString('id-ID') : '-'}
+                    </td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-slate-900 font-mono bg-slate-200/65">
+                      {totalsTabular.rtPettyCashRunning.toLocaleString('id-ID')}
+                    </td>
+
+                    {/* rtBank */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-blue-700 font-mono bg-indigo-50/40">
+                      {totalsTabular.rtBankDebit > 0 ? totalsTabular.rtBankDebit.toLocaleString('id-ID') : '-'}
+                    </td>
+                    <td className="border-r border-slate-200 p-1.5 text-right text-rose-700 font-mono bg-indigo-50/40">
+                      {totalsTabular.rtBankKredit > 0 ? totalsTabular.rtBankKredit.toLocaleString('id-ID') : '-'}
+                    </td>
+                    <td className="border-r border-slate-300 p-1.5 text-right text-slate-900 font-mono bg-indigo-100/50">
+                      {totalsTabular.rtBankRunning.toLocaleString('id-ID')}
+                    </td>
+
+                    {/* Total RT */}
+                    <td className="border-r border-slate-300 p-1.5 text-right font-mono bg-amber-200 text-amber-950 font-black">
+                      {totalsTabular.totalRTRunning.toLocaleString('id-ID')}
                     </td>
                     
-                    {/* Rombong */}
-                    <td className="border-r border-slate-200 p-2 text-right text-blue-700 font-mono bg-sky-50/40">
+                    {/* Rombong Tunai */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-blue-700 font-mono bg-sky-50/40">
                       {totalsTabular.rbDebit > 0 ? totalsTabular.rbDebit.toLocaleString('id-ID') : '-'}
                     </td>
-                    <td className="border-r border-slate-200 p-2 text-right text-rose-700 font-mono bg-sky-50/40">
+                    <td className="border-r border-slate-200 p-1.5 text-right text-rose-700 font-mono bg-sky-50/40">
                       {totalsTabular.rbKredit > 0 ? totalsTabular.rbKredit.toLocaleString('id-ID') : '-'}
                     </td>
-                    <td className="border-r border-slate-300 p-2 text-right text-sky-950 font-mono bg-sky-100/50">
+                    <td className="border-r border-slate-300 p-1.5 text-right text-sky-950 font-mono bg-sky-100/50">
                       {totalsTabular.rbRunning.toLocaleString('id-ID')}
                     </td>
                     
-                    {/* Bank */}
-                    <td className="border-r border-slate-200 p-2 text-right text-blue-700 font-mono bg-emerald-50/40">
+                    {/* Rombong Bank */}
+                    <td className="border-r border-slate-200 p-1.5 text-right text-blue-700 font-mono bg-emerald-50/40">
                       {totalsTabular.bkDebit > 0 ? totalsTabular.bkDebit.toLocaleString('id-ID') : '-'}
                     </td>
-                    <td className="border-r border-slate-200 p-2 text-right text-rose-700 font-mono bg-emerald-50/40">
+                    <td className="border-r border-slate-200 p-1.5 text-right text-rose-700 font-mono bg-emerald-50/40">
                       {totalsTabular.bkKredit > 0 ? totalsTabular.bkKredit.toLocaleString('id-ID') : '-'}
                     </td>
-                    <td className="border-r border-slate-300 p-2 text-right text-emerald-950 font-mono bg-emerald-100/50">
+                    <td className="border-r border-slate-300 p-1.5 text-right text-emerald-950 font-mono bg-emerald-100/50">
                       {totalsTabular.bkRunning.toLocaleString('id-ID')}
                     </td>
+
+                    {/* Total RB */}
+                    <td className="border-r border-slate-300 p-1.5 text-right font-mono bg-sky-200 text-sky-950 font-black">
+                      {totalsTabular.totalRombongRunning.toLocaleString('id-ID')}
+                    </td>
                     
-                    {/* Total */}
-                    <td className="p-2 text-right font-mono bg-indigo-150 text-indigo-950 font-black text-[12px]">
+                    {/* Grand Total */}
+                    <td className="p-2 text-right font-mono bg-indigo-150 text-indigo-950 font-black text-center text-[11px]">
                       {totalsTabular.totalRunning.toLocaleString('id-ID')}
                     </td>
                     {isLoggedIn && <td className="border-l border-slate-300 p-3 bg-slate-100"></td>}
@@ -1397,8 +1557,8 @@ export default function Ledger({
                               <title>Laporan Buku Kas RT.008 RW.004</title>
                               <style>
                                 @page {
-                                  size: ${viewMode === 'tabelaris' ? 'landscape' : 'portrait'};
-                                  margin: 8mm 10mm;
+                                  size: A4 ${viewMode === 'tabelaris' ? 'landscape' : 'portrait'};
+                                  margin: ${viewMode === 'tabelaris' ? '4mm 6mm' : '8mm 10mm'};
                                 }
                                 body {
                                   background-color: white !important;
@@ -1406,6 +1566,8 @@ export default function Ledger({
                                   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
                                   padding: 10px;
                                   margin: 0;
+                                  -webkit-print-color-adjust: exact !important;
+                                  print-color-adjust: exact !important;
                                 }
                                 table {
                                   width: 100%;
@@ -1415,17 +1577,32 @@ export default function Ledger({
                                 }
                                 th, td {
                                   border: 1px solid #cbd5e1 !important;
-                                  padding: 6px 8px !important;
-                                  font-size: 11px !important;
+                                  padding: ${viewMode === 'tabelaris' ? '3px 4px' : '6px 8px'} !important;
+                                  font-size: ${viewMode === 'tabelaris' ? '7.5px' : '11px'} !important;
                                   text-align: left;
                                 }
                                 th {
-                                  background-color: #f1f5f9 !important;
-                                  color: #0f172a !important;
+                                  background-color: #0f172a !important;
+                                  color: white !important;
                                   font-weight: bold !important;
                                   font-family: monospace !important;
                                   text-transform: uppercase !important;
                                 }
+                                /* Enable colored cells during printing */
+                                td.bg-amber-100\/40, td.bg-amber-100 { background-color: #fef3c7 !important; color: #78350f !important; }
+                                td.bg-slate-100\/55, td.bg-slate-200 { background-color: #e2e8f0 !important; color: #1e293b !important; }
+                                td.bg-indigo-100\/40, td.bg-indigo-100 { background-color: #e0e7ff !important; color: #1e1b4b !important; }
+                                td.bg-sky-50, td.bg-sky-100 { background-color: #e0f2fe !important; color: #0c4a6e !important; }
+                                td.bg-emerald-50, td.bg-emerald-100 { background-color: #d1fae5 !important; color: #064e3b !important; }
+                                td.bg-indigo-50 { background-color: #e0e7ff !important; color: #1e1b4b !important; }
+                                th.bg-slate-800 { background-color: #1e293b !important; color: white !important; }
+                                th.bg-sky-900 { background-color: #0c4a6e !important; color: white !important; }
+                                th.bg-amber-950 { background-color: #451a03 !important; color: #fef3c7 !important; }
+                                th.bg-indigo-950 { background-color: #1e1b4b !important; color: #e0e7ff !important; }
+                                th.bg-sky-950 { background-color: #082f49 !important; color: #e0f2fe !important; }
+                                th.bg-emerald-950 { background-color: #022c22 !important; color: #d1fae5 !important; }
+                                th.bg-sky-900 { background-color: #0c4a6e !important; color: white !important; }
+                                th.bg-slate-900 { background-color: #0f172a !important; color: white !important; }
                                 .text-center { text-align: center !important; }
                                 .text-right { text-align: right !important; }
                                 .font-bold { font-weight: bold !important; }
@@ -1523,56 +1700,99 @@ export default function Ledger({
               {viewMode === 'tabelaris' ? (
                 /* LANDSCAPE TABULAR SPREADSHEET FOR PRINT */
                 <div className="overflow-x-auto border border-slate-400 rounded-lg mb-6">
-                  <table className="w-full min-w-[1400px] text-[10px] text-left text-slate-900 font-sans border-collapse">
+                  <table className="w-full min-w-[1700px] text-[9px] text-left text-slate-900 font-sans border-collapse">
                     <thead>
-                      <tr className="bg-slate-100 text-slate-800 text-center font-bold font-mono border-b border-slate-400">
-                        <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 w-16">TGL</th>
-                        <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 w-24">NO BUKTI</th>
-                        <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 text-left">KETERANGAN ALIRAN KAS</th>
-                        <th rowSpan={2} className="border-r border-b border-slate-400 p-1.5 w-20">PETUGAS</th>
-                        <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-slate-150/40">KAS KECIL RT</th>
-                        <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-sky-50 border-sky-250">IURAN ROMBONG</th>
-                        <th colSpan={3} className="border-r border-b border-slate-400 p-1 bg-emerald-50 border-emerald-250">KAS BANK RT</th>
-                        <th rowSpan={2} className="border-b border-slate-400 p-1.5 bg-indigo-50 text-indigo-950 font-black w-24">SALDO GABUNG</th>
+                      <tr className="bg-slate-900 text-white text-center font-bold font-mono border-b border-slate-400 text-[9px]">
+                        <th rowSpan={3} className="border-r border-b border-slate-400 p-1 w-12 text-center text-white">TGL</th>
+                        <th rowSpan={3} className="border-r border-b border-slate-400 p-1 w-20 text-center text-white">NO BUKTI</th>
+                        <th rowSpan={3} className="border-r border-b border-slate-400 p-1 text-left min-w-[160px] text-white">KETERANGAN ALIRAN KAS</th>
+                        <th rowSpan={3} className="border-r border-b border-slate-400 p-1 w-18 text-center text-white">PETUGAS</th>
+                        <th colSpan={10} className="border-r border-b border-slate-400 p-1 bg-slate-800 text-white text-[9px]">TOTAL KAS RT (IURAN, KECIL & BANK)</th>
+                        <th colSpan={7} className="border-r border-b border-slate-400 p-1 bg-sky-900 text-white text-[9px]">TOTAL KAS ROMBONG (TUNAI & BANK)</th>
+                        <th rowSpan={3} className="border-b border-slate-400 p-1.5 bg-indigo-950 text-white font-black w-22 text-center">GRAND TOTAL KAS (KAS UMUM)</th>
                       </tr>
-                      <tr className="bg-slate-50 text-slate-700 font-bold text-[8px] font-mono text-center border-b border-slate-400">
-                        <th className="border-r border-slate-300 p-1 w-12">D</th>
-                        <th className="border-r border-slate-300 p-1 w-12">K</th>
-                        <th className="border-r border-slate-350 p-1 w-14 bg-slate-100/50">SALDO</th>
-                        <th className="border-r border-slate-300 p-1 w-12 bg-sky-50">D</th>
-                        <th className="border-r border-slate-300 p-1 w-12 bg-sky-50">K</th>
-                        <th className="border-r border-slate-350 p-1 w-14 bg-sky-100/30">SALDO</th>
-                        <th className="border-r border-slate-300 p-1 w-12 bg-emerald-50">D</th>
-                        <th className="border-r border-slate-300 p-1 w-12 bg-emerald-50">K</th>
-                        <th className="border-r border-slate-350 p-1 w-14 bg-emerald-100/30">SALDO</th>
+                      <tr className="bg-slate-800 text-white text-center font-bold text-[8.5px] font-mono border-b border-slate-400">
+                        <th colSpan={3} className="border-r border-slate-400 p-0.5 bg-amber-950 text-amber-100">IURAN RT (rtTunai)</th>
+                        <th colSpan={3} className="border-r border-slate-400 p-0.5 bg-slate-700 text-slate-100">KAS KECIL (rtPettyCash)</th>
+                        <th colSpan={3} className="border-r border-slate-400 p-0.5 bg-indigo-950 text-indigo-100">RT BANK (rtBank)</th>
+                        <th rowSpan={2} className="border-r border-slate-400 p-0.5 bg-amber-900 text-white text-center leading-tight">TOTAL SALDO RT</th>
+                        
+                        <th colSpan={3} className="border-r border-slate-400 p-0.5 bg-sky-950 text-sky-100">ROMBONG TUNAI (rombongTunai)</th>
+                        <th colSpan={3} className="border-r border-slate-400 p-0.5 bg-emerald-950 text-emerald-100">ROMBONG BANK (rombongBank)</th>
+                        <th rowSpan={2} className="border-r border-slate-400 p-0.5 bg-sky-900 text-white text-center leading-tight">TOTAL SALDO RB</th>
+                      </tr>
+                      <tr className="bg-slate-100 text-slate-700 font-bold text-[7.5px] font-mono text-center border-b border-slate-400">
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-amber-50">D</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-amber-50">K</th>
+                        <th className="border-r border-slate-400 p-0.5 w-11 bg-amber-100/55">SALDO</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-slate-50">D</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-slate-50">K</th>
+                        <th className="border-r border-slate-400 p-0.5 w-11 bg-slate-200/55">SALDO</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-indigo-50">D</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-indigo-50">K</th>
+                        <th className="border-r border-slate-400 p-0.5 w-11 bg-indigo-100/55">SALDO</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-sky-50">D</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-sky-50">K</th>
+                        <th className="border-r border-slate-400 p-0.5 w-11 bg-sky-100/55">SALDO</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-emerald-50">D</th>
+                        <th className="border-r border-slate-400 p-0.5 w-10 bg-emerald-50">K</th>
+                        <th className="border-r border-slate-400 p-0.5 w-11 bg-emerald-100/55">SALDO</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-350">
-                      <tr className="bg-slate-55 font-bold">
+                      <tr className="bg-amber-50/15 font-bold">
                         <td className="border-r border-slate-400 p-1.5 text-center font-mono">-</td>
                         <td className="border-r border-slate-400 p-1.5 font-mono text-center">-</td>
-                        <td className="border-r border-slate-400 p-1.5 uppercase font-black text-slate-700">SALDO SEBELUM PERIODE INI</td>
+                        <td className="border-r border-slate-400 p-1.5 uppercase font-black text-slate-700 bg-slate-100/35">SALDO SEBELUM PERIODE INI</td>
                         <td className="border-r border-slate-400 p-1.5 text-center">-</td>
                         
+                        {/* rtTunai */}
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-slate-800 bg-slate-100/40">
-                          {saldoAwal.pc > 0 ? saldoAwal.pc.toLocaleString('id-ID') : 'Rp 0'}
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-800 bg-amber-100/40">
+                          {saldoAwal.rtTunai > 0 ? saldoAwal.rtTunai.toLocaleString('id-ID') : 'Rp 0'}
+                        </td>
+
+                        {/* rtPettyCash */}
+                        <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-800 bg-slate-100/55">
+                          {saldoAwal.rtPettyCash > 0 ? saldoAwal.rtPettyCash.toLocaleString('id-ID') : 'Rp 0'}
+                        </td>
+
+                        {/* rtBank */}
+                        <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-800 bg-indigo-100/40">
+                          {saldoAwal.rtBank > 0 ? saldoAwal.rtBank.toLocaleString('id-ID') : 'Rp 0'}
+                        </td>
+
+                        {/* Total RT */}
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-amber-950 bg-amber-100 font-black">
+                          {saldoAwal.totalRT > 0 ? saldoAwal.totalRT.toLocaleString('id-ID') : 'Rp 0'}
                         </td>
                         
+                        {/* Rombong Tunai */}
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-sky-900 bg-sky-50">
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-sky-900 bg-sky-50">
                           {saldoAwal.rb > 0 ? saldoAwal.rb.toLocaleString('id-ID') : 'Rp 0'}
                         </td>
                         
+                        {/* Rombong Bank */}
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
                         <td className="border-r border-slate-300 p-1 text-right text-slate-400">-</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-emerald-900 bg-emerald-50">
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-emerald-900 bg-emerald-50">
                           {saldoAwal.bk > 0 ? saldoAwal.bk.toLocaleString('id-ID') : 'Rp 0'}
                         </td>
+
+                        {/* Total RB */}
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-sky-950 bg-sky-100 font-black">
+                          {saldoAwal.totalRombong > 0 ? saldoAwal.totalRombong.toLocaleString('id-ID') : 'Rp 0'}
+                        </td>
                         
-                        <td className="p-1.5 text-right font-mono bg-indigo-50 text-indigo-950 font-black">
+                        {/* Grand Total */}
+                        <td className="p-1.5 text-right font-mono bg-indigo-50 text-indigo-950 font-black text-center">
                           {saldoAwal.total > 0 ? saldoAwal.total.toLocaleString('id-ID') : 'Rp 0'}
                         </td>
                       </tr>
@@ -1582,30 +1802,46 @@ export default function Ledger({
                           <td className="border-r border-slate-400 p-1.5 text-center font-mono text-slate-600" title={row.tanggalInput ? `Tanggal Input: ${row.tanggalInput}` : 'Tanggal Transaksi'}>
                             <div>{row.tanggal}</div>
                             {row.tanggalInput && row.tanggalInput !== row.tanggal && (
-                              <div className="text-[9px] text-slate-400">In: {row.tanggalInput}</div>
+                              <div className="text-[8px] text-slate-400">In: {row.tanggalInput}</div>
                             )}
                           </td>
                           <td className="border-r border-slate-400 p-1.5 font-mono text-center text-[8px] text-slate-600">{row.noBukti}</td>
                           <td className="border-r border-slate-400 p-1.5 font-medium leading-tight text-slate-900">{row.deskripsi}</td>
                           <td className="border-r border-slate-400 p-1.5 capitalize text-slate-600 whitespace-nowrap">{row.petugas}</td>
                           
-                          {/* Petty Cash (Kas Kecil RT) */}
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.pcDebit > 0 ? row.pcDebit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.pcKredit > 0 ? row.pcKredit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-450 p-1 text-right font-mono text-slate-705 bg-slate-50">{row.pcRunning.toLocaleString('id-ID')}</td>
+                          {/* rtTunai */}
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rtTunaiDebit > 0 ? row.rtTunaiDebit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rtTunaiKredit > 0 ? row.rtTunaiKredit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-705 bg-amber-50/15">{row.rtTunaiRunning.toLocaleString('id-ID')}</td>
+
+                          {/* rtPettyCash */}
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rtPettyCashDebit > 0 ? row.rtPettyCashDebit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rtPettyCashKredit > 0 ? row.rtPettyCashKredit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-705 bg-slate-50/45">{row.rtPettyCashRunning.toLocaleString('id-ID')}</td>
+
+                          {/* rtBank */}
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rtBankDebit > 0 ? row.rtBankDebit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rtBankKredit > 0 ? row.rtBankKredit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-705 bg-indigo-50/15">{row.rtBankRunning.toLocaleString('id-ID')}</td>
+
+                          {/* Total RT */}
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-755 bg-amber-50/45 font-bold">{row.totalRTRunning.toLocaleString('id-ID')}</td>
                           
-                          {/* Rombong */}
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.rbDebit > 0 ? row.rbDebit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.rbKredit > 0 ? row.rbKredit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-450 p-1 text-right font-mono text-sky-900 bg-sky-50/20">{row.rbRunning.toLocaleString('id-ID')}</td>
+                          {/* Rombong Tunai */}
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rbDebit > 0 ? row.rbDebit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.rbKredit > 0 ? row.rbKredit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-sky-900 bg-sky-50/15">{row.rbRunning.toLocaleString('id-ID')}</td>
                           
-                          {/* Bank */}
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.bkDebit > 0 ? row.bkDebit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-300 p-1 text-right font-mono">{row.bkKredit > 0 ? row.bkKredit.toLocaleString('id-ID') : '-'}</td>
-                          <td className="border-r border-slate-450 p-1 text-right font-mono text-emerald-900 bg-emerald-50/20">{row.bkRunning.toLocaleString('id-ID')}</td>
+                          {/* Rombong Bank */}
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.bkDebit > 0 ? row.bkDebit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-300 p-1 text-right font-mono text-slate-600">{row.bkKredit > 0 ? row.bkKredit.toLocaleString('id-ID') : '-'}</td>
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-emerald-900 bg-emerald-50/15">{row.bkRunning.toLocaleString('id-ID')}</td>
+
+                          {/* Total RB */}
+                          <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-755 bg-sky-50/45 font-bold">{row.totalRombongRunning.toLocaleString('id-ID')}</td>
                           
-                          {/* Safe cash */}
-                          <td className="p-1.5 text-right font-mono bg-indigo-50/20 text-slate-900 font-bold">{row.totalRunning.toLocaleString('id-ID')}</td>
+                          {/* Grand Total */}
+                          <td className="p-1.5 text-right font-mono bg-indigo-50/20 text-slate-900 font-bold text-center">{row.totalRunning.toLocaleString('id-ID')}</td>
                         </tr>
                       ))}
 
@@ -1616,22 +1852,39 @@ export default function Ledger({
                         <td className="border-r border-slate-400 p-1.5 tracking-wide">TOTAL DEBIT / KREDIT PERIODIK</td>
                         <td className="border-r border-slate-400 p-1.5">-</td>
                         
-                        {/* Petty Cash (Kas Kecil RT) */}
-                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono">{totalsTabular.pcDebit > 0 ? totalsTabular.pcDebit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono">{totalsTabular.pcKredit > 0 ? totalsTabular.pcKredit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-slate-900 bg-slate-200">{totalsTabular.pcRunning.toLocaleString('id-ID')}</td>
+                        {/* rtTunai */}
+                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono bg-amber-50">{totalsTabular.rtTunaiDebit > 0 ? totalsTabular.rtTunaiDebit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono bg-amber-50">{totalsTabular.rtTunaiKredit > 0 ? totalsTabular.rtTunaiKredit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-900 bg-amber-100/50">{totalsTabular.rtTunaiRunning.toLocaleString('id-ID')}</td>
+
+                        {/* rtPettyCash */}
+                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono bg-slate-150/40">{totalsTabular.rtPettyCashDebit > 0 ? totalsTabular.rtPettyCashDebit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono bg-slate-150/40">{totalsTabular.rtPettyCashKredit > 0 ? totalsTabular.rtPettyCashKredit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-900 bg-slate-200">{totalsTabular.rtPettyCashRunning.toLocaleString('id-ID')}</td>
+
+                        {/* rtBank */}
+                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono bg-indigo-50/40">{totalsTabular.rtBankDebit > 0 ? totalsTabular.rtBankDebit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono bg-indigo-50/40">{totalsTabular.rtBankKredit > 0 ? totalsTabular.rtBankKredit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-slate-900 bg-indigo-100/55">{totalsTabular.rtBankRunning.toLocaleString('id-ID')}</td>
+
+                        {/* Total RT */}
+                        <td className="border-r border-slate-400 p-1 text-right font-mono bg-amber-200 text-amber-950 font-black">{totalsTabular.totalRTRunning.toLocaleString('id-ID')}</td>
                         
-                        {/* Rombong */}
-                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono">{totalsTabular.rbDebit > 0 ? totalsTabular.rbDebit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono">{totalsTabular.rbKredit > 0 ? totalsTabular.rbKredit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-sky-950 bg-sky-100">{totalsTabular.rbRunning.toLocaleString('id-ID')}</td>
+                        {/* Rombong Tunai */}
+                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono bg-sky-50/40">{totalsTabular.rbDebit > 0 ? totalsTabular.rbDebit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono bg-sky-50/40">{totalsTabular.rbKredit > 0 ? totalsTabular.rbKredit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-sky-950 bg-sky-100">{totalsTabular.rbRunning.toLocaleString('id-ID')}</td>
                         
-                        {/* Bank */}
-                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono">{totalsTabular.bkDebit > 0 ? totalsTabular.bkDebit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono">{totalsTabular.bkKredit > 0 ? totalsTabular.bkKredit.toLocaleString('id-ID') : '-'}</td>
-                        <td className="border-r border-slate-450 p-1 text-right font-mono text-emerald-950 bg-emerald-100">{totalsTabular.bkRunning.toLocaleString('id-ID')}</td>
+                        {/* Rombong Bank */}
+                        <td className="border-r border-slate-300 p-1 text-right text-blue-800 font-mono bg-emerald-50/40">{totalsTabular.bkDebit > 0 ? totalsTabular.bkDebit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-300 p-1 text-right text-rose-800 font-mono bg-emerald-50/40">{totalsTabular.bkKredit > 0 ? totalsTabular.bkKredit.toLocaleString('id-ID') : '-'}</td>
+                        <td className="border-r border-slate-400 p-1 text-right font-mono text-emerald-950 bg-emerald-100">{totalsTabular.bkRunning.toLocaleString('id-ID')}</td>
+
+                        {/* Total RB */}
+                        <td className="border-r border-slate-400 p-1 text-right font-mono bg-sky-200 text-sky-950 font-black">{totalsTabular.totalRombongRunning.toLocaleString('id-ID')}</td>
                         
-                        <td className="p-1.5 text-right font-mono bg-indigo-150 text-indigo-950 font-black text-xs">
+                        {/* Grand Total */}
+                        <td className="p-1.5 text-right font-mono bg-indigo-150 text-indigo-950 font-black text-center">
                           {totalsTabular.totalRunning.toLocaleString('id-ID')}
                         </td>
                       </tr>
