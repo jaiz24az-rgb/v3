@@ -141,6 +141,7 @@ export default function Dashboard({
   // Specialized transaction helper states
   const [tagihanType, setTagihanType] = useState<'setor_bank'>('setor_bank');
   const [bankType, setBankType] = useState<'bank_ke_petty' | 'petty_ke_bank'>('bank_ke_petty');
+  const [transferBankSelection, setTransferBankSelection] = useState<'rtBank' | 'rombongBank'>('rtBank');
   const [transferAmount, setTransferAmount] = useState('');
   const [transferDesc, setTransferDesc] = useState('');
   const [transferPetugas, setTransferPetugas] = useState('');
@@ -336,17 +337,18 @@ export default function Dashboard({
       const parsedAmount = parseFloat(transferAmount);
       if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      const sourceKas: keyof Balance = bankType === 'bank_ke_petty' ? 'rtBank' : 'rtPettyCash';
-      const targetKas: keyof Balance = bankType === 'bank_ke_petty' ? 'rtPettyCash' : 'rtBank';
+      const sourceKas: keyof Balance = bankType === 'bank_ke_petty' ? transferBankSelection : 'rtPettyCash';
+      const targetKas: keyof Balance = bankType === 'bank_ke_petty' ? 'rtPettyCash' : transferBankSelection;
 
       if (activeKas[sourceKas] < parsedAmount) {
         alert(`Peringatan: Saldo ${kasLabels[sourceKas].label} (Rp ${activeKas[sourceKas].toLocaleString('id-ID')}) tidak mencukupi untuk transfer/mutasi sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
+      const bankLabel = transferBankSelection === 'rtBank' ? 'Bank RT' : 'Bank Rombong';
       const customDesc = transferDesc || (bankType === 'bank_ke_petty' 
-        ? 'Mutasi Bank: Pengisian Saldo Kas Kecil (Tarik Tunai)' 
-        : 'Mutasi Bank: Penyetoran Sisa Kas Kecil');
+        ? `Mutasi ${bankLabel}: Pengisian Saldo Kas Kecil (Tarik Tunai)` 
+        : `Mutasi ${bankLabel}: Penyetoran Sisa Kas Kecil`);
       const effectiveDate = transferDate || today;
 
       // 1. Debit out of source
@@ -874,6 +876,43 @@ export default function Dashboard({
                   🏦 <strong>Pemindahbukuan Bank ⇄ Kas Kecil:</strong> Berfungsi mencatat pencairan dana bank ke laci kas operasional, maupun penyetoran kelebihan kas kecil secara formal.
                 </div>
 
+                {/* Bank Selector Block */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                  <div className="text-xs font-semibold text-slate-700 font-mono flex items-center gap-1.5">
+                    🏦 Pilih Rekening Bank:
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-w-md">
+                    <button
+                      type="button"
+                      onClick={() => setTransferBankSelection('rtBank')}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-center border ${
+                        transferBankSelection === 'rtBank'
+                          ? 'bg-sky-50 text-sky-700 border-sky-300 ring-2 ring-sky-500/10'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      🏦 Bank RT
+                      <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">
+                        Sisa: Rp {activeKas.rtBank.toLocaleString('id-ID')}
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTransferBankSelection('rombongBank')}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer text-center border ${
+                        transferBankSelection === 'rombongBank'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300 ring-2 ring-emerald-500/10'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      🍱 Bank Rombong
+                      <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">
+                        Sisa: Rp {activeKas.rombongBank.toLocaleString('id-ID')}
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Switch direction */}
                 <div className="grid grid-cols-2 gap-2 max-w-md">
                   <button
@@ -885,8 +924,8 @@ export default function Dashboard({
                         : 'bg-white text-slate-500 border-slate-200'
                     }`}
                   >
-                    📥 Tarik Kas Umum ➔ Isi Kas Kecil
-                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Kas Umum: Rp {activeKas.rtBank.toLocaleString('id-ID')}</div>
+                    📥 Tarik {transferBankSelection === 'rtBank' ? 'Bank RT' : 'Bank Rombong'} ➔ Isi Kas Kecil
+                    <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Bank: Rp {activeKas[transferBankSelection].toLocaleString('id-ID')}</div>
                   </button>
                   <button
                     type="button"
@@ -897,7 +936,7 @@ export default function Dashboard({
                         : 'bg-white text-slate-500 border-slate-200'
                     }`}
                   >
-                    📤 Setor Sisa Kas Kecil ➔ Kas Umum
+                    📤 Setor Sisa Kas Kecil ➔ {transferBankSelection === 'rtBank' ? 'Bank RT' : 'Bank Rombong'}
                     <div className="text-[10px] font-mono font-medium opacity-80 mt-0.5">Sisa Kas Kecil: Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</div>
                   </button>
                 </div>
@@ -931,8 +970,8 @@ export default function Dashboard({
                     <input
                       type="text"
                       placeholder={bankType === 'bank_ke_petty' 
-                        ? 'Mutasi Bank: Penarikan dana rekening mengisi Kas Kecil operasional' 
-                        : 'Mutasi Bank: Penyetoran kelebihan sisa Kas Kecil ke rekening'
+                        ? `Mutasi Bank: Penarikan dana dari ${transferBankSelection === 'rtBank' ? 'Bank RT' : 'Bank Rombong'} mengisi Kas Kecil` 
+                        : `Mutasi Bank: Penyetoran sisa Kas Kecil ke ${transferBankSelection === 'rtBank' ? 'Bank RT' : 'Bank Rombong'}`
                       }
                       value={transferDesc}
                       onChange={e => setTransferDesc(e.target.value)}
