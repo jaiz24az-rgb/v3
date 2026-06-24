@@ -571,131 +571,238 @@ export default function Ledger({
   }, [visibleTabularRows, saldoAwal]);
 
   const handleExportExcel = () => {
+    let periodStr = 'Semua_Periode';
+    if (selectedYear !== 'semua') {
+      periodStr = `${selectedYear}`;
+      if (selectedMonth !== 'semua') {
+        const monthIndex = parseInt(selectedMonth, 10) - 1;
+        const name = INDO_MONTHS[monthIndex]?.name || 'Bulan';
+        periodStr = `${name}_${selectedYear}`;
+      }
+    }
+
     if (viewMode === 'tabelaris') {
-      // 1. Export in exact Multi-Column layout
-      const headers = [
-        'Tanggal',
-        'No Bukti Transaksi',
-        'Keterangan',
-        'Penerima/Petugas',
-        'Iuran RT Tunai (Debit)',
-        'Iuran RT Tunai (Kredit)',
-        'Saldo Iuran RT Tunai',
-        'Kas Kecil (Debit)',
-        'Kas Kecil (Kredit)',
-        'Saldo Kas Kecil',
-        'RT Bank (Debit)',
-        'RT Bank (Kredit)',
-        'Saldo RT Bank',
-        'Total Saldo RT',
-        'Rombong Tunai (Debit)',
-        'Rombong Tunai (Kredit)',
-        'Saldo Rombong Tunai',
-        'Rombong Bank (Debit)',
-        'Rombong Bank (Kredit)',
-        'Saldo Rombong Bank',
-        'Total Saldo Rombong',
-        'Grand Total Kas Umum'
-      ];
+      // 1. Export in dynamic XLS with real Excel formulas and corporate styling
+      const escapeHtml = (text: string) => {
+        if (!text) return '';
+        return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      };
 
-      const rowSaldoAwal = [
-        '',
-        '',
-        'SALDO PERIODE LALU',
-        '',
-        '',
-        '',
-        saldoAwal.rtTunai,
-        '',
-        '',
-        saldoAwal.rtPettyCash,
-        '',
-        '',
-        saldoAwal.rtBank,
-        saldoAwal.totalRT,
-        '',
-        '',
-        saldoAwal.rb,
-        '',
-        '',
-        saldoAwal.bk,
-        saldoAwal.totalRombong,
-        saldoAwal.total
-      ];
+      const tableHeadersHtml = `
+<tr style="background-color: #0f172a; color: #ffffff; text-align: center; font-weight: bold; font-size: 11px;">
+  <th rowspan="3" style="border: 1px solid #cbd5e1; background-color: #0f172a; color: #ffffff; padding: 8px;">TANGGAL</th>
+  <th rowspan="3" style="border: 1px solid #cbd5e1; background-color: #0f172a; color: #ffffff; padding: 8px;">NO BUKTI</th>
+  <th rowspan="3" style="border: 1px solid #cbd5e1; background-color: #0f172a; color: #ffffff; padding: 8px;">KAS / KETERANGAN TRANSAKSI</th>
+  <th rowspan="3" style="border: 1px solid #cbd5e1; background-color: #0f172a; color: #ffffff; padding: 8px;">PETUGAS</th>
+  <th colspan="10" style="border: 1px solid #cbd5e1; background-color: #1e293b; color: #ffffff; padding: 6px;">TOTAL KAS RT (IURAN, KECIL & BANK)</th>
+  <th colspan="7" style="border: 1px solid #cbd5e1; background-color: #0c4a6e; color: #ffffff; padding: 6px;">TOTAL KAS ROMBONG (TUNAI & BANK)</th>
+  <th rowspan="3" style="border: 1px solid #cbd5e1; background-color: #1e1b4b; color: #ffffff; padding: 8px; font-weight: 900;">GRAND TOTAL KAS (KAS UMUM)</th>
+</tr>
+<tr style="background-color: #1e293b; color: #ffffff; text-align: center; font-weight: bold; font-size: 10px;">
+  <th colspan="3" style="border: 1px solid #cbd5e1; background-color: #451a03; color: #fef3c7; padding: 6px;">IURAN RT (rtTunai)</th>
+  <th colspan="3" style="border: 1px solid #cbd5e1; background-color: #334155; color: #f1f5f9; padding: 6px;">KAS KECIL (rtPettyCash)</th>
+  <th colspan="3" style="border: 1px solid #cbd5e1; background-color: #1e1b4b; color: #e0e7ff; padding: 6px;">RT BANK (rtBank)</th>
+  <th rowspan="2" style="border: 1px solid #cbd5e1; background-color: #78350f; color: #ffffff; padding: 6px; font-weight: bold;">TOTAL SALDO RT</th>
+  <th colspan="3" style="border: 1px solid #cbd5e1; background-color: #082f49; color: #e0f2fe; padding: 6px;">ROMBONG TUNAI (rombongTunai)</th>
+  <th colspan="3" style="border: 1px solid #cbd5e1; background-color: #064e3b; color: #d1fae5; padding: 6px;">ROMBONG BANK (rombongBank)</th>
+  <th rowspan="2" style="border: 1px solid #cbd5e1; background-color: #0369a1; color: #ffffff; padding: 6px; font-weight: bold;">TOTAL SALDO RB</th>
+</tr>
+<tr style="background-color: #f8fafc; color: #334155; text-align: center; font-weight: bold; font-size: 9px;">
+  <th style="border: 1px solid #cbd5e1; background-color: #fffbeb; padding: 4px;">DEBIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #fffbeb; padding: 4px;">KREDIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #fef3c7; padding: 4px;">SALDO</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #f8fafc; padding: 4px;">DEBIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #f8fafc; padding: 4px;">KREDIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #e2e8f0; padding: 4px;">SALDO</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #eef2ff; padding: 4px;">DEBIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #eef2ff; padding: 4px;">KREDIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #c7d2fe; padding: 4px;">SALDO</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #f0f9ff; padding: 4px;">DEBIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #f0f9ff; padding: 4px;">KREDIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #bae6fd; padding: 4px;">SALDO</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #f0fdf4; padding: 4px;">DEBIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #f0fdf4; padding: 4px;">KREDIT</th>
+  <th style="border: 1px solid #cbd5e1; background-color: #bbf7d0; padding: 4px;">SALDO</th>
+</tr>
+`;
 
-      const rows = visibleTabularRows.map((row) => [
-        row.tanggal,
-        row.noBukti,
-        `"${row.deskripsi.replace(/"/g, '""')}"`,
-        `"${row.petugas.replace(/"/g, '""')}"`,
-        row.rtTunaiDebit || '',
-        row.rtTunaiKredit || '',
-        row.rtTunaiRunning,
-        row.rtPettyCashDebit || '',
-        row.rtPettyCashKredit || '',
-        row.rtPettyCashRunning,
-        row.rtBankDebit || '',
-        row.rtBankKredit || '',
-        row.rtBankRunning,
-        row.totalRTRunning,
-        row.rbDebit || '',
-        row.rbKredit || '',
-        row.rbRunning,
-        row.bkDebit || '',
-        row.bkKredit || '',
-        row.bkRunning,
-        row.totalRombongRunning,
-        row.totalRunning
-      ]);
+      const rowSaldoAwalHtml = `
+<tr style="background-color: #fafaf9; font-style: italic; font-weight: bold; font-size: 11px;">
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 6px;"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 6px;"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: left; padding: 6px;">SALDO PERIODE LALU</td>
+  <td style="border: 1px solid #cbd5e1; text-align: left; padding: 6px;"></td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${saldoAwal.rtTunai || 0}</td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${saldoAwal.rtPettyCash || 0}</td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${saldoAwal.rtBank || 0}</td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; font-weight: bold; background-color: #fef3c7; mso-number-format:'\\#\\,\\#\\#0';">=G4+J4+M4</td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${saldoAwal.rb || 0}</td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${saldoAwal.bk || 0}</td>
+  
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; font-weight: bold; background-color: #e0f2fe; mso-number-format:'\\#\\,\\#\\#0';">=Q4+T4</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; font-weight: bold; background-color: #e0e7ff; mso-number-format:'\\#\\,\\#\\#0';">=N4+U4</td>
+</tr>
+`;
 
-      const rowSaldoAkhir = [
-        'Saldo Akhir',
-        '',
-        'TOTAL PERIODIK',
-        '',
-        totalsTabular.rtTunaiDebit,
-        totalsTabular.rtTunaiKredit,
-        totalsTabular.rtTunaiRunning,
-        totalsTabular.rtPettyCashDebit,
-        totalsTabular.rtPettyCashKredit,
-        totalsTabular.rtPettyCashRunning,
-        totalsTabular.rtBankDebit,
-        totalsTabular.rtBankKredit,
-        totalsTabular.rtBankRunning,
-        totalsTabular.totalRTRunning,
-        totalsTabular.rbDebit,
-        totalsTabular.rbKredit,
-        totalsTabular.rbRunning,
-        totalsTabular.bkDebit,
-        totalsTabular.bkKredit,
-        totalsTabular.bkRunning,
-        totalsTabular.totalRombongRunning,
-        totalsTabular.totalRunning
-      ];
+      const dataRowsHtml = visibleTabularRows.map((row, idx) => {
+        const rowNum = idx + 5;
+        const prevRow = rowNum - 1;
 
-      const csvContent = [
-        headers.join(','),
-        rowSaldoAwal.join(','),
-        ...rows.map(r => r.join(',')),
-        rowSaldoAkhir.join(',')
-      ].join('\n');
+        return `
+<tr style="font-size: 11px;">
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 6px;">${escapeHtml(row.tanggal)}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 6px; mso-number-format:'\\@';">${escapeHtml(row.noBukti)}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: left; padding: 6px;">${escapeHtml(row.deskripsi)}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: left; padding: 6px;">${escapeHtml(row.petugas)}</td>
+  
+  <!-- rtTunai -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rtTunaiDebit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rtTunaiKredit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; background-color: #fffbeb; mso-number-format:'\\#\\,\\#\\#0';">=G${prevRow}+E${rowNum}-F${rowNum}</td>
+  
+  <!-- rtPettyCash -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rtPettyCashDebit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rtPettyCashKredit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; background-color: #f8fafc; mso-number-format:'\\#\\,\\#\\#0';">=J${prevRow}+H${rowNum}-I${rowNum}</td>
+  
+  <!-- rtBank -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rtBankDebit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rtBankKredit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; background-color: #eef2ff; mso-number-format:'\\#\\,\\#\\#0';">=M${prevRow}+K${rowNum}-L${rowNum}</td>
+  
+  <!-- Total Saldo RT -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; font-weight: bold; background-color: #fef3c7; mso-number-format:'\\#\\,\\#\\#0';">=G${rowNum}+J${rowNum}+M${rowNum}</td>
+  
+  <!-- rombongTunai -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rbDebit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.rbKredit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; background-color: #f0f9ff; mso-number-format:'\\#\\,\\#\\#0';">=Q${prevRow}+O${rowNum}-P${rowNum}</td>
+  
+  <!-- rombongBank -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.bkDebit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; mso-number-format:'\\#\\,\\#\\#0';">${row.bkKredit || ''}</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; background-color: #f0fdf4; mso-number-format:'\\#\\,\\#\\#0';">=T${prevRow}+R${rowNum}-S${rowNum}</td>
+  
+  <!-- Total Saldo RB -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; font-weight: bold; background-color: #e0f2fe; mso-number-format:'\\#\\,\\#\\#0';">=Q${rowNum}+T${rowNum}</td>
+  
+  <!-- Grand Total Kas Umum -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 6px; font-weight: bold; background-color: #e0e7ff; mso-number-format:'\\#\\,\\#\\#0';">=N${rowNum}+U${rowNum}</td>
+</tr>`;
+      }).join('\n');
 
-      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const totalRowNum = visibleTabularRows.length + 5;
+      const lastDataRow = visibleTabularRows.length > 0 ? (totalRowNum - 1) : 4;
+
+      const rowSaldoAkhirHtml = `
+<tr style="background-color: #f1f5f9; font-weight: bold; font-size: 11px;">
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 8px;">TOTAL PERIODIK</td>
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 8px;"></td>
+  <td style="border: 1px solid #cbd5e1; text-align: left; padding: 8px;">REKAP TOTAL &amp; AKUMULASI SALDO AKHIR PERIODE</td>
+  <td style="border: 1px solid #cbd5e1; text-align: center; padding: 8px;"></td>
+  
+  <!-- rtTunai -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(E5:E${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(F5:F${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #fef3c7; mso-number-format:'\\#\\,\\#\\#0';">=G${lastDataRow}</td>
+  
+  <!-- rtPettyCash -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(H5:H${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(I5:I${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #e2e8f0; mso-number-format:'\\#\\,\\#\\#0';">=J${lastDataRow}</td>
+  
+  <!-- rtBank -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(K5:K${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(L5:L${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #c7d2fe; mso-number-format:'\\#\\,\\#\\#0';">=M${lastDataRow}</td>
+  
+  <!-- Total Saldo RT -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #fef3c7; mso-number-format:'\\#\\,\\#\\#0';">=N${lastDataRow}</td>
+  
+  <!-- rombongTunai -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(O5:O${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(P5:P${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #bae6fd; mso-number-format:'\\#\\,\\#\\#0';">=Q${lastDataRow}</td>
+  
+  <!-- rombongBank -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(R5:R${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; mso-number-format:'\\#\\,\\#\\#0';">=SUM(S5:S${lastDataRow})</td>
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #bbf7d0; mso-number-format:'\\#\\,\\#\\#0';">=T${lastDataRow}</td>
+  
+  <!-- Total Saldo RB -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #e0f2fe; mso-number-format:'\\#\\,\\#\\#0';">=U${lastDataRow}</td>
+  
+  <!-- Grand Total Kas Umum -->
+  <td style="border: 1px solid #cbd5e1; text-align: right; padding: 8px; background-color: #e0e7ff; mso-number-format:'\\#\\,\\#\\#0';">=V${lastDataRow}</td>
+</tr>
+`;
+
+      const fullExcelHtml = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]><xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>Rekap Tabelaris Kas RT08</x:Name>
+    <x:WorksheetOptions>
+     <x:DisplayGridlines/>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+ </x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+  body { font-family: Arial, sans-serif; }
+  table { border-collapse: collapse; }
+  th, td { border: 1px solid #cbd5e1; font-family: Arial, sans-serif; }
+</style>
+</head>
+<body>
+  <h2>REKAP TABELARIS BUKU KAS RT 08 / RW 04</h2>
+  <h4>Periode: ${periodStr.replace(/_/g, ' ')}</h4>
+  <p style="font-size: 10px; color: #475569;">*File ini dilengkapi dengan formula Excel dinamis. Perubahan nilai Debit/Kredit akan otomatis memperbarui seluruh saldo.</p>
+  <table border="1">
+    <thead>
+      ${tableHeadersHtml}
+    </thead>
+    <tbody>
+      ${rowSaldoAwalHtml}
+      ${dataRowsHtml}
+      ${rowSaldoAkhirHtml}
+    </tbody>
+  </table>
+</body>
+</html>
+`;
+
+      const blob = new Blob(['\uFEFF' + fullExcelHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      
-      let periodStr = 'Tabelaris_Semua_Periode';
-      if (selectedYear !== 'semua') {
-        periodStr = `Tabelaris_${selectedYear}`;
-        if (selectedMonth !== 'semua') {
-          const monthIndex = parseInt(selectedMonth, 10) - 1;
-          const name = INDO_MONTHS[monthIndex]?.name || 'Bulan';
-          periodStr = `Tabelaris_${name}_${selectedYear}`;
-        }
-      }
-
-      link.setAttribute('download', `Laporan_Tabelaris_Buku_Kas_RT08_${periodStr}.csv`);
+      link.setAttribute('download', `Laporan_Tabelaris_Buku_Kas_RT08_${periodStr}.xls`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -908,11 +1015,11 @@ export default function Ledger({
             <button
               onClick={handleExportExcel}
               className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-250 font-extrabold px-4.5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-xs transition cursor-pointer active:scale-97 font-sans"
-              title="Unduh Buku Kas dalam format Excel (.csv)"
+              title={viewMode === 'tabelaris' ? 'Unduh Rekap Tabelaris dengan formula & rumus Excel aktif (.xls)' : 'Unduh Buku Kas dalam format CSV (.csv)'}
               id="ledger-excel-button"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>Ekspor Excel (.csv)</span>
+              <span>{viewMode === 'tabelaris' ? 'Ekspor Excel (.xls + Rumus)' : 'Ekspor Excel (.csv)'}</span>
             </button>
 
             {/* Print directly or preview */}
