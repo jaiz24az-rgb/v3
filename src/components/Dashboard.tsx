@@ -567,57 +567,21 @@ export default function Dashboard({
 
             {/* Rincian RT Tunai & Kas Kecil */}
             {!isKolektor && !isKolektor2 && (
-              <div className="mt-3 pl-5 border-l border-slate-700 flex flex-col gap-3 text-[11px] text-slate-400 font-mono leading-relaxed">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                    <span className="text-slate-300 font-semibold">Kas Kecil (Operasional RT):</span>
-                    <span className="text-indigo-300 font-bold">Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</span>
-                  </div>
-                  {/* Perhitungan Kas Kecil Detail */}
-                  <div className="mt-1 ml-3.5 pl-2.5 border-l border-indigo-500/30 text-[10px] text-slate-450 space-y-0.5">
-                    <div className="flex justify-between max-w-xs">
-                      <span>• Total Dana Masuk (Tarik Bank / Mutasi):</span>
-                      <span className="text-emerald-400 font-medium">Rp {pettyCashBreakdown.totalMasuk.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="flex justify-between max-w-xs">
-                      <span>• Total Pengeluaran (Belanja RT):</span>
-                      <span className="text-rose-400 font-medium">Rp {pettyCashBreakdown.totalKeluar.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="flex justify-between max-w-xs font-semibold text-indigo-300/90 pt-0.5 border-t border-slate-700/50">
-                      <span>• Sisa Bersih Kas Kecil:</span>
-                      <span>Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</span>
-                    </div>
-                  </div>
+              <div className="mt-2 pl-5 border-l border-slate-700 flex flex-col gap-1.5 text-[11px] text-slate-400 font-mono leading-relaxed">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
+                  <span>Sisa Kas Kecil (Operasional RT):</span>
+                  <span className="text-indigo-300 font-bold">Rp {activeKas.rtPettyCash.toLocaleString('id-ID')}</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
                   <span>Sisa Hasil Tagihan Iuran Warga (Tunai):</span>
                   <span className="text-amber-300 font-bold">Rp {activeKas.rtTunai.toLocaleString('id-ID')}</span>
                 </div>
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-sky-450 shrink-0" />
-                    <span className="text-slate-300 font-semibold">Rincian Rekening Bank:</span>
-                    <span className="text-sky-350 font-bold">Rp {(activeKas.rtBank + activeKas.rombongBank).toLocaleString('id-ID')}</span>
-                  </div>
-                  {/* Rincian Bank Detail */}
-                  <div className="mt-1 ml-3.5 pl-2.5 border-l border-sky-500/30 text-[10px] text-slate-450 space-y-0.5">
-                    <div className="flex justify-between max-w-xs">
-                      <span>• Saldo Bank RT:</span>
-                      <span className="text-sky-400">Rp {activeKas.rtBank.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="flex justify-between max-w-xs">
-                      <span>• Saldo Bank Rombong:</span>
-                      <span className="text-emerald-400">Rp {activeKas.rombongBank.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="flex justify-between max-w-xs font-semibold text-sky-350 pt-0.5 border-t border-slate-700/50">
-                      <span>• Total Semua Bank:</span>
-                      <span>Rp {(activeKas.rtBank + activeKas.rombongBank).toLocaleString('id-ID')}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-450 shrink-0" />
+                  <span>Total Bank RT (Bank RT & Bank Rombong):</span>
+                  <span className="text-sky-350 font-bold">Rp {(activeKas.rtBank + activeKas.rombongBank).toLocaleString('id-ID')}</span>
                 </div>
               </div>
             )}
