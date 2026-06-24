@@ -538,8 +538,8 @@ export default function Dashboard({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-sky-450 shrink-0" />
-                  <span>Kas Umum Rekening Bank RT:</span>
-                  <span className="text-sky-350 font-bold">Rp {activeKas.rtBank.toLocaleString('id-ID')}</span>
+                  <span>Total Bank RT (Bank RT & Bank Rombong):</span>
+                  <span className="text-sky-350 font-bold">Rp {(activeKas.rtBank + activeKas.rombongBank).toLocaleString('id-ID')}</span>
                 </div>
               </div>
             )}

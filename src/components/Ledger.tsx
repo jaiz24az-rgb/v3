@@ -251,6 +251,33 @@ export default function Ledger({
     e.preventDefault();
     if (!editingLedgerEntry) return;
 
+    const originalEntry = ledger.find(item => item.id === editingLedgerEntry.id);
+    if (!originalEntry) return;
+
+    const oldSumber = originalEntry.sumberKas;
+    const newSumber = editingLedgerEntry.sumberKas;
+
+    if (oldSumber !== newSumber) {
+      const nextKas = { ...kas };
+      const { jumlah, tipe } = originalEntry;
+
+      // Reverse original account balance change
+      if (tipe === 'pemasukan') {
+        nextKas[oldSumber] = (nextKas[oldSumber] || 0) - jumlah;
+      } else {
+        nextKas[oldSumber] = (nextKas[oldSumber] || 0) + jumlah;
+      }
+
+      // Apply to new account balance
+      if (tipe === 'pemasukan') {
+        nextKas[newSumber] = (nextKas[newSumber] || 0) + jumlah;
+      } else {
+        nextKas[newSumber] = (nextKas[newSumber] || 0) - jumlah;
+      }
+
+      updateKas(nextKas);
+    }
+
     const updatedLedger = ledger.map(item => {
       if (item.id === editingLedgerEntry.id) {
         return {
@@ -259,7 +286,8 @@ export default function Ledger({
           tanggalInput: editingLedgerEntry.tanggalInput || new Date().toISOString().split('T')[0],
           deskripsi: editingLedgerEntry.deskripsi,
           kategori: editingLedgerEntry.kategori,
-          petugas: editingLedgerEntry.petugas
+          petugas: editingLedgerEntry.petugas,
+          sumberKas: editingLedgerEntry.sumberKas
         };
       }
       return item;
@@ -2174,6 +2202,21 @@ export default function Ledger({
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Penempatan Akun Kas</label>
+                <select
+                  value={editingLedgerEntry.sumberKas}
+                  onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, sumberKas: e.target.value as keyof Balance })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono text-slate-800"
+                >
+                  <option value="rtTunai">Iuran RT Tunai (rtTunai)</option>
+                  <option value="rtPettyCash">Kas Kecil RT (rtPettyCash)</option>
+                  <option value="rtBank">RT Bank (rtBank)</option>
+                  <option value="rombongTunai">Rombong Tunai (rombongTunai)</option>
+                  <option value="rombongBank">Rombong Bank (rombongBank)</option>
+                </select>
               </div>
 
               <div>
