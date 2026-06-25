@@ -2172,19 +2172,26 @@ export default function Ledger({
 
       {/* Lightbox Receipt Preview Modal */}
       {selectedReceipt && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl relative max-w-xl w-full flex flex-col max-h-[90vh]">
-            <div className="bg-slate-50 px-6 py-4 border-b border-slate-150 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-sky-600" />
-                <h4 className="font-extrabold text-slate-800 text-sm truncate max-w-xs md:max-w-md">
+        <div 
+          className="fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-[999] animate-in fade-in duration-200 cursor-pointer"
+          onClick={() => setSelectedReceipt(null)}
+        >
+          <div 
+            className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xl relative max-w-xl w-full flex flex-col max-h-[90vh] cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-150 flex items-center justify-between gap-4 shrink-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <Receipt className="w-5 h-5 text-sky-600 shrink-0" />
+                <h4 className="font-extrabold text-slate-800 text-sm truncate font-sans" title={`Bukti Nota: ${selectedReceipt.deskripsi}`}>
                   Bukti Nota: {selectedReceipt.deskripsi}
                 </h4>
               </div>
               <button
                 onClick={() => setSelectedReceipt(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1.5 rounded-full hover:bg-slate-155 transition"
+                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1.5 rounded-full hover:bg-slate-155 transition shrink-0 flex items-center justify-center"
                 title="Tutup"
+                id="receipt-modal-close-x"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2196,25 +2203,36 @@ export default function Ledger({
                 className="max-h-[50vh] object-contain rounded-xl border border-slate-200 shadow-sm"
               />
             </div>
-            <div className="bg-slate-50 px-6 py-4 border-t border-slate-150 flex items-center justify-between">
-              <span className="text-[10px] text-slate-500 font-mono overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]" title={`${selectedReceipt.fotoNamaFile} (${formatFileSize(getBase64SizeInBytes(selectedReceipt.fotoBase64))})`}>
-                {selectedReceipt.fotoNamaFile} ({formatFileSize(getBase64SizeInBytes(selectedReceipt.fotoBase64))})
+            <div className="bg-slate-50 px-6 py-4 border-t border-slate-150 flex items-center justify-between gap-3 shrink-0">
+              <span className="text-[10px] text-slate-500 font-mono overflow-hidden text-ellipsis whitespace-nowrap max-w-[120px] sm:max-w-[200px]" title={`${selectedReceipt.fotoNamaFile} (${formatFileSize(getBase64SizeInBytes(selectedReceipt.fotoBase64))})`}>
+                {selectedReceipt.fotoNamaFile}
               </span>
-              <button
-                type="button"
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = selectedReceipt.fotoBase64;
-                  link.download = selectedReceipt.fotoNamaFile;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-                className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-sky-600/10 transition active:scale-97"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Ekspor / Unduh Original
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedReceipt(null)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-750 font-bold rounded-xl text-xs cursor-pointer transition active:scale-95 flex items-center gap-1"
+                  id="receipt-modal-close-btn"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = selectedReceipt.fotoBase64;
+                    link.download = selectedReceipt.fotoNamaFile;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-sky-600/10 transition active:scale-97"
+                  id="receipt-modal-download-btn"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Ekspor / Unduh</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

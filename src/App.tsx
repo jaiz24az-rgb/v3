@@ -1364,6 +1364,62 @@ export default function App() {
     };
   }, []);
 
+  // Precompute derived cash balances from the ledger entries (the ultimate truth of real transactional flows)
+  const derivedKas = React.useMemo(() => {
+    let rtPettyCash = 0;
+    let rtTunai = 0;
+    let rtBank = 0;
+    let rombongTunai = 0;
+    let rombongBank = 0;
+
+    ledger.forEach(item => {
+      // Exclude "Penarikan Dana Kolektor" from derived balances because the funds are already counted 
+      // when the citizen payment is entered as a ledger item. Counting both would result in double counting.
+      if (item.kategori === 'Penarikan Dana Kolektor') {
+        return;
+      }
+
+      const val = item.jumlah;
+      const isPemasukan = item.tipe === 'pemasukan';
+      
+      if (item.sumberKas === 'rtBank') {
+        rtBank += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rombongTunai') {
+        rombongTunai += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rombongBank') {
+        rombongBank += isPemasukan ? val : -val;
+      } else if (item.sumberKas === 'rtTunai' || item.sumberKas === 'rtPettyCash') {
+        const desc = (item.deskripsi || '').toLowerCase();
+        const isTagihan = 
+          item.kategori === 'Iuran RT' || 
+          item.kategori === 'Setor Bank' ||
+          desc.includes('iuran rt') || 
+          desc.includes('tagihan rt') || 
+          desc.includes('koreksi edit iuran') ||
+          desc.includes('koreksi batalkan iuran') ||
+          desc.includes('setor bank') ||
+          desc.includes('setor hasil tagihan');
+
+        if (isTagihan) {
+          rtTunai += isPemasukan ? val : -val;
+        } else {
+          rtPettyCash += isPemasukan ? val : -val;
+        }
+      }
+    });
+
+    return {
+      rtTunai,
+      rtPettyCash,
+      rtBank,
+      rombongTunai,
+      rombongBank
+    };
+  }, [ledger]);
+
+  const isAdminOrTreasurerOrSecretary = currentUser?.role === 'admin' || currentUser?.role === 'bendahara' || currentUser?.role === 'sekretaris' || currentUser?.role === 'audit';
+  const activeKas = isAdminOrTreasurerOrSecretary ? derivedKas : kas;
+
   // Intercepting and proxying mutators directly to Firestore / Supabase + Local State
   const handleUpdateLettersList = async (newLetters: OfficialLetter[] | ((prev: OfficialLetter[]) => OfficialLetter[])) => {
     const nextLetters = typeof newLetters === 'function' ? newLetters(lettersList) : newLetters;
@@ -2100,7 +2156,7 @@ export default function App() {
         <div className="focus-tab-view animate-in fade-in duration-300">
           {activeTab === 'dashboard' && (
             <Dashboard 
-              kas={kas} 
+              kas={activeKas} 
               updateKas={updateKas} 
               ledger={ledger} 
               addLedgerEntry={addLedgerEntry} 
@@ -2119,7 +2175,7 @@ export default function App() {
               updateWargaList={handleUpdateWargaList}
               rombongList={rombongList}
               updateRombongList={handleUpdateRombongList}
-              kas={kas}
+              kas={activeKas}
               updateKas={updateKas}
               addLedgerEntry={addLedgerEntry}
               isLoggedIn={isLoggedIn}
@@ -2164,7 +2220,7 @@ export default function App() {
             <Ledger 
               ledger={ledger}
               setLedger={handleSetLedger}
-              kas={kas}
+              kas={activeKas}
               updateKas={updateKas}
               isLoggedIn={isLoggedIn}
               currentUser={currentUser}
@@ -2180,7 +2236,7 @@ export default function App() {
           {activeTab === 'buku_kolektor' && (
             <BukuKolektor 
               ledger={ledger}
-              kas={kas}
+              kas={activeKas}
               isLoggedIn={isLoggedIn}
               currentUser={currentUser}
               yearsList={yearsList}
@@ -2193,7 +2249,7 @@ export default function App() {
 
           {activeTab === 'undangan' && (
             <Undangan 
-              kas={kas}
+              kas={activeKas}
               rtTitle={rtTitle}
               rtAddress={rtAddress}
               rtEmail={rtEmail}
@@ -2238,7 +2294,7 @@ export default function App() {
 
           {activeTab === 'panduan' && (
             <UserGuide 
-              kas={kas}
+              kas={activeKas}
               updateKas={updateKas}
               ledger={ledger}
               updateLedger={handleSetLedger}

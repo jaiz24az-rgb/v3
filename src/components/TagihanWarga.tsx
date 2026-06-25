@@ -9511,12 +9511,15 @@ export default function TagihanWarga({
             className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full shadow-2xl relative flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-100 shrink-0">
-              <h4 className="font-extrabold text-slate-900 text-sm md:text-base font-sans">{documentPreviewUrl.title}</h4>
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-100 shrink-0 gap-4">
+              <h4 className="font-extrabold text-slate-900 text-sm md:text-base font-sans truncate min-w-0 flex-1" title={documentPreviewUrl.title}>
+                {documentPreviewUrl.title}
+              </h4>
               <button 
                 onClick={() => setDocumentPreviewUrl(null)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1 rounded-full hover:bg-slate-200 transition"
+                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1 rounded-full hover:bg-slate-200 transition shrink-0"
                 title="Tutup"
+                id="doc-preview-modal-close-x"
               >
                 <X className="w-5 h-5" />
               </button>
