@@ -506,7 +506,66 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('perumtas_rt08_app_logo', appLogo);
-  }, [appLogo]);
+
+    // Dynamically update favicon and PWA icons in the browser DOM
+    const logoUrl = appLogo || '/favicon.png';
+    
+    // 1. Update Favicon and Apple Touch Icon
+    const favLink = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+    if (favLink) {
+      favLink.href = logoUrl;
+    }
+    const appleLink = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement;
+    if (appleLink) {
+      appleLink.href = logoUrl;
+    }
+
+    // 2. Update Web Manifest dynamically to allow browsers to detect icon/name updates
+    const currentManifestLink = document.querySelector("link[rel='manifest']") as HTMLLinkElement;
+    if (currentManifestLink) {
+      const manifestData = {
+        name: `Buku Kas & Registrasi ${appName || 'RT.008'}`,
+        short_name: appName || "RT.008 App",
+        description: `Sistem Pengelolaan Kas, Tagihan Iuran Warga & Buku Kerja Ketua ${appName || 'RT.008'}`,
+        start_url: "/",
+        id: "/",
+        display: "standalone",
+        orientation: "portrait-primary",
+        background_color: "#0f172a",
+        theme_color: "#0284c7",
+        icons: [
+          {
+            src: logoUrl,
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable"
+          },
+          {
+            src: logoUrl,
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any"
+          },
+          {
+            src: logoUrl,
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any"
+          }
+        ]
+      };
+      
+      const stringified = JSON.stringify(manifestData);
+      const blob = new Blob([stringified], { type: 'application/json' });
+      const manifestBlobUrl = URL.createObjectURL(blob);
+      
+      currentManifestLink.href = manifestBlobUrl;
+      
+      return () => {
+        URL.revokeObjectURL(manifestBlobUrl);
+      };
+    }
+  }, [appLogo, appName]);
 
   useEffect(() => {
     localStorage.setItem('perumtas_rt08_label_warga_singular', labelWargaSingular);

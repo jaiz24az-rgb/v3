@@ -5,8 +5,6 @@ import { compressImage } from '../utils/fileCompressor';
 import { getCollectorBalancesForPeriod } from '../utils/collectorUtils';
 import { 
   Coins, 
-  TrendingUp, 
-  TrendingDown, 
   CreditCard, 
   Store, 
   PlusCircle, 
@@ -1208,37 +1206,6 @@ export default function Dashboard({
             </div>
 
           </form>
-        </div>
-      )}
-
-      {/* Stats Summary Ring Section */}
-      {!isKolektor && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Pemasukan Stats */}
-          <div className="p-5 bg-white border border-slate-200 rounded-2xl flex items-center gap-4 shadow-xs">
-            <div className="p-3.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-              <TrendingUp className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-semibold font-mono">Akumulasi Transaksi Masuk</p>
-              <p className="text-xl font-extrabold text-emerald-600 mt-1 font-mono">
-                + Rp {totalPemasukan.toLocaleString('id-ID')}
-              </p>
-            </div>
-          </div>
-
-          {/* Rencana Pengeluaran Stats */}
-          <div className="p-5 bg-white border border-slate-200 rounded-2xl flex items-center gap-4 shadow-xs">
-            <div className="p-3.5 rounded-xl bg-rose-50 text-rose-650 border border-rose-100 font-bold">
-              <TrendingDown className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-semibold font-mono">Akumulasi Transaksi Keluar</p>
-              <p className="text-xl font-extrabold text-rose-600 mt-1 font-mono">
-                - Rp {totalPengeluaran.toLocaleString('id-ID')}
-              </p>
-            </div>
-          </div>
         </div>
       )}
 
