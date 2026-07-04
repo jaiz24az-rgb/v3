@@ -147,111 +147,75 @@ export default function TagihanWarga({
   updateMeetingNotulen = () => {}
 }: TagihanWargaProps) {
   const printContentViaIframe = (htmlContent: string) => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    // Parse printed document title
+    // Keep original document title to restore later
+    const originalTitle = document.title;
+
+    // Use DOMParser to parse the HTML string cleanly
     const parser = new DOMParser();
     const parsedDoc = parser.parseFromString(htmlContent, 'text/html');
     const printTitle = parsedDoc.querySelector('title')?.textContent;
-    const originalTitle = document.title;
 
     if (printTitle) {
       document.title = printTitle;
     }
 
-    if (isMobile) {
-      // Clean up any existing print containers and temp styles first to prevent duplication
-      document.getElementById('mobile-print-container')?.remove();
-      document.querySelectorAll('.mobile-temp-print-style').forEach(el => el.remove());
-      const oldStyle = document.getElementById('mobile-print-style');
-      if (oldStyle) oldStyle.remove();
+    // Clean up any existing print containers and temp styles first to prevent duplication
+    document.getElementById('mobile-print-container')?.remove();
+    document.querySelectorAll('.mobile-temp-print-style').forEach(el => el.remove());
+    const oldStyle = document.getElementById('mobile-print-style');
+    if (oldStyle) oldStyle.remove();
 
-      // Extract styles and copy them to the main head
-      const docStyles = parsedDoc.querySelectorAll('style');
-      const tempStyles: HTMLStyleElement[] = [];
-      docStyles.forEach((styleEl) => {
-        const newStyle = document.createElement('style');
-        newStyle.className = 'mobile-temp-print-style';
-        newStyle.innerHTML = styleEl.innerHTML;
-        document.head.appendChild(newStyle);
-        tempStyles.push(newStyle);
-      });
+    // Extract styles and copy them to the main head
+    const docStyles = parsedDoc.querySelectorAll('style');
+    const tempStyles: HTMLStyleElement[] = [];
+    docStyles.forEach((styleEl) => {
+      const newStyle = document.createElement('style');
+      newStyle.className = 'mobile-temp-print-style';
+      newStyle.innerHTML = styleEl.innerHTML;
+      document.head.appendChild(newStyle);
+      tempStyles.push(newStyle);
+    });
 
-      // Extract body content and append to body
-      const bodyContent = parsedDoc.body.innerHTML;
-      const container = document.createElement('div');
-      container.id = 'mobile-print-container';
-      container.innerHTML = bodyContent;
-      document.body.appendChild(container);
+    // Extract body content and append to body
+    const bodyContent = parsedDoc.body.innerHTML;
+    const container = document.createElement('div');
+    container.id = 'mobile-print-container';
+    container.innerHTML = bodyContent;
+    document.body.appendChild(container);
 
-      // Create print-specific hiding styles
-      const style = document.createElement('style');
-      style.id = 'mobile-print-style';
-      style.innerHTML = `
-        @media print {
-          body > *:not(#mobile-print-container):not(.mobile-temp-print-style) {
-            display: none !important;
-            visibility: hidden !important;
-          }
-          #mobile-print-container {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            background: white !important;
-            color: black !important;
-            display: block !important;
-            visibility: visible !important;
-          }
+    // Create print-specific hiding styles
+    const style = document.createElement('style');
+    style.id = 'mobile-print-style';
+    style.innerHTML = `
+      @media print {
+        body > *:not(#mobile-print-container):not(.mobile-temp-print-style) {
+          display: none !important;
+          visibility: hidden !important;
         }
-      `;
-      document.head.appendChild(style);
-
-      // Give browser a short delayed moment to digest the style and DOM before opening print dialog
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          container.remove();
-          tempStyles.forEach(el => el.remove());
-          style.remove();
-          document.title = originalTitle;
-        }, 2000);
-      }, 600);
-    } else {
-      const iframe = document.createElement('iframe');
-      iframe.className = 'print-iframe-helper';
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.style.border = '0';
-      iframe.style.zIndex = '-9999';
-      iframe.style.opacity = '0.01';
-      document.body.appendChild(iframe);
-
-      const doc = iframe.contentWindow?.document;
-      if (doc) {
-        doc.open();
-        const cleanedHtml = htmlContent.replace(
-          'window.print();',
-          'window.print(); try { window.frameElement.remove(); } catch(e) {}'
-        ).replace(
-          'window.print()',
-          'window.print(); try { window.frameElement.remove(); } catch(e) {}'
-        ).replace(
-          'window.print( )',
-          'window.print(); try { window.frameElement.remove(); } catch(e) {}'
-        );
-        doc.write(cleanedHtml);
-        doc.close();
+        #mobile-print-container {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          background: white !important;
+          color: black !important;
+          display: block !important;
+          visibility: visible !important;
+        }
       }
+    `;
+    document.head.appendChild(style);
 
-      // Restore document title after print dialog has launched (5 seconds is plenty of time)
+    // Give browser a short delayed moment to digest the style and DOM before opening print dialog
+    setTimeout(() => {
+      window.print();
       setTimeout(() => {
+        container.remove();
+        tempStyles.forEach(el => el.remove());
+        style.remove();
         document.title = originalTitle;
-      }, 5000);
-    }
+      }, 10000);
+    }, 600);
   };
 
   // Helpers for dynamic greetings/signatures
