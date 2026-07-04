@@ -4338,7 +4338,7 @@ export default function TagihanWarga({
 
   // WhatsApp annual payment history book formatter for citizen
   const getWhatsAppHistoryMessageText = (warga: WargaBill, targetYear: number) => {
-    let message = `*BUKU CATATAN TAGIHAN TAHUNAN RT 08 PERUMTAS 3*\n`;
+    let message = `Assalamualaikum wr.wb.\n\n*BUKU CATATAN TAGIHAN TAHUNAN RT 08 PERUMTAS 3*\n`;
     message += `Tahun Buku: *${targetYear}*\n`;
     message += `Nama Warga: *${warga.nama}*\n`;
     message += `Alamat: *Blok ${warga.blok} No. ${warga.noRumah}*\n\n`;
@@ -4370,7 +4370,7 @@ export default function TagihanWarga({
 
   // WhatsApp annual payment history book formatter for rombong
   const getWhatsAppRombongHistoryMessageText = (rombong: RombongBill, targetYear: number) => {
-    let message = `*BUKU CATATAN SEWA LAHAN & ROMBONG RT 08 PERUMTAS 3*\n`;
+    let message = `Assalamualaikum wr.wb.\n\n*BUKU CATATAN SEWA LAHAN & ROMBONG RT 08 PERUMTAS 3*\n`;
     message += `Tahun Buku: *${targetYear}*\n`;
     message += `Pemilik Lapak: *${rombong.namaPemilik}*\n`;
     message += `No. Lapak: *${rombong.noLapak} (${rombong.lokasi})*\n\n`;
@@ -4429,7 +4429,7 @@ export default function TagihanWarga({
     const displayCurrentMonth = waIncludeCurrent && unpaidCurrentMonthName;
     const displayPriorArrears = waIncludeArrears && (unpaidPriorMonths.length > 0 || priorArrears > 0);
 
-    let message = `*TAGIHAN IURAN BULANAN RT 08 PERUMTAS 3*\n`;
+    let message = `Assalamualaikum wr.wb.\n\n*TAGIHAN IURAN BULANAN RT 08 PERUMTAS 3*\n`;
     message += `Kepada Yth. Bapak/Ibu: *${warga.nama}*\n`;
     message += `Alamat: *Blok ${warga.blok} No. ${warga.noRumah}*\n\n`;
 
@@ -4520,7 +4520,7 @@ export default function TagihanWarga({
     const displayCurrentMonth = waIncludeCurrent && unpaidCurrentMonthName;
     const displayPriorArrears = waIncludeArrears && (unpaidPriorMonths.length > 0 || priorArrears > 0);
 
-    let message = `*TAGIHAN KETERTIBAN & SEWA LAHAN ROMBONG RT 08 PERUMTAS 3*\n`;
+    let message = `Assalamualaikum wr.wb.\n\n*TAGIHAN KETERTIBAN & SEWA LAHAN ROMBONG RT 08 PERUMTAS 3*\n`;
     message += `Kepada Yth. Bapak/Ibu Pemilik: *${rombong.namaPemilik}*\n`;
     message += `Lapak: *${rombong.noLapak} (${rombong.lokasi})*\n\n`;
 
@@ -6653,7 +6653,7 @@ export default function TagihanWarga({
                     ? `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}`
                     : `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}`;
 
-                  const textMessage = `*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${receiptSuccessInfo.nama}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${receiptSuccessInfo.nama}\n• Unit: ${detailLoc}\n• Kategori: ${receiptSuccessInfo.category}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${receiptSuccessInfo.nominal.toLocaleString('id-ID')}\n• Tanggal: ${receiptSuccessInfo.tanggalBayar} ${receiptSuccessInfo.jamBayar}\n• Penerima: KAS ${receiptSuccessInfo.kasPenerima.toUpperCase()}\n• Petugas: ${receiptSuccessInfo.petugas}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
+                  const textMessage = `Assalamualaikum wr.wb.\n\n*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${receiptSuccessInfo.nama}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${receiptSuccessInfo.nama}\n• Unit: ${detailLoc}\n• Kategori: ${receiptSuccessInfo.category}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${receiptSuccessInfo.nominal.toLocaleString('id-ID')}\n• Tanggal: ${receiptSuccessInfo.tanggalBayar} ${receiptSuccessInfo.jamBayar}\n• Penerima: KAS ${receiptSuccessInfo.kasPenerima.toUpperCase()}\n• Petugas: ${receiptSuccessInfo.petugas}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
                   const url = `https://wa.me/${noWaFmt}?text=${encodeURIComponent(textMessage)}`;
                   window.open(url, '_blank');
                 }}
