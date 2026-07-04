@@ -4378,18 +4378,18 @@ export default function TagihanWarga({
       const petugas = slot && (slot as any).petugas ? (slot as any).petugas : '-';
 
       const statusBadge = isLunas 
-        ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
-        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
+        ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
+        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
 
       return `
         <tr>
-          <td style="text-align: center; font-weight: bold; color: #475569; border: 1px solid #e2e8f0; padding: 8px 10px;">${idx + 1}</td>
-          <td style="font-weight: bold; color: #1e293b; border: 1px solid #e2e8f0; padding: 8px 10px;">${m}</td>
-          <td style="text-align: center; border: 1px solid #e2e8f0; padding: 8px 10px;">${statusBadge}</td>
-          <td style="font-family: monospace; font-weight: bold; text-align: right; border: 1px solid #e2e8f0; padding: 8px 10px;">Rp ${nominal.toLocaleString('id-ID')}</td>
-          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${tglJamStr}</td>
-          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${kasPenerima}</td>
-          <td style="font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${petugas}</td>
+          <td style="text-align: center; font-weight: bold; color: #475569; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #1e293b; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">${m}</td>
+          <td style="text-align: center; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">${statusBadge}</td>
+          <td style="font-family: monospace; font-weight: bold; text-align: right; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">Rp ${nominal.toLocaleString('id-ID')}</td>
+          <td style="text-align: center; font-size: 9.5px; color: #334155; border: 1px solid #e2e8f0; padding: 4px 6px;">${tglJamStr}</td>
+          <td style="text-align: center; font-size: 9.5px; color: #334155; border: 1px solid #e2e8f0; padding: 4px 6px;">${kasPenerima}</td>
+          <td style="font-size: 9.5px; color: #334155; border: 1px solid #e2e8f0; padding: 4px 6px;">${petugas}</td>
         </tr>
       `;
     }).join('');
@@ -4408,14 +4408,14 @@ export default function TagihanWarga({
           <style>
             @page {
               size: A4 portrait;
-              margin: 15mm 15mm;
+              margin: 8mm 8mm;
             }
             body {
               font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
               color: #1e293b;
               background-color: #ffffff;
-              line-height: 1.5;
-              font-size: 12px;
+              line-height: 1.35;
+              font-size: 10.5px;
               margin: 0;
               padding: 0;
             }
@@ -4428,14 +4428,14 @@ export default function TagihanWarga({
               width: 100%;
               border-collapse: collapse;
               border: none;
-              margin-bottom: 10px;
+              margin-bottom: 5px;
             }
             .header-table td {
               border: none;
               padding: 0;
             }
             .kop-title {
-              font-size: 16px;
+              font-size: 14px;
               font-weight: 800;
               letter-spacing: 1px;
               color: #0f172a;
@@ -4444,53 +4444,53 @@ export default function TagihanWarga({
               text-align: center;
             }
             .kop-subtitle {
-              font-size: 10px;
+              font-size: 9px;
               font-weight: 600;
               color: #475569;
               letter-spacing: 0.5px;
-              margin: 3px 0 0 0;
+              margin: 2px 0 0 0;
               text-transform: uppercase;
               text-align: center;
             }
             .kop-address {
-              font-size: 9px;
+              font-size: 8px;
               color: #64748b;
-              margin: 3px 0 0 0;
+              margin: 2px 0 0 0;
               text-align: center;
             }
             .kop-divider {
-              border-top: 2px solid #0f172a;
+              border-top: 1.5px solid #0f172a;
               border-bottom: 0.5px solid #0f172a;
-              height: 3px;
-              margin: 10px 0 20px 0;
+              height: 2px;
+              margin: 5px 0 10px 0;
             }
             
             .doc-title {
-              font-size: 13px;
+              font-size: 11px;
               font-weight: 800;
               text-align: center;
               text-transform: uppercase;
               color: #0f172a;
-              margin-bottom: 20px;
+              margin-bottom: 10px;
               letter-spacing: 0.5px;
             }
 
             .profile-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 15px;
+              gap: 10px;
               background-color: #f8fafc;
               border: 1px solid #e2e8f0;
-              border-radius: 12px;
-              padding: 12px 15px;
-              margin-bottom: 20px;
+              border-radius: 8px;
+              padding: 8px 12px;
+              margin-bottom: 10px;
             }
             .profile-item {
               display: flex;
-              margin-bottom: 4px;
+              margin-bottom: 2px;
             }
             .profile-label {
-              width: 120px;
+              width: 100px;
               font-weight: 600;
               color: #475569;
             }
@@ -4503,13 +4503,13 @@ export default function TagihanWarga({
             .summary-grid {
               display: grid;
               grid-template-columns: 1fr 1fr 1fr 1fr;
-              gap: 10px;
-              margin-bottom: 20px;
+              gap: 8px;
+              margin-bottom: 10px;
             }
             .summary-box {
               border: 1px solid #e2e8f0;
-              border-radius: 10px;
-              padding: 8px 10px;
+              border-radius: 8px;
+              padding: 5px 8px;
               text-align: center;
             }
             .summary-box.green {
@@ -4521,9 +4521,9 @@ export default function TagihanWarga({
               border-color: #fde68a;
             }
             .summary-box-val {
-              font-size: 14px;
+              font-size: 12px;
               font-weight: 800;
-              margin-top: 2px;
+              margin-top: 1px;
             }
             .summary-box-val.green {
               color: #15803d;
@@ -4532,7 +4532,7 @@ export default function TagihanWarga({
               color: #b45309;
             }
             .summary-box-lbl {
-              font-size: 9px;
+              font-size: 8px;
               font-weight: 600;
               color: #64748b;
               text-transform: uppercase;
@@ -4541,29 +4541,29 @@ export default function TagihanWarga({
             table.billing-table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 25px;
+              margin-bottom: 12px;
             }
             table.billing-table th {
               background-color: #0f172a;
               color: #ffffff;
-              font-size: 10px;
+              font-size: 9px;
               text-transform: uppercase;
               font-weight: bold;
-              padding: 8px 10px;
+              padding: 5px 6px;
               border: 1px solid #1e293b;
               letter-spacing: 0.5px;
             }
             table.billing-table td {
-              padding: 8px 10px;
+              padding: 4px 6px;
               border: 1px solid #e2e8f0;
-              font-size: 11px;
+              font-size: 10px;
             }
             table.billing-table tr:nth-child(even) {
               background-color: #f8fafc;
             }
 
             .signature-section {
-              margin-top: 30px;
+              margin-top: 12px;
               page-break-inside: avoid;
             }
             .signature-table {
@@ -4578,13 +4578,13 @@ export default function TagihanWarga({
               text-align: center;
             }
             .signature-title {
-              font-size: 11px;
+              font-size: 10px;
               font-weight: 600;
               color: #475569;
-              margin-bottom: 50px;
+              margin-bottom: 35px;
             }
             .signature-name {
-              font-size: 11px;
+              font-size: 10px;
               font-weight: 800;
               color: #0f172a;
               text-decoration: underline;
@@ -4592,17 +4592,17 @@ export default function TagihanWarga({
               margin: 0;
             }
             .signature-role {
-              font-size: 9px;
+              font-size: 8px;
               color: #64748b;
-              margin-top: 2px;
+              margin-top: 1px;
             }
 
             .footer-info {
-              margin-top: 40px;
+              margin-top: 12px;
               border-top: 1px dashed #cbd5e1;
-              padding-top: 10px;
+              padding-top: 6px;
               text-align: center;
-              font-size: 9px;
+              font-size: 8px;
               color: #94a3b8;
               font-style: italic;
             }
@@ -4705,13 +4705,11 @@ export default function TagihanWarga({
                 <tr>
                   <td>
                     <div class="signature-title">Mengetahui,<br>Ketua RT 008 RW 004</div>
-                    <div style="height: 50px;"></div>
                     <p class="signature-name">${adminNameFormatted}</p>
                     <p class="signature-role">KETUA RT 08</p>
                   </td>
                   <td>
                     <div class="signature-title">Sidoarjo, ${todayStr}<br>Bendahara RT 008 RW 004</div>
-                    <div style="height: 50px;"></div>
                     <p class="signature-name">${bendaharaNameFormatted}</p>
                     <p class="signature-role">BENDAHARA RT 08</p>
                   </td>
@@ -4779,18 +4777,18 @@ export default function TagihanWarga({
       const petugas = slot && (slot as any).petugas ? (slot as any).petugas : '-';
 
       const statusBadge = isLunas 
-        ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
-        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
+        ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
+        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
 
       return `
         <tr>
-          <td style="text-align: center; font-weight: bold; color: #475569; border: 1px solid #e2e8f0; padding: 8px 10px;">${idx + 1}</td>
-          <td style="font-weight: bold; color: #1e293b; border: 1px solid #e2e8f0; padding: 8px 10px;">${m}</td>
-          <td style="text-align: center; border: 1px solid #e2e8f0; padding: 8px 10px;">${statusBadge}</td>
-          <td style="font-family: monospace; font-weight: bold; text-align: right; border: 1px solid #e2e8f0; padding: 8px 10px;">Rp ${nominal.toLocaleString('id-ID')}</td>
-          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${tglJamStr}</td>
-          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${kasPenerima}</td>
-          <td style="font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${petugas}</td>
+          <td style="text-align: center; font-weight: bold; color: #475569; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #1e293b; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">${m}</td>
+          <td style="text-align: center; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">${statusBadge}</td>
+          <td style="font-family: monospace; font-weight: bold; text-align: right; border: 1px solid #e2e8f0; padding: 4px 6px; font-size: 10px;">Rp ${nominal.toLocaleString('id-ID')}</td>
+          <td style="text-align: center; font-size: 9.5px; color: #334155; border: 1px solid #e2e8f0; padding: 4px 6px;">${tglJamStr}</td>
+          <td style="text-align: center; font-size: 9.5px; color: #334155; border: 1px solid #e2e8f0; padding: 4px 6px;">${kasPenerima}</td>
+          <td style="font-size: 9.5px; color: #334155; border: 1px solid #e2e8f0; padding: 4px 6px;">${petugas}</td>
         </tr>
       `;
     }).join('');
@@ -4809,14 +4807,14 @@ export default function TagihanWarga({
           <style>
             @page {
               size: A4 portrait;
-              margin: 15mm 15mm;
+              margin: 8mm 8mm;
             }
             body {
               font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
               color: #1e293b;
               background-color: #ffffff;
-              line-height: 1.5;
-              font-size: 12px;
+              line-height: 1.35;
+              font-size: 10.5px;
               margin: 0;
               padding: 0;
             }
@@ -4829,14 +4827,14 @@ export default function TagihanWarga({
               width: 100%;
               border-collapse: collapse;
               border: none;
-              margin-bottom: 10px;
+              margin-bottom: 5px;
             }
             .header-table td {
               border: none;
               padding: 0;
             }
             .kop-title {
-              font-size: 16px;
+              font-size: 14px;
               font-weight: 800;
               letter-spacing: 1px;
               color: #0f172a;
@@ -4845,53 +4843,53 @@ export default function TagihanWarga({
               text-align: center;
             }
             .kop-subtitle {
-              font-size: 10px;
+              font-size: 9px;
               font-weight: 600;
               color: #475569;
               letter-spacing: 0.5px;
-              margin: 3px 0 0 0;
+              margin: 2px 0 0 0;
               text-transform: uppercase;
               text-align: center;
             }
             .kop-address {
-              font-size: 9px;
+              font-size: 8px;
               color: #64748b;
-              margin: 3px 0 0 0;
+              margin: 2px 0 0 0;
               text-align: center;
             }
             .kop-divider {
-              border-top: 2px solid #0f172a;
+              border-top: 1.5px solid #0f172a;
               border-bottom: 0.5px solid #0f172a;
-              height: 3px;
-              margin: 10px 0 20px 0;
+              height: 2px;
+              margin: 5px 0 10px 0;
             }
             
             .doc-title {
-              font-size: 13px;
+              font-size: 11px;
               font-weight: 800;
               text-align: center;
               text-transform: uppercase;
               color: #0f172a;
-              margin-bottom: 20px;
+              margin-bottom: 10px;
               letter-spacing: 0.5px;
             }
 
             .profile-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 15px;
+              gap: 10px;
               background-color: #f8fafc;
               border: 1px solid #e2e8f0;
-              border-radius: 12px;
-              padding: 12px 15px;
-              margin-bottom: 20px;
+              border-radius: 8px;
+              padding: 8px 12px;
+              margin-bottom: 10px;
             }
             .profile-item {
               display: flex;
-              margin-bottom: 4px;
+              margin-bottom: 2px;
             }
             .profile-label {
-              width: 120px;
+              width: 100px;
               font-weight: 600;
               color: #475569;
             }
@@ -4904,13 +4902,13 @@ export default function TagihanWarga({
             .summary-grid {
               display: grid;
               grid-template-columns: 1fr 1fr 1fr 1fr;
-              gap: 10px;
-              margin-bottom: 20px;
+              gap: 8px;
+              margin-bottom: 10px;
             }
             .summary-box {
               border: 1px solid #e2e8f0;
-              border-radius: 10px;
-              padding: 8px 10px;
+              border-radius: 8px;
+              padding: 5px 8px;
               text-align: center;
             }
             .summary-box.green {
@@ -4922,9 +4920,9 @@ export default function TagihanWarga({
               border-color: #fde68a;
             }
             .summary-box-val {
-              font-size: 14px;
+              font-size: 12px;
               font-weight: 800;
-              margin-top: 2px;
+              margin-top: 1px;
             }
             .summary-box-val.green {
               color: #15803d;
@@ -4933,7 +4931,7 @@ export default function TagihanWarga({
               color: #b45309;
             }
             .summary-box-lbl {
-              font-size: 9px;
+              font-size: 8px;
               font-weight: 600;
               color: #64748b;
               text-transform: uppercase;
@@ -4942,29 +4940,29 @@ export default function TagihanWarga({
             table.billing-table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 25px;
+              margin-bottom: 12px;
             }
             table.billing-table th {
               background-color: #0f172a;
               color: #ffffff;
-              font-size: 10px;
+              font-size: 9px;
               text-transform: uppercase;
               font-weight: bold;
-              padding: 8px 10px;
+              padding: 5px 6px;
               border: 1px solid #1e293b;
               letter-spacing: 0.5px;
             }
             table.billing-table td {
-              padding: 8px 10px;
+              padding: 4px 6px;
               border: 1px solid #e2e8f0;
-              font-size: 11px;
+              font-size: 10px;
             }
             table.billing-table tr:nth-child(even) {
               background-color: #f8fafc;
             }
 
             .signature-section {
-              margin-top: 30px;
+              margin-top: 12px;
               page-break-inside: avoid;
             }
             .signature-table {
@@ -4979,13 +4977,13 @@ export default function TagihanWarga({
               text-align: center;
             }
             .signature-title {
-              font-size: 11px;
+              font-size: 10px;
               font-weight: 600;
               color: #475569;
-              margin-bottom: 50px;
+              margin-bottom: 35px;
             }
             .signature-name {
-              font-size: 11px;
+              font-size: 10px;
               font-weight: 800;
               color: #0f172a;
               text-decoration: underline;
@@ -4993,17 +4991,17 @@ export default function TagihanWarga({
               margin: 0;
             }
             .signature-role {
-              font-size: 9px;
+              font-size: 8px;
               color: #64748b;
-              margin-top: 2px;
+              margin-top: 1px;
             }
 
             .footer-info {
-              margin-top: 40px;
+              margin-top: 12px;
               border-top: 1px dashed #cbd5e1;
-              padding-top: 10px;
+              padding-top: 6px;
               text-align: center;
-              font-size: 9px;
+              font-size: 8px;
               color: #94a3b8;
               font-style: italic;
             }
@@ -5106,13 +5104,11 @@ export default function TagihanWarga({
                 <tr>
                   <td>
                     <div class="signature-title">Mengetahui,<br>Ketua RT 008 RW 004</div>
-                    <div style="height: 50px;"></div>
                     <p class="signature-name">${adminNameFormatted}</p>
                     <p class="signature-role">KETUA RT 08</p>
                   </td>
                   <td>
                     <div class="signature-title">Sidoarjo, ${todayStr}<br>Bendahara RT 008 RW 004</div>
-                    <div style="height: 50px;"></div>
                     <p class="signature-name">${bendaharaNameFormatted}</p>
                     <p class="signature-role">BENDAHARA RT 08</p>
                   </td>
