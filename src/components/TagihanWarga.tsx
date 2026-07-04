@@ -416,6 +416,19 @@ export default function TagihanWarga({
     tahun: number;
   } | null>(null);
 
+  // Warga Batch Payment confirmation state (with year)
+  const [isBatchPaymentActive, setIsBatchPaymentActive] = useState<boolean>(false);
+  const [batchPaymentSelectedMonths, setBatchPaymentSelectedMonths] = useState<{[key: string]: boolean}>({});
+  const [payingBatchInfo, setPayingBatchInfo] = useState<{
+    warga: WargaBill;
+    category: 'Iuran RT';
+    bulans: string[];
+    nominalPerBulan: { [bulan: string]: number };
+    totalNominal: number;
+    billingType: 'iuranRT';
+    tahun: number;
+  } | null>(null);
+
   // Rombong Payment confirmation state (with year)
   const [payingRombongInfo, setPayingRombongInfo] = useState<{
     rombong: RombongBill;
@@ -536,6 +549,11 @@ export default function TagihanWarga({
     window.addEventListener('click', handleGlobalClick);
     return () => window.removeEventListener('click', handleGlobalClick);
   }, []);
+
+  useEffect(() => {
+    setIsBatchPaymentActive(false);
+    setBatchPaymentSelectedMonths({});
+  }, [selectedWargaHistory, historyYear]);
 
   const fullMonths = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
@@ -3160,6 +3178,116 @@ export default function TagihanWarga({
     });
 
     setPayingInfo(null);
+  };
+
+  const openBatchPaymentModal = (
+    warga: WargaBill,
+    category: 'Iuran RT',
+    bulans: string[],
+    nominalPerBulan: { [bulan: string]: number },
+    billingType: 'iuranRT',
+    tahun: number = 2026
+  ) => {
+    if (!isLoggedIn) {
+      alert('Anda harus masuk/login sebagai petugas terlebih dahulu untuk mencatat pembayaran.');
+      return;
+    }
+    const total = bulans.reduce((sum, b) => sum + (nominalPerBulan[b] || 0), 0);
+    setPaymentTargetKas('rtTunai');
+    setPaymentDate(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    setPaymentTime(`${hh}:${mm}`);
+    setPaymentReceiptBase64('');
+    setPaymentReceiptNamaFile('');
+    setPayingBatchInfo({ warga, category, bulans, nominalPerBulan, totalNominal: total, billingType, tahun });
+  };
+
+  const processBatchPayment = () => {
+    if (!payingBatchInfo) return;
+
+    const { warga, category, bulans, nominalPerBulan, totalNominal, billingType, tahun } = payingBatchInfo;
+
+    const updatedWargaList = wargaList.map(w => {
+      if (w.id === warga.id) {
+        let updatedBillings = [...w[billingType]];
+        
+        bulans.forEach(bulan => {
+          const index = updatedBillings.findIndex(b => b.bulan.toLowerCase() === bulan.toLowerCase() && (b.tahun === tahun || (!b.tahun && tahun === 2026)));
+          const nominal = nominalPerBulan[bulan] || 0;
+          if (index > -1) {
+            updatedBillings[index] = { 
+              ...updatedBillings[index], 
+              lunas: true, 
+              tanggalBayar: paymentDate, 
+              jamBayar: paymentTime,
+              fotoBase64: paymentReceiptBase64 || undefined,
+              fotoNamaFile: paymentReceiptNamaFile || undefined
+            };
+          } else {
+            updatedBillings.push({
+              bulan: bulan,
+              lunas: true,
+              nominal: nominal,
+              tahun: tahun,
+              tanggalBayar: paymentDate,
+              jamBayar: paymentTime,
+              fotoBase64: paymentReceiptBase64 || undefined,
+              fotoNamaFile: paymentReceiptNamaFile || undefined
+            });
+          }
+        });
+
+        const updatedWarga = { ...w, [billingType]: updatedBillings };
+        if (selectedWargaHistory && selectedWargaHistory.id === warga.id) {
+          setSelectedWargaHistory(updatedWarga);
+        }
+        return updatedWarga;
+      }
+      return w;
+    });
+
+    updateWargaList(updatedWargaList);
+
+    const nextKas = { ...kas };
+    nextKas[paymentTargetKas] += totalNominal;
+    updateKas(nextKas);
+
+    const bulansJoined = bulans.join(', ');
+    addLedgerEntry({
+      tanggal: paymentDate,
+      deskripsi: `${category} Kolektif (${bulansJoined}) ${tahun} - ${warga.nama} (Blok ${warga.blok}-${warga.noRumah})`,
+      jumlah: totalNominal,
+      tipe: 'pemasukan',
+      sumberKas: paymentTargetKas,
+      kategori: category,
+      petugas: currentUser?.nama || 'Petugas RT',
+      fotoBase64: paymentReceiptBase64 || undefined,
+      fotoNamaFile: paymentReceiptNamaFile || undefined
+    });
+
+    setReceiptSuccessInfo({
+      id: warga.id,
+      nama: warga.nama,
+      tipe: 'warga',
+      blok: warga.blok,
+      noRumah: warga.noRumah,
+      noWa: warga.noWa || '',
+      category,
+      bulan: bulansJoined,
+      tahun,
+      nominal: totalNominal,
+      tanggalBayar: paymentDate,
+      jamBayar: paymentTime,
+      kasPenerima: paymentTargetKas,
+      petugas: currentUser?.nama || 'Petugas RT',
+      catatan: paymentReceiptNamaFile ? `Gambar struk: ${paymentReceiptNamaFile}` : ''
+    });
+
+    setPayingBatchInfo(null);
+    setIsBatchPaymentActive(false);
+    setBatchPaymentSelectedMonths({});
   };
 
   const processRombongPayment = () => {
@@ -6057,6 +6185,134 @@ export default function TagihanWarga({
         </div>
       )}
 
+      {/* Warga Batch Payment Processing Confirmation Box (Floating Modal Overlay) */}
+      {payingBatchInfo && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full">
+            <button 
+              onClick={() => setPayingBatchInfo(null)}
+              className="absolute top-4 right-4 text-slate-450 hover:text-slate-800 cursor-pointer p-1 rounded-full hover:bg-slate-105 transition"
+              title="Batal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h4 className="font-extrabold text-emerald-600 text-base mb-2 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+              Konfirmasi Pencatatan Pembayaran Kolektif ({payingBatchInfo.bulans.length} Bulan)
+            </h4>
+            <p className="text-slate-650 text-sm mb-3 leading-relaxed">
+              Mencatat pembayaran iuran <strong className="text-slate-900">{payingBatchInfo.category}</strong> kolektif untuk bulan <strong className="text-slate-900">{payingBatchInfo.bulans.join(', ')}</strong> oleh warga <strong className="text-slate-900">{payingBatchInfo.warga.nama}</strong> (Blok {payingBatchInfo.warga.blok}-{payingBatchInfo.warga.noRumah}) sebesar <strong className="text-emerald-605 font-mono font-bold text-sm bg-emerald-50 px-2 py-0.5 rounded-lg">Rp {payingBatchInfo.totalNominal.toLocaleString('id-ID')}</strong> ({payingBatchInfo.bulans.length} x Rp {(payingBatchInfo.totalNominal / payingBatchInfo.bulans.length).toLocaleString('id-ID')}).
+            </p>
+            <div className="bg-sky-50 border border-sky-150 rounded-xl p-3 mb-4 text-xs text-sky-800 leading-relaxed">
+              💡 <strong>Ketentuan Kas:</strong> Uang tagihan kolektif ini dihitung sebagai <strong>Pendapatan Akrual / Kas Masuk</strong> dan langsung disetorkan ke Bank untuk keamanan dan pembukuan resmi, serta tetap terhitung dalam total saldo keseluruhan kas warga.
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-605 mb-1.5 font-mono font-bold">Target Penerimaan Kas Pelunasan (Iuran RT Tunai / Iuran RT Bank)</label>
+                <select
+                  value={paymentTargetKas}
+                  onChange={(e) => setPaymentTargetKas(e.target.value as keyof Balance)}
+                  className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold cursor-pointer"
+                >
+                  <option value="rtTunai">Iuran RT Tunai (Sisa: Rp {kas.rtTunai.toLocaleString('id-ID')})</option>
+                  <option value="rtBank">Iuran RT Bank (Sisa: Rp {kas.rtBank.toLocaleString('id-ID')})</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Tanggal Pembayaran</label>
+                  <input
+                    type="date"
+                    required
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-650 mb-1.5 font-mono">Jam Pembayaran</label>
+                  <input
+                    type="time"
+                    required
+                    value={paymentTime}
+                    onChange={(e) => setPaymentTime(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 relative">
+                <label className="block text-xs font-bold text-slate-700 font-mono mb-1 text-center w-full">Foto Nota / Bukti Transfer Pembayaran Warga (Opsional)</label>
+                {paymentReceiptBase64 ? (
+                  <div className="relative group w-32 h-32 border rounded-xl overflow-hidden shadow-xs bg-white">
+                    <img src={paymentReceiptBase64} alt="Bukti Transfer" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentReceiptBase64('');
+                        setPaymentReceiptNamaFile('');
+                      }}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                      title="Hapus Bukti"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center text-slate-400">
+                    <Camera className="w-8 h-8 mb-1 text-slate-350 pointer-events-none" />
+                    <span className="text-[10px] text-slate-500 font-semibold mb-1 text-center max-w-[280px]">Unggah foto struk transfer ATM, struk M-Banking, atau nota lunas</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const compressed = await compressImage(file);
+                            setPaymentReceiptBase64(compressed);
+                            setPaymentReceiptNamaFile(file.name);
+                          } catch (err) {
+                            console.error(err);
+                            alert('Gagal mengompres gambar.');
+                          }
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer hidden"
+                      id="upload-payment-struk-warga-batch"
+                    />
+                    <label
+                      htmlFor="upload-payment-struk-warga-batch"
+                      className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-705 border border-slate-205 hover:border-slate-305 rounded-xl text-xs font-bold cursor-pointer inline-flex items-center gap-1 shadow-sm transition animate-none"
+                    >
+                      Pilih Struk / Foto
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
+                <button 
+                  onClick={() => setPayingBatchInfo(null)}
+                  className="px-4 py-2 rounded-xl text-slate-500 hover:bg-slate-100 text-xs font-bold transition cursor-pointer"
+                >
+                  Batalkan
+                </button>
+                <button 
+                  onClick={processBatchPayment}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/10 cursor-pointer active:scale-97 transition"
+                >
+                  <Coins className="w-3.5 h-3.5" />
+                  Selesaikan Pembayaran & Catat Kas
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Rombong Payment Processing Confirmation Box (Floating Modal Overlay) */}
       {payingRombongInfo && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200">
@@ -7318,37 +7574,59 @@ export default function TagihanWarga({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
                   <h5 className="text-xs font-extrabold text-slate-700 font-sans uppercase flex items-center gap-1.5 font-mono tracking-wider">
                     <Calendar className="w-4 h-4 text-slate-500" />
-                    Lembar Buku Tagihan {previewOnlyCurrentMonth && !isBatchEdit ? 'Bulan Ini' : 'Setahun'}
+                    Lembar Buku Tagihan {previewOnlyCurrentMonth && !isBatchEdit && !isBatchPaymentActive ? 'Bulan Ini' : 'Setahun'}
                   </h5>
                   
-                  {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
-                    <button
-                      onClick={() => {
-                        const initialStatus: {[key: string]: boolean} = {};
-                        fullMonths.forEach(m => {
-                          const shortM = m.slice(0, 3);
-                          const slot = selectedWargaHistory.iuranRT.find(b => 
-                            (b.tahun === historyYear || (!b.tahun && historyYear === 2026)) &&
-                            (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
-                          );
-                          initialStatus[m] = slot ? slot.lunas : false;
-                        });
-                        setBatchMonthsPaidStatus(initialStatus);
-                        setIsBatchEdit(!isBatchEdit);
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-black tracking-wide transition cursor-pointer select-none border font-sans uppercase shrink-0 ${
-                        isBatchEdit
-                          ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
-                          : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 shadow-xs'
-                      }`}
-                    >
-                      {isBatchEdit ? (
-                        <>✕ Batalkan Koreksi</>
-                      ) : (
-                        <>⚡ Koreksi Cepat Sekaligus</>
-                      )}
-                    </button>
-                  )}
+                  <div className="flex gap-2 flex-wrap">
+                    {isWargaOfficer && !isWargaInactive && !isBatchEdit && (
+                      <button
+                        onClick={() => {
+                          setIsBatchPaymentActive(!isBatchPaymentActive);
+                          setBatchPaymentSelectedMonths({});
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-black tracking-wide transition cursor-pointer select-none border font-sans uppercase shrink-0 ${
+                          isBatchPaymentActive
+                            ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                            : 'bg-emerald-50 border-emerald-250 text-emerald-700 hover:bg-emerald-100 shadow-xs'
+                        }`}
+                      >
+                        {isBatchPaymentActive ? (
+                          <>✕ Batalkan Bayar Kolektif</>
+                        ) : (
+                          <>⚡ Bayar Kolektif Beberapa Bulan</>
+                        )}
+                      </button>
+                    )}
+
+                    {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && !isBatchPaymentActive && (
+                      <button
+                        onClick={() => {
+                          const initialStatus: {[key: string]: boolean} = {};
+                          fullMonths.forEach(m => {
+                            const shortM = m.slice(0, 3);
+                            const slot = selectedWargaHistory.iuranRT.find(b => 
+                              (b.tahun === historyYear || (!b.tahun && historyYear === 2026)) &&
+                              (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+                            );
+                            initialStatus[m] = slot ? slot.lunas : false;
+                          });
+                          setBatchMonthsPaidStatus(initialStatus);
+                          setIsBatchEdit(!isBatchEdit);
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-black tracking-wide transition cursor-pointer select-none border font-sans uppercase shrink-0 ${
+                          isBatchEdit
+                            ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                            : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 shadow-xs'
+                        }`}
+                      >
+                        {isBatchEdit ? (
+                          <>✕ Batalkan Koreksi</>
+                        ) : (
+                          <>⚡ Koreksi Cepat Sekaligus</>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {isBatchEdit && (
@@ -7390,6 +7668,79 @@ export default function TagihanWarga({
                       >
                         💾 Simpan
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {isBatchPaymentActive && selectedWargaHistory && (
+                  <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3.5 shadow-xs">
+                    <div className="text-left w-full sm:w-auto">
+                      <h6 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest font-mono">Mode Bayar Kolektif Aktif ({historyYear})</h6>
+                      <p className="text-[11px] text-slate-650 mt-0.5 leading-relaxed font-semibold">
+                        Klik bulan-bulan belum lunas di bawah untuk memilih pembayaran, lalu klik tombol Proses Bayar.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto justify-end">
+                      <button
+                        onClick={() => {
+                          const allMonthsStatus: {[key: string]: boolean} = {};
+                          fullMonths.forEach(m => {
+                            const shortM = m.slice(0, 3);
+                            const slot = selectedWargaHistory.iuranRT.find(b => 
+                              (b.tahun === historyYear || (!b.tahun && historyYear === 2026)) &&
+                              (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+                            );
+                            const isLunas = slot ? slot.lunas : false;
+                            if (!isLunas) {
+                              allMonthsStatus[m] = true;
+                            }
+                          });
+                          setBatchPaymentSelectedMonths(allMonthsStatus);
+                        }}
+                        className="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-705 rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95"
+                      >
+                        Pilih Semua Belum Lunas
+                      </button>
+                      <button
+                        onClick={() => {
+                          setBatchPaymentSelectedMonths({});
+                        }}
+                        className="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-705 rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95"
+                      >
+                        Batal Semua
+                      </button>
+                      {(() => {
+                        const selectedList = Object.keys(batchPaymentSelectedMonths).filter(m => batchPaymentSelectedMonths[m]);
+                        const totalCount = selectedList.length;
+                        const totalNominal = selectedList.reduce((sum, m) => sum + getDefaultRtRate(historyYear, m, rateRT), 0);
+                        return (
+                          <button
+                            disabled={totalCount === 0}
+                            onClick={() => {
+                              const nominals: { [b: string]: number } = {};
+                              selectedList.forEach(m => {
+                                nominals[m] = getDefaultRtRate(historyYear, m, rateRT);
+                              });
+                              openBatchPaymentModal(
+                                selectedWargaHistory,
+                                'Iuran RT',
+                                selectedList,
+                                nominals,
+                                'iuranRT',
+                                historyYear
+                              );
+                            }}
+                            className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition duration-150 active:scale-95 flex items-center gap-1 cursor-pointer ${
+                              totalCount > 0
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                            }`}
+                          >
+                            <Coins className="w-3.5 h-3.5" />
+                            <span>Proses Bayar {totalCount} Bulan (Rp {totalNominal.toLocaleString('id-ID')})</span>
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
@@ -7451,6 +7802,53 @@ export default function TagihanWarga({
                               isLunasBatch ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100/50 text-amber-600 border-amber-150'
                             }`}>
                               {isLunasBatch ? 'Lunas' : 'Belum'}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      if (isBatchPaymentActive) {
+                        const isSelected = !!batchPaymentSelectedMonths[IndoMonth];
+                        return (
+                          <div 
+                            key={IndoMonth}
+                            onClick={() => {
+                              if (isLunas) {
+                                alert(`Bulan ${IndoMonth} sudah lunas! Hanya bulan belum lunas yang bisa dipilih untuk pembayaran kolektif.`);
+                                return;
+                              }
+                              setBatchPaymentSelectedMonths(prev => ({
+                                ...prev,
+                                [IndoMonth]: !prev[IndoMonth]
+                              }));
+                            }}
+                            className={`p-3 rounded-xl border flex items-center justify-between min-h-[4.5rem] h-auto cursor-pointer transition duration-150 select-none ${
+                              isLunas
+                                ? 'bg-slate-50 border-slate-150 opacity-60 cursor-not-allowed'
+                                : isSelected
+                                ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300/30 shadow-xs'
+                                : 'bg-amber-50/15 border-amber-200 hover:border-amber-305'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {!isLunas && (
+                                <input 
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}} // click handled by parent div
+                                  className="w-4 h-4 text-emerald-600 rounded-sm border-slate-350 focus:ring-emerald-500 cursor-pointer shrink-0"
+                                />
+                              )}
+                              <div className="flex flex-col text-left">
+                                <span className="text-xs font-extrabold text-slate-850">{IndoMonth}</span>
+                                <span className="text-[9.5px] font-mono font-medium text-slate-500 mt-0.5">Rp {nominalValue.toLocaleString('id-ID')}</span>
+                              </div>
+                            </div>
+                            
+                            <span className={`text-[8.5px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border leading-none shrink-0 ${
+                              isLunas ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : isSelected ? 'bg-emerald-200 text-emerald-950 border-emerald-350 font-black' : 'bg-amber-100/50 text-amber-600 border-amber-150'
+                            }`}>
+                              {isLunas ? 'Lunas' : isSelected ? 'Pilih' : 'Belum'}
                             </span>
                           </div>
                         );
