@@ -162,7 +162,7 @@ export default function Dashboard({
 
   // Quick transaction form states
   const [showQuickTx, setShowQuickTx] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tagihan' | 'petty' | 'bank'>('petty');
+  const [activeTab, setActiveTab] = useState<'tagihan' | 'petty' | 'bank' | 'umum'>('petty');
   
   const [newTx, setNewTx] = useState({
     tanggal: '',
@@ -327,33 +327,35 @@ export default function Dashboard({
       setTransferDate('');
       setShowQuickTx(false);
 
-    } else if (activeTab === 'petty') {
+    } else if (activeTab === 'umum') {
       const parsedAmount = parseFloat(newTx.jumlah);
       if (!newTx.deskripsi || isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-      if (newTx.tipe === 'pengeluaran' && activeKas.rtPettyCash < parsedAmount) {
-        alert(`Peringatan: Saldo Kas Kecil (Rp ${activeKas.rtPettyCash.toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
+      const sKas = newTx.sumberKas || 'rtBank';
+
+      if (newTx.tipe === 'pengeluaran' && activeKas[sKas] < parsedAmount) {
+        alert(`Peringatan: Saldo ${kasLabels[sKas].label} (Rp ${activeKas[sKas].toLocaleString('id-ID')}) tidak mencukupi untuk operasional sebesar Rp ${parsedAmount.toLocaleString('id-ID')}!`);
         return;
       }
 
       addLedgerEntry({
         tanggal: newTx.tanggal || today,
         tanggalInput: today,
-        deskripsi: `${newTx.deskripsi} (Buku Kas Kecil)`,
+        deskripsi: newTx.deskripsi,
         jumlah: parsedAmount,
         tipe: newTx.tipe,
-        sumberKas: 'rtPettyCash',
-        kategori: newTx.kategori || 'Kas Kecil',
-        petugas: newTx.petugas || 'Pemegang Kas Kecil',
+        sumberKas: sKas,
+        kategori: newTx.kategori || 'Umum',
+        petugas: newTx.petugas || 'Bendahara RT',
         fotoBase64: newTx.fotoBase64 || undefined,
         fotoNamaFile: newTx.fotoNamaFile || undefined
       });
 
       const updatedBalance = { ...kas };
       if (newTx.tipe === 'pemasukan') {
-        updatedBalance.rtPettyCash += parsedAmount;
+        updatedBalance[sKas] += parsedAmount;
       } else {
-        updatedBalance.rtPettyCash -= parsedAmount;
+        updatedBalance[sKas] -= parsedAmount;
       }
       updateKas(updatedBalance);
 
@@ -610,21 +612,21 @@ export default function Dashboard({
           </div>
 
           {/* Module Selector Sub-Tabs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6 bg-slate-50 p-1.5 rounded-2xl border border-slate-150">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 bg-slate-50 p-1.5 rounded-2xl border border-slate-150">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('tagihan');
                 setNewTx({ ...newTx, kategori: 'Setor Bank', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
               }}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-[10px] sm:text-xs font-extrabold transition cursor-pointer text-center sm:text-left ${
                 activeTab === 'tagihan'
                   ? 'bg-sky-600 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <Receipt className="w-3.5 h-3.5" />
-              Setor hasil tagihan (Tunai ke Bank)
+              <span>Setor Tunai Ke Bank</span>
             </button>
             <button
               type="button"
@@ -632,28 +634,43 @@ export default function Dashboard({
                 setActiveTab('petty');
                 setNewTx({ ...newTx, kategori: 'Kas Kecil', tipe: 'pengeluaran', sumberKas: 'rtPettyCash' });
               }}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-[10px] sm:text-xs font-extrabold transition cursor-pointer text-center sm:text-left ${
                 activeTab === 'petty'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" />
-              Buku Kas Kecil (Biaya RT)
+              <span>Buku Kas Kecil (Biaya RT)</span>
             </button>
             <button
               type="button"
               onClick={() => {
                 setActiveTab('bank');
               }}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-[10px] sm:text-xs font-extrabold transition cursor-pointer text-center sm:text-left ${
                 activeTab === 'bank'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+              <span>Catatan Bank (Mutasi)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('umum');
+                setNewTx({ ...newTx, kategori: 'Operasional Bank', tipe: 'pengeluaran', sumberKas: 'rtBank' });
+              }}
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-[10px] sm:text-xs font-extrabold transition cursor-pointer text-center sm:text-left ${
+                activeTab === 'umum'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
               <Landmark className="w-3.5 h-3.5" />
-              Catatan Bank (Mutasi)
+              <span>RT Bank / Kas Umum</span>
             </button>
           </div>
 
