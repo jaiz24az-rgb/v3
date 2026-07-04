@@ -44,8 +44,10 @@
   
   /* Make the printed content section block occupied and visible */
   #printable-user-guide,
-  #printable-user-guide * {
-    visibility: visible;
+  #printable-user-guide *,
+  #mobile-print-container,
+  #mobile-print-container * {
+    visibility: visible !important;
   }
   
   /* Ensure our printing iframe is visible and spans the full area during printing */
