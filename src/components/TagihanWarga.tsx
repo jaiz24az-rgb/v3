@@ -4336,6 +4336,808 @@ export default function TagihanWarga({
     document.body.removeChild(textArea);
   };
 
+  // Print Warga Annual Billing Book PDF
+  const handlePrintWargaAnnualBook = (warga: WargaBill, targetYear: number) => {
+    const totalPaidMonths = fullMonths.filter(m => {
+      const shortM = m.slice(0, 3);
+      const slot = warga.iuranRT.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+      return slot && slot.lunas;
+    }).length;
+
+    const totalUnpaidMonths = 12 - totalPaidMonths;
+
+    const totalPaidAmount = warga.iuranRT
+      .filter(b => b.lunas && (b.tahun === targetYear || (!b.tahun && targetYear === 2026)))
+      .reduce((sum, b) => sum + b.nominal, 0);
+
+    const totalUnpaidAmount = fullMonths.filter(m => {
+      const shortM = m.slice(0, 3);
+      const slot = warga.iuranRT.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+      return !(slot && slot.lunas);
+    }).reduce((sum, m) => sum + getDefaultRtRate(targetYear, m, rateRT), 0);
+
+    const tableRowsHtml = fullMonths.map((m, idx) => {
+      const shortM = m.slice(0, 3);
+      const slot = warga.iuranRT.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+
+      const isLunas = slot ? slot.lunas : false;
+      const nominal = slot ? slot.nominal : getDefaultRtRate(targetYear, m, rateRT);
+      const tanggalBayar = slot && slot.tanggalBayar ? slot.tanggalBayar : '-';
+      const jamBayar = slot && slot.jamBayar ? slot.jamBayar : '';
+      const tglJamStr = tanggalBayar !== '-' ? `${tanggalBayar} ${jamBayar}`.trim() : '-';
+      const kasPenerima = slot && (slot as any).sumberKas ? ((slot as any).sumberKas === 'rtTunai' ? 'Kas Tunai' : 'Kas Bank') : '-';
+      const petugas = slot && (slot as any).petugas ? (slot as any).petugas : '-';
+
+      const statusBadge = isLunas 
+        ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
+        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: bold; color: #475569; border: 1px solid #e2e8f0; padding: 8px 10px;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #1e293b; border: 1px solid #e2e8f0; padding: 8px 10px;">${m}</td>
+          <td style="text-align: center; border: 1px solid #e2e8f0; padding: 8px 10px;">${statusBadge}</td>
+          <td style="font-family: monospace; font-weight: bold; text-align: right; border: 1px solid #e2e8f0; padding: 8px 10px;">Rp ${nominal.toLocaleString('id-ID')}</td>
+          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${tglJamStr}</td>
+          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${kasPenerima}</td>
+          <td style="font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${petugas}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const todayStr = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Buku_Tagihan_${warga.nama.replace(/\s+/g, '_')}_${targetYear}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 15mm 15mm;
+            }
+            body {
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              color: #1e293b;
+              background-color: #ffffff;
+              line-height: 1.5;
+              font-size: 12px;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header-table {
+              width: 100%;
+              border-collapse: collapse;
+              border: none;
+              margin-bottom: 10px;
+            }
+            .header-table td {
+              border: none;
+              padding: 0;
+            }
+            .kop-title {
+              font-size: 16px;
+              font-weight: 800;
+              letter-spacing: 1px;
+              color: #0f172a;
+              text-transform: uppercase;
+              margin: 0;
+              text-align: center;
+            }
+            .kop-subtitle {
+              font-size: 10px;
+              font-weight: 600;
+              color: #475569;
+              letter-spacing: 0.5px;
+              margin: 3px 0 0 0;
+              text-transform: uppercase;
+              text-align: center;
+            }
+            .kop-address {
+              font-size: 9px;
+              color: #64748b;
+              margin: 3px 0 0 0;
+              text-align: center;
+            }
+            .kop-divider {
+              border-top: 2px solid #0f172a;
+              border-bottom: 0.5px solid #0f172a;
+              height: 3px;
+              margin: 10px 0 20px 0;
+            }
+            
+            .doc-title {
+              font-size: 13px;
+              font-weight: 800;
+              text-align: center;
+              text-transform: uppercase;
+              color: #0f172a;
+              margin-bottom: 20px;
+              letter-spacing: 0.5px;
+            }
+
+            .profile-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              background-color: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 12px 15px;
+              margin-bottom: 20px;
+            }
+            .profile-item {
+              display: flex;
+              margin-bottom: 4px;
+            }
+            .profile-label {
+              width: 120px;
+              font-weight: 600;
+              color: #475569;
+            }
+            .profile-value {
+              flex: 1;
+              font-weight: 700;
+              color: #0f172a;
+            }
+
+            .summary-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr 1fr;
+              gap: 10px;
+              margin-bottom: 20px;
+            }
+            .summary-box {
+              border: 1px solid #e2e8f0;
+              border-radius: 10px;
+              padding: 8px 10px;
+              text-align: center;
+            }
+            .summary-box.green {
+              background-color: #f0fdf4;
+              border-color: #bbf7d0;
+            }
+            .summary-box.amber {
+              background-color: #fffbeb;
+              border-color: #fde68a;
+            }
+            .summary-box-val {
+              font-size: 14px;
+              font-weight: 800;
+              margin-top: 2px;
+            }
+            .summary-box-val.green {
+              color: #15803d;
+            }
+            .summary-box-val.amber {
+              color: #b45309;
+            }
+            .summary-box-lbl {
+              font-size: 9px;
+              font-weight: 600;
+              color: #64748b;
+              text-transform: uppercase;
+            }
+
+            table.billing-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 25px;
+            }
+            table.billing-table th {
+              background-color: #0f172a;
+              color: #ffffff;
+              font-size: 10px;
+              text-transform: uppercase;
+              font-weight: bold;
+              padding: 8px 10px;
+              border: 1px solid #1e293b;
+              letter-spacing: 0.5px;
+            }
+            table.billing-table td {
+              padding: 8px 10px;
+              border: 1px solid #e2e8f0;
+              font-size: 11px;
+            }
+            table.billing-table tr:nth-child(even) {
+              background-color: #f8fafc;
+            }
+
+            .signature-section {
+              margin-top: 30px;
+              page-break-inside: avoid;
+            }
+            .signature-table {
+              width: 100%;
+              border-collapse: collapse;
+              border: none;
+            }
+            .signature-table td {
+              border: none;
+              padding: 0;
+              width: 50%;
+              text-align: center;
+            }
+            .signature-title {
+              font-size: 11px;
+              font-weight: 600;
+              color: #475569;
+              margin-bottom: 50px;
+            }
+            .signature-name {
+              font-size: 11px;
+              font-weight: 800;
+              color: #0f172a;
+              text-decoration: underline;
+              text-transform: uppercase;
+              margin: 0;
+            }
+            .signature-role {
+              font-size: 9px;
+              color: #64748b;
+              margin-top: 2px;
+            }
+
+            .footer-info {
+              margin-top: 40px;
+              border-top: 1px dashed #cbd5e1;
+              padding-top: 10px;
+              text-align: center;
+              font-size: 9px;
+              color: #94a3b8;
+              font-style: italic;
+            }
+
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <table class="header-table">
+              <tr>
+                <td style="text-align: center;">
+                  <h1 class="kop-title">RUKUN TETANGGA 008 RW 004</h1>
+                  <h2 class="kop-subtitle">PERUMAHAN TAS 3 BLOK A, KECAMATAN CANDI, SIDOARJO</h2>
+                  <p class="kop-address">Sidoarjo, Jawa Timur, Indonesia • Kode Pos: 61271</p>
+                </td>
+              </tr>
+            </table>
+            <div class="kop-divider"></div>
+
+            <div class="doc-title">Buku Registry & Catatan Tagihan Tahunan Warga</div>
+
+            <div class="profile-grid">
+              <div>
+                <div class="profile-item">
+                  <span class="profile-label">Nama Warga:</span>
+                  <span class="profile-value">${warga.nama}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">Alamat Unit:</span>
+                  <span class="profile-value">Blok ${warga.blok} No. ${warga.noRumah}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">Status Hunian:</span>
+                  <span class="profile-value">${warga.statusRumah || 'Milik Sendiri'}</span>
+                </div>
+              </div>
+              <div>
+                <div class="profile-item">
+                  <span class="profile-label">Tahun Buku:</span>
+                  <span class="profile-value">${targetYear}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">Kategori Iuran:</span>
+                  <span class="profile-value" style="color: #059669;">Iuran Kas RT</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">No. WhatsApp:</span>
+                  <span class="profile-value">${warga.noWa || '-'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-grid">
+              <div class="summary-box green">
+                <div class="summary-box-lbl">Bulan Lunas</div>
+                <div class="summary-box-val green">${totalPaidMonths} Bulan</div>
+              </div>
+              <div class="summary-box green">
+                <div class="summary-box-lbl">Dana Terbayar</div>
+                <div class="summary-box-val green">Rp ${totalPaidAmount.toLocaleString('id-ID')}</div>
+              </div>
+              <div class="summary-box amber">
+                <div class="summary-box-lbl">Bulan Tertunggak</div>
+                <div class="summary-box-val amber">${totalUnpaidMonths} Bulan</div>
+              </div>
+              <div class="summary-box amber">
+                <div class="summary-box-lbl">Total Tunggakan</div>
+                <div class="summary-box-val amber">Rp ${totalUnpaidAmount.toLocaleString('id-ID')}</div>
+              </div>
+            </div>
+
+            <table class="billing-table">
+              <thead>
+                <tr>
+                  <th style="width: 5%; text-align: center;">No</th>
+                  <th style="width: 15%; text-align: left;">Bulan</th>
+                  <th style="width: 15%; text-align: center;">Status</th>
+                  <th style="width: 15%; text-align: right;">Nominal</th>
+                  <th style="width: 20%; text-align: center;">Tanggal & Jam</th>
+                  <th style="width: 15%; text-align: center;">Metode / Kas</th>
+                  <th style="width: 15%; text-align: left;">Petugas</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsHtml}
+              </tbody>
+            </table>
+
+            <div class="signature-section">
+              <table class="signature-table">
+                <tr>
+                  <td>
+                    <div class="signature-title">Mengetahui,<br>Ketua RT 008 RW 004</div>
+                    <div style="height: 50px;"></div>
+                    <p class="signature-name">${adminNameFormatted}</p>
+                    <p class="signature-role">KETUA RT 08</p>
+                  </td>
+                  <td>
+                    <div class="signature-title">Sidoarjo, ${todayStr}<br>Bendahara RT 008 RW 004</div>
+                    <div style="height: 50px;"></div>
+                    <p class="signature-name">${bendaharaNameFormatted}</p>
+                    <p class="signature-role">BENDAHARA RT 08</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="footer-info">
+              Dokumen ini dihasilkan secara otomatis dan sah oleh Sistem Digitalisasi Pembukuan & Keuangan RT 08 Perumahan TAS 3 Candi Sidoarjo pada tanggal ${todayStr}.<br>
+              Keamanan, Kemudahan, dan Keterbukaan RT 08 Perumahan TAS 3.
+            </div>
+
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printContentViaIframe(htmlContent);
+  };
+
+  // Print Rombong Annual Billing Book PDF
+  const handlePrintRombongAnnualBook = (rombong: RombongBill, targetYear: number) => {
+    const totalPaidMonths = fullMonths.filter(m => {
+      const shortM = m.slice(0, 3);
+      const slot = rombong.iuranRombong.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+      return slot && slot.lunas;
+    }).length;
+
+    const totalUnpaidMonths = 12 - totalPaidMonths;
+
+    const totalPaidAmount = rombong.iuranRombong
+      .filter(b => b.lunas && (b.tahun === targetYear || (!b.tahun && targetYear === 2026)))
+      .reduce((sum, b) => sum + b.nominal, 0);
+
+    const totalUnpaidAmount = fullMonths.filter(m => {
+      const shortM = m.slice(0, 3);
+      const slot = rombong.iuranRombong.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+      return !(slot && slot.lunas);
+    }).reduce((sum, m) => sum + getDefaultRombongRate(targetYear, m, rateRombong), 0);
+
+    const tableRowsHtml = fullMonths.map((m, idx) => {
+      const shortM = m.slice(0, 3);
+      const slot = rombong.iuranRombong.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+
+      const isLunas = slot ? slot.lunas : false;
+      const nominal = slot ? slot.nominal : getDefaultRombongRate(targetYear, m, rateRombong);
+      const tanggalBayar = slot && slot.tanggalBayar ? slot.tanggalBayar : '-';
+      const jamBayar = slot && slot.jamBayar ? slot.jamBayar : '';
+      const tglJamStr = tanggalBayar !== '-' ? `${tanggalBayar} ${jamBayar}`.trim() : '-';
+      const kasPenerima = slot && (slot as any).sumberKas ? ((slot as any).sumberKas === 'rtTunai' ? 'Kas Tunai' : 'Kas Bank') : '-';
+      const petugas = slot && (slot as any).petugas ? (slot as any).petugas : '-';
+
+      const statusBadge = isLunas 
+        ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
+        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
+
+      return `
+        <tr>
+          <td style="text-align: center; font-weight: bold; color: #475569; border: 1px solid #e2e8f0; padding: 8px 10px;">${idx + 1}</td>
+          <td style="font-weight: bold; color: #1e293b; border: 1px solid #e2e8f0; padding: 8px 10px;">${m}</td>
+          <td style="text-align: center; border: 1px solid #e2e8f0; padding: 8px 10px;">${statusBadge}</td>
+          <td style="font-family: monospace; font-weight: bold; text-align: right; border: 1px solid #e2e8f0; padding: 8px 10px;">Rp ${nominal.toLocaleString('id-ID')}</td>
+          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${tglJamStr}</td>
+          <td style="text-align: center; font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${kasPenerima}</td>
+          <td style="font-size: 11px; color: #334155; border: 1px solid #e2e8f0; padding: 8px 10px;">${petugas}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const todayStr = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Buku_Sewa_${rombong.namaPemilik.replace(/\s+/g, '_')}_${targetYear}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 15mm 15mm;
+            }
+            body {
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              color: #1e293b;
+              background-color: #ffffff;
+              line-height: 1.5;
+              font-size: 12px;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header-table {
+              width: 100%;
+              border-collapse: collapse;
+              border: none;
+              margin-bottom: 10px;
+            }
+            .header-table td {
+              border: none;
+              padding: 0;
+            }
+            .kop-title {
+              font-size: 16px;
+              font-weight: 800;
+              letter-spacing: 1px;
+              color: #0f172a;
+              text-transform: uppercase;
+              margin: 0;
+              text-align: center;
+            }
+            .kop-subtitle {
+              font-size: 10px;
+              font-weight: 600;
+              color: #475569;
+              letter-spacing: 0.5px;
+              margin: 3px 0 0 0;
+              text-transform: uppercase;
+              text-align: center;
+            }
+            .kop-address {
+              font-size: 9px;
+              color: #64748b;
+              margin: 3px 0 0 0;
+              text-align: center;
+            }
+            .kop-divider {
+              border-top: 2px solid #0f172a;
+              border-bottom: 0.5px solid #0f172a;
+              height: 3px;
+              margin: 10px 0 20px 0;
+            }
+            
+            .doc-title {
+              font-size: 13px;
+              font-weight: 800;
+              text-align: center;
+              text-transform: uppercase;
+              color: #0f172a;
+              margin-bottom: 20px;
+              letter-spacing: 0.5px;
+            }
+
+            .profile-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              background-color: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 12px 15px;
+              margin-bottom: 20px;
+            }
+            .profile-item {
+              display: flex;
+              margin-bottom: 4px;
+            }
+            .profile-label {
+              width: 120px;
+              font-weight: 600;
+              color: #475569;
+            }
+            .profile-value {
+              flex: 1;
+              font-weight: 700;
+              color: #0f172a;
+            }
+
+            .summary-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr 1fr;
+              gap: 10px;
+              margin-bottom: 20px;
+            }
+            .summary-box {
+              border: 1px solid #e2e8f0;
+              border-radius: 10px;
+              padding: 8px 10px;
+              text-align: center;
+            }
+            .summary-box.green {
+              background-color: #f0fdf4;
+              border-color: #bbf7d0;
+            }
+            .summary-box.amber {
+              background-color: #fffbeb;
+              border-color: #fde68a;
+            }
+            .summary-box-val {
+              font-size: 14px;
+              font-weight: 800;
+              margin-top: 2px;
+            }
+            .summary-box-val.green {
+              color: #15803d;
+            }
+            .summary-box-val.amber {
+              color: #b45309;
+            }
+            .summary-box-lbl {
+              font-size: 9px;
+              font-weight: 600;
+              color: #64748b;
+              text-transform: uppercase;
+            }
+
+            table.billing-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 25px;
+            }
+            table.billing-table th {
+              background-color: #0f172a;
+              color: #ffffff;
+              font-size: 10px;
+              text-transform: uppercase;
+              font-weight: bold;
+              padding: 8px 10px;
+              border: 1px solid #1e293b;
+              letter-spacing: 0.5px;
+            }
+            table.billing-table td {
+              padding: 8px 10px;
+              border: 1px solid #e2e8f0;
+              font-size: 11px;
+            }
+            table.billing-table tr:nth-child(even) {
+              background-color: #f8fafc;
+            }
+
+            .signature-section {
+              margin-top: 30px;
+              page-break-inside: avoid;
+            }
+            .signature-table {
+              width: 100%;
+              border-collapse: collapse;
+              border: none;
+            }
+            .signature-table td {
+              border: none;
+              padding: 0;
+              width: 50%;
+              text-align: center;
+            }
+            .signature-title {
+              font-size: 11px;
+              font-weight: 600;
+              color: #475569;
+              margin-bottom: 50px;
+            }
+            .signature-name {
+              font-size: 11px;
+              font-weight: 800;
+              color: #0f172a;
+              text-decoration: underline;
+              text-transform: uppercase;
+              margin: 0;
+            }
+            .signature-role {
+              font-size: 9px;
+              color: #64748b;
+              margin-top: 2px;
+            }
+
+            .footer-info {
+              margin-top: 40px;
+              border-top: 1px dashed #cbd5e1;
+              padding-top: 10px;
+              text-align: center;
+              font-size: 9px;
+              color: #94a3b8;
+              font-style: italic;
+            }
+
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <table class="header-table">
+              <tr>
+                <td style="text-align: center;">
+                  <h1 class="kop-title">RUKUN TETANGGA 008 RW 004</h1>
+                  <h2 class="kop-subtitle">PERUMAHAN TAS 3 BLOK A, KECAMATAN CANDI, SIDOARJO</h2>
+                  <p class="kop-address">Sidoarjo, Jawa Timur, Indonesia • Kode Pos: 61271</p>
+                </td>
+              </tr>
+            </table>
+            <div class="kop-divider"></div>
+
+            <div class="doc-title">Buku Registry & Catatan Sewa Lahan Rombong Tahunan</div>
+
+            <div class="profile-grid">
+              <div>
+                <div class="profile-item">
+                  <span class="profile-label">Pemilik Lapak:</span>
+                  <span class="profile-value">${rombong.namaPemilik}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">No. Lapak:</span>
+                  <span class="profile-value">${rombong.noLapak}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">Lokasi:</span>
+                  <span class="profile-value">${rombong.lokasi}</span>
+                </div>
+              </div>
+              <div>
+                <div class="profile-item">
+                  <span class="profile-label">Tahun Buku:</span>
+                  <span class="profile-value">${targetYear}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">Kategori Iuran:</span>
+                  <span class="profile-value" style="color: #0369a1;">Sewa Lahan & Rombong</span>
+                </div>
+                <div class="profile-item">
+                  <span class="profile-label">No. WhatsApp:</span>
+                  <span class="profile-value">${rombong.noWa || '-'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-grid">
+              <div class="summary-box green">
+                <div class="summary-box-lbl">Bulan Lunas</div>
+                <div class="summary-box-val green">${totalPaidMonths} Bulan</div>
+              </div>
+              <div class="summary-box green">
+                <div class="summary-box-lbl">Dana Terbayar</div>
+                <div class="summary-box-val green">Rp ${totalPaidAmount.toLocaleString('id-ID')}</div>
+              </div>
+              <div class="summary-box amber">
+                <div class="summary-box-lbl">Bulan Tertunggak</div>
+                <div class="summary-box-val amber">${totalUnpaidMonths} Bulan</div>
+              </div>
+              <div class="summary-box amber">
+                <div class="summary-box-lbl">Total Tunggakan</div>
+                <div class="summary-box-val amber">Rp ${totalUnpaidAmount.toLocaleString('id-ID')}</div>
+              </div>
+            </div>
+
+            <table class="billing-table">
+              <thead>
+                <tr>
+                  <th style="width: 5%; text-align: center;">No</th>
+                  <th style="width: 15%; text-align: left;">Bulan</th>
+                  <th style="width: 15%; text-align: center;">Status</th>
+                  <th style="width: 15%; text-align: right;">Nominal</th>
+                  <th style="width: 20%; text-align: center;">Tanggal & Jam</th>
+                  <th style="width: 15%; text-align: center;">Metode / Kas</th>
+                  <th style="width: 15%; text-align: left;">Petugas</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsHtml}
+              </tbody>
+            </table>
+
+            <div class="signature-section">
+              <table class="signature-table">
+                <tr>
+                  <td>
+                    <div class="signature-title">Mengetahui,<br>Ketua RT 008 RW 004</div>
+                    <div style="height: 50px;"></div>
+                    <p class="signature-name">${adminNameFormatted}</p>
+                    <p class="signature-role">KETUA RT 08</p>
+                  </td>
+                  <td>
+                    <div class="signature-title">Sidoarjo, ${todayStr}<br>Bendahara RT 008 RW 004</div>
+                    <div style="height: 50px;"></div>
+                    <p class="signature-name">${bendaharaNameFormatted}</p>
+                    <p class="signature-role">BENDAHARA RT 08</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="footer-info">
+              Dokumen ini dihasilkan secara otomatis dan sah oleh Sistem Digitalisasi Pembukuan & Keuangan RT 08 Perumahan TAS 3 Candi Sidoarjo pada tanggal ${todayStr}.<br>
+              Keamanan, Kemudahan, dan Keterbukaan RT 08 Perumahan TAS 3.
+            </div>
+
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printContentViaIframe(htmlContent);
+  };
+
   // WhatsApp annual payment history book formatter for citizen
   const getWhatsAppHistoryMessageText = (warga: WargaBill, targetYear: number) => {
     let message = `Assalamualaikum wr.wb.\n\n*BUKU CATATAN TAGIHAN TAHUNAN RT 08 PERUMTAS 3*\n`;
@@ -8023,6 +8825,16 @@ export default function TagihanWarga({
                 )}
                 <button
                   onClick={() => {
+                    handlePrintWargaAnnualBook(selectedWargaHistory, historyYear);
+                  }}
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-sky-600/10 transition cursor-pointer active:scale-97"
+                  title="Cetak PDF Buku Catatan Tagihan per Warga ini"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak PDF</span>
+                </button>
+                <button
+                  onClick={() => {
                     setSelectedWargaHistory(null);
                     setHistoryYear(2026);
                   }}
@@ -8354,6 +9166,16 @@ export default function TagihanWarga({
                     <span>Kirim Buku Ke WA</span>
                   </button>
                 )}
+                <button
+                  onClick={() => {
+                    handlePrintRombongAnnualBook(selectedRombongHistory, historyYear);
+                  }}
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-sky-600/10 transition cursor-pointer active:scale-97"
+                  title="Cetak PDF Buku Catatan Tagihan per Rombong ini"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak PDF</span>
+                </button>
                 <button
                   onClick={() => {
                     setSelectedRombongHistory(null);
