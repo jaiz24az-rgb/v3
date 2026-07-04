@@ -6611,7 +6611,7 @@ export default function TagihanWarga({
               </h5>
               
               <p className="text-[10.5px] text-slate-650 leading-relaxed mt-2 font-medium font-sans">
-                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{receiptSuccessInfo.nama}</span> dalam pelunasan <strong className="text-slate-805 font-bold">{receiptSuccessInfo.category} ({receiptSuccessInfo.bulan} {receiptSuccessInfo.tahun})</strong>.
+                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{receiptSuccessInfo.nama}</span> dalam pelunasan {receiptSuccessInfo.bulan.includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{receiptSuccessInfo.category} ({receiptSuccessInfo.bulan} {receiptSuccessInfo.tahun})</strong>.
               </p>
               
               <p className="text-[10px] text-slate-505 leading-relaxed mt-1.5 font-semibold italic bg-white/70 border border-slate-100 p-1.5 rounded-xl">
@@ -6646,7 +6646,14 @@ export default function TagihanWarga({
                     ? `Blok ${receiptSuccessInfo.blok}-${receiptSuccessInfo.noRumah}`
                     : `No Lapak ${receiptSuccessInfo.noLapak}`;
 
-                  const textMessage = `*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${receiptSuccessInfo.nama}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${receiptSuccessInfo.nama}\n• Unit: ${detailLoc}\n• Kategori: ${receiptSuccessInfo.category}\n• Periode: ${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}\n• Nominal: Rp ${receiptSuccessInfo.nominal.toLocaleString('id-ID')}\n• Tanggal: ${receiptSuccessInfo.tanggalBayar} ${receiptSuccessInfo.jamBayar}\n• Penerima: KAS ${receiptSuccessInfo.kasPenerima.toUpperCase()}\n• Petugas: ${receiptSuccessInfo.petugas}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
+                  const isBatch = receiptSuccessInfo.bulan.includes(',');
+                  const numMonths = isBatch ? receiptSuccessInfo.bulan.split(',').length : 1;
+                  const tipeBayarText = isBatch ? `\n• Jenis: Pembayaran Kolektif (${numMonths} Bulan)` : '';
+                  const periodeText = isBatch 
+                    ? `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}`
+                    : `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}`;
+
+                  const textMessage = `*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${receiptSuccessInfo.nama}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${receiptSuccessInfo.nama}\n• Unit: ${detailLoc}\n• Kategori: ${receiptSuccessInfo.category}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${receiptSuccessInfo.nominal.toLocaleString('id-ID')}\n• Tanggal: ${receiptSuccessInfo.tanggalBayar} ${receiptSuccessInfo.jamBayar}\n• Penerima: KAS ${receiptSuccessInfo.kasPenerima.toUpperCase()}\n• Petugas: ${receiptSuccessInfo.petugas}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
                   const url = `https://wa.me/${noWaFmt}?text=${encodeURIComponent(textMessage)}`;
                   window.open(url, '_blank');
                 }}
