@@ -4315,7 +4315,15 @@ export default function TagihanWarga({
       return slot && slot.lunas;
     }).length;
 
-    const totalUnpaidMonths = 12 - totalPaidMonths;
+    const totalUnpaidMonths = fullMonths.filter(m => {
+      const shortM = m.slice(0, 3);
+      const slot = warga.iuranRT.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+      const isLunas = slot ? slot.lunas : false;
+      return !isLunas && isMonthDue(m, targetYear);
+    }).length;
 
     const totalPaidAmount = warga.iuranRT
       .filter(b => b.lunas && (b.tahun === targetYear || (!b.tahun && targetYear === 2026)))
@@ -4327,7 +4335,8 @@ export default function TagihanWarga({
         (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
         (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
       );
-      return !(slot && slot.lunas);
+      const isLunas = slot ? slot.lunas : false;
+      return !isLunas && isMonthDue(m, targetYear);
     }).reduce((sum, m) => sum + getDefaultRtRate(targetYear, m, rateRT), 0);
 
     const tableRowsHtml = fullMonths.map((m, idx) => {
@@ -4714,7 +4723,15 @@ export default function TagihanWarga({
       return slot && slot.lunas;
     }).length;
 
-    const totalUnpaidMonths = 12 - totalPaidMonths;
+    const totalUnpaidMonths = fullMonths.filter(m => {
+      const shortM = m.slice(0, 3);
+      const slot = rombong.iuranRombong.find(b => 
+        (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
+        (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
+      );
+      const isLunas = slot ? slot.lunas : false;
+      return !isLunas && isMonthDue(m, targetYear);
+    }).length;
 
     const totalPaidAmount = rombong.iuranRombong
       .filter(b => b.lunas && (b.tahun === targetYear || (!b.tahun && targetYear === 2026)))
@@ -4726,7 +4743,8 @@ export default function TagihanWarga({
         (b.tahun === targetYear || (!b.tahun && targetYear === 2026)) &&
         (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
       );
-      return !(slot && slot.lunas);
+      const isLunas = slot ? slot.lunas : false;
+      return !isLunas && isMonthDue(m, targetYear);
     }).reduce((sum, m) => sum + getDefaultRombongRate(targetYear, m, rateRombong), 0);
 
     const tableRowsHtml = fullMonths.map((m, idx) => {
