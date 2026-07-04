@@ -55,23 +55,22 @@ export default function Ledger({
   const printContentViaIframe = (htmlContent: string) => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
+    // Parse printed document title
+    const parser = new DOMParser();
+    const parsedDoc = parser.parseFromString(htmlContent, 'text/html');
+    const printTitle = parsedDoc.querySelector('title')?.textContent;
+    const originalTitle = document.title;
+
+    if (printTitle) {
+      document.title = printTitle;
+    }
+
     if (isMobile) {
       // Clean up any existing print containers and temp styles first to prevent duplication
       document.getElementById('mobile-print-container')?.remove();
       document.querySelectorAll('.mobile-temp-print-style').forEach(el => el.remove());
       const oldStyle = document.getElementById('mobile-print-style');
       if (oldStyle) oldStyle.remove();
-
-      // Use DOMParser to parse the HTML string cleanly
-      const parser = new DOMParser();
-      const parsedDoc = parser.parseFromString(htmlContent, 'text/html');
-
-      // Keep original document title to restore later
-      const originalTitle = document.title;
-      const printTitle = parsedDoc.querySelector('title')?.textContent;
-      if (printTitle) {
-        document.title = printTitle;
-      }
 
       // Extract styles and copy them to the main head
       const docStyles = parsedDoc.querySelectorAll('style');
@@ -153,6 +152,11 @@ export default function Ledger({
         doc.write(cleanedHtml);
         doc.close();
       }
+
+      // Restore document title after print dialog has launched (5 seconds is plenty of time)
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 5000);
     }
   };
 
