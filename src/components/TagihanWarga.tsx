@@ -1049,10 +1049,10 @@ export default function TagihanWarga({
             </tbody>
           </table>
 
-          <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; color: #0f172a;">II. Rincian Tunggakan Tahun Lalu & Sebelum</h3>
+          <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; color: #0f172a;">II. Rincian Tagihan Belum Terbayar (Tahun Sebelumnya)</h3>
           ${priorUnpaidList.length === 0 ? `
             <p class="note-box" style="font-style: italic; color: #16a34a; font-weight: 600; font-size: 12px; border: 1px dashed #bbf7d0; padding: 10px; background-color: #f0fdf4; border-radius: 6px; margin-bottom: 25px;">
-              ✓ Hebat! Warga ini bebas tunggakan iuran bulanan dari tahun-tahun sebelumnya.
+              ✓ Hebat! Warga ini bebas dari tagihan iuran bulanan tahun-tahun sebelumnya.
             </p>
           ` : `
             <table class="table-bills" style="margin-bottom: 25px;">
@@ -1072,7 +1072,7 @@ export default function TagihanWarga({
                     <td><strong>Tahun ${item.tahun}</strong></td>
                     <td>${item.bulan}</td>
                     <td style="text-align: right; font-family: monospace; color: #b91c1c;">Rp ${item.nominal.toLocaleString('id-ID')}</td>
-                    <td style="text-align: center;"><span class="badge-belum">Tertunggak</span></td>
+                    <td style="text-align: center;"><span class="badge-belum">Belum Lunas</span></td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1082,7 +1082,7 @@ export default function TagihanWarga({
           <div class="box-summary">
             <h4 class="summary-title font-bold">Ringkasan Beban & Akumulasi Tagihan</h4>
             <div class="summary-row">
-              <span>Total Tunggakan Iuran Tahun ${targetYear}:</span>
+              <span>Total Tagihan Belum Lunas Tahun ${targetYear}:</span>
               <span style="font-family: monospace;">Rp ${currentUnpaidTotal.toLocaleString('id-ID')}</span>
             </div>
             <div class="summary-row">
@@ -1090,18 +1090,18 @@ export default function TagihanWarga({
               <span style="font-family: monospace; color: #16a34a; font-weight: bold;">Rp ${currentPaidTotal.toLocaleString('id-ID')}</span>
             </div>
             <div class="summary-row">
-              <span>Total Akumulasi Tunggakan Tahun Sebelumnya (Sisa Arrears):</span>
+              <span>Total Akumulasi Tagihan Tahun Sebelumnya:</span>
               <span style="font-family: monospace; color: #b91c1c;">Rp ${priorUnpaidTotal.toLocaleString('id-ID')}</span>
             </div>
             <div class="summary-row total">
-              <span>GRAND TOTAL TUNGGAKAN KUMULATIF:</span>
+              <span>GRAND TOTAL TAGIHAN BELUM LUNAS:</span>
               <span style="font-family: monospace;">Rp ${grandTotalTunggakan.toLocaleString('id-ID')}</span>
             </div>
           </div>
 
           <div class="note-box" style="margin-top: 20px; font-size: 11px; color: #475569; border-left: 2px solid #0284c7; padding-left: 10px; line-height: 1.4;">
             *Catatan Penting:<br/>
-            1. Harap melunasi tunggakan iuran demi kelancaran kegiatan sosial, keamanan, dan pemeliharaan facilities di lingkungan ${rtNum}.<br/>
+            1. Harap menyelesaikan tagihan iuran demi kelancaran kegiatan sosial, keamanan, dan pemeliharaan facilities di lingkungan ${rtNum}.<br/>
             2. Pembayaran dapat diserahkan langsung kepada Pengurus RT / Bendahara / Kolektor resmi atau ditransfer ke rekening bank resmi RT.
           </div>
 
@@ -1548,10 +1548,10 @@ export default function TagihanWarga({
             </tbody>
           </table>
 
-          <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; color: #0f172a;">II. Rincian Tunggakan Tahun Lalu & Sebelum</h3>
+          <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; color: #0f172a;">II. Rincian Tagihan Belum Terbayar (Tahun Sebelumnya)</h3>
           ${priorUnpaidList.length === 0 ? `
             <p class="note-box" style="font-style: italic; color: #16a34a; font-weight: 600; font-size: 12px; border: 1px dashed #bbf7d0; padding: 10px; background-color: #f0fdf4; border-radius: 6px; margin-bottom: 25px;">
-              ✓ Hebat! Pemilik rombong ini bebas tunggakan iuran dari tahun-tahun sebelumnya.
+              ✓ Hebat! Pemilik rombong ini bebas dari tagihan iuran tahun-tahun sebelumnya.
             </p>
           ` : `
             <table class="table-bills" style="margin-bottom: 25px;">
@@ -1571,7 +1571,7 @@ export default function TagihanWarga({
                     <td><strong>Tahun ${item.tahun}</strong></td>
                     <td>${item.bulan}</td>
                     <td style="text-align: right; font-family: monospace; color: #b91c1c;">Rp ${item.nominal.toLocaleString('id-ID')}</td>
-                    <td style="text-align: center;"><span class="badge-belum">Tertunggak</span></td>
+                    <td style="text-align: center;"><span class="badge-belum">Belum Lunas</span></td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -1581,7 +1581,7 @@ export default function TagihanWarga({
           <div class="box-summary">
             <h4 class="summary-title font-bold">Ringkasan Beban & Akumulasi Tagihan Rombong</h4>
             <div class="summary-row">
-              <span>Total Tunggakan Iuran Tahun ${targetYear}:</span>
+              <span>Total Tagihan Belum Lunas Tahun ${targetYear}:</span>
               <span style="font-family: monospace;">Rp ${currentUnpaidTotal.toLocaleString('id-ID')}</span>
             </div>
             <div class="summary-row">
@@ -1589,18 +1589,18 @@ export default function TagihanWarga({
               <span style="font-family: monospace; color: #16a34a; font-weight: bold;">Rp ${currentPaidTotal.toLocaleString('id-ID')}</span>
             </div>
             <div class="summary-row">
-              <span>Total Akumulasi Tunggakan Tahun Sebelumnya (Sisa Arrears):</span>
+              <span>Total Akumulasi Tagihan Tahun Sebelumnya:</span>
               <span style="font-family: monospace; color: #b91c1c;">Rp ${priorUnpaidTotal.toLocaleString('id-ID')}</span>
             </div>
             <div class="summary-row total">
-              <span>GRAND TOTAL TUNGGAKAN KUMULATIF:</span>
+              <span>GRAND TOTAL TAGIHAN BELUM LUNAS:</span>
               <span style="font-family: monospace;">Rp ${grandTotalTunggakan.toLocaleString('id-ID')}</span>
             </div>
           </div>
 
           <div class="note-box" style="margin-top: 20px; font-size: 11px; color: #475569; border-left: 2px solid #059669; padding-left: 10px; line-height: 1.4;">
             *Catatan Penting:<br/>
-            1. Mohon melakukan penyelesaian iuran/sewa lapak rombong demi kenyamanan bersama dan penataan ketertiban lingkungan ${rtNum}.<br/>
+            1. Mohon melakukan penyelesaian tagihan iuran/sewa lapak rombong demi kenyamanan bersama dan penataan ketertiban lingkungan ${rtNum}.<br/>
             2. Pembayaran dapat diserahkan langsung kepada Pengurus RT / Bendahara / Kolektor resmi atau ditransfer ke rekening bank resmi RT.
           </div>
 
@@ -3280,7 +3280,7 @@ export default function TagihanWarga({
         // Needs admin approval
         if (currentUser?.role !== 'admin') {
           if (!adminApprovalPin) {
-            alert('Proses Ditolak: Rombong ini memiliki catatan sewa yang macet/tertunggak. Kustomisasi nominal membutuhkan persetujuan Admin (PIN)!');
+            alert('Proses Ditolak: Rombong ini memiliki catatan sewa yang belum lunas. Kustomisasi nominal membutuhkan persetujuan Admin (PIN)!');
             return;
           }
           const validAdmin = usersList.find(u => u.role === 'admin' && u.pin === adminApprovalPin);
@@ -4347,7 +4347,10 @@ export default function TagihanWarga({
       );
 
       const isLunas = slot ? slot.lunas : false;
-      const nominal = slot ? slot.nominal : getDefaultRtRate(targetYear, m, rateRT);
+      const isFuture = !isMonthDue(m, targetYear);
+      const nominal = isLunas 
+        ? (slot ? slot.nominal : getDefaultRtRate(targetYear, m, rateRT)) 
+        : (isFuture ? 0 : getDefaultRtRate(targetYear, m, rateRT));
       const tanggalBayar = slot && slot.tanggalBayar ? slot.tanggalBayar : '-';
       const jamBayar = slot && slot.jamBayar ? slot.jamBayar : '';
       const tglJamStr = tanggalBayar !== '-' ? `${tanggalBayar} ${jamBayar}`.trim() : '-';
@@ -4651,11 +4654,11 @@ export default function TagihanWarga({
                 <div class="summary-box-val green">Rp ${totalPaidAmount.toLocaleString('id-ID')}</div>
               </div>
               <div class="summary-box amber">
-                <div class="summary-box-lbl">Bulan Tertunggak</div>
+                <div class="summary-box-lbl">Bulan Belum Lunas</div>
                 <div class="summary-box-val amber">${totalUnpaidMonths} Bulan</div>
               </div>
               <div class="summary-box amber">
-                <div class="summary-box-lbl">Total Tunggakan</div>
+                <div class="summary-box-lbl">Total Tagihan</div>
                 <div class="summary-box-val amber">Rp ${totalUnpaidAmount.toLocaleString('id-ID')}</div>
               </div>
             </div>
@@ -4755,7 +4758,10 @@ export default function TagihanWarga({
       );
 
       const isLunas = slot ? slot.lunas : false;
-      const nominal = slot ? slot.nominal : getDefaultRombongRate(targetYear, m, rateRombong);
+      const isFuture = !isMonthDue(m, targetYear);
+      const nominal = isLunas 
+        ? (slot ? slot.nominal : getDefaultRombongRate(targetYear, m, rateRombong)) 
+        : (isFuture ? 0 : getDefaultRombongRate(targetYear, m, rateRombong));
       const tanggalBayar = slot && slot.tanggalBayar ? slot.tanggalBayar : '-';
       const jamBayar = slot && slot.jamBayar ? slot.jamBayar : '';
       const tglJamStr = tanggalBayar !== '-' ? `${tanggalBayar} ${jamBayar}`.trim() : '-';
@@ -5059,11 +5065,11 @@ export default function TagihanWarga({
                 <div class="summary-box-val green">Rp ${totalPaidAmount.toLocaleString('id-ID')}</div>
               </div>
               <div class="summary-box amber">
-                <div class="summary-box-lbl">Bulan Tertunggak</div>
+                <div class="summary-box-lbl">Bulan Belum Lunas</div>
                 <div class="summary-box-val amber">${totalUnpaidMonths} Bulan</div>
               </div>
               <div class="summary-box amber">
-                <div class="summary-box-lbl">Total Tunggakan</div>
+                <div class="summary-box-lbl">Total Tagihan</div>
                 <div class="summary-box-val amber">Rp ${totalUnpaidAmount.toLocaleString('id-ID')}</div>
               </div>
             </div>
@@ -5220,7 +5226,7 @@ export default function TagihanWarga({
     if (!displayCurrentMonth && !displayPriorArrears) {
       const isActuallyLunas = unpaidRT.length === 0 && priorArrears === 0;
       if (isActuallyLunas) {
-        message += `Selamat! Saat ini Anda *Bebas Tunggakan* (Lunas seluruh iuran). Terima kasih banyak atas partisipasi aktif Bapak/Ibu! 🎉`;
+        message += `Selamat! Saat ini Anda *Lunas Seluruhnya* (Bebas tagihan iuran). Terima kasih banyak atas partisipasi aktif Bapak/Ibu! 🎉`;
       } else {
         message += `Saat ini tidak ada rincian tagihan sesuai filter penagihan terpilih yang perlu dikirimkan.`;
       }
@@ -5242,16 +5248,16 @@ export default function TagihanWarga({
           });
           grandTotalAccumulated += sub;
           const firstMonthRate = getDefaultRtRate(selectedBillingYear, unpaidPriorMonths[0], rateRT);
-          let monthLabel = `Tunggakan Bulan Sebelumnya`;
+          let monthLabel = `Tagihan Bulan Sebelumnya`;
           if (!isSelYearCurrent) {
-            monthLabel = `Tunggakan Tahun ${selectedBillingYear}`;
+            monthLabel = `Tagihan Tahun ${selectedBillingYear}`;
           }
           message += `• *${monthLabel}* (${unpaidPriorMonths.join(', ')} @ Rp ${firstMonthRate.toLocaleString('id-ID')}): Rp ${sub.toLocaleString('id-ID')}\n`;
         }
 
         if (priorArrears > 0) {
           grandTotalAccumulated += priorArrears;
-          message += `• *Tunggakan Tahun Sebelumnya*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
+          message += `• *Tagihan Tahun Sebelumnya*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
         }
       }
 
@@ -5311,7 +5317,7 @@ export default function TagihanWarga({
     if (!displayCurrentMonth && !displayPriorArrears) {
       const isActuallyLunas = unpaidRombong.length === 0 && priorArrears === 0;
       if (isActuallyLunas) {
-        message += `Selamat! Saat ini usaha Anda *Bebas Tunggakan* (Lunas sewa dan iuran). Terima kasih atas kerja samanya! 🎉`;
+        message += `Selamat! Saat ini usaha Anda *Lunas Seluruhnya* (Bebas tagihan sewa dan iuran). Terima kasih atas kerja samanya! 🎉`;
       } else {
         message += `Saat ini tidak ada rincian tagihan sesuai filter penagihan terpilih yang perlu dikirimkan.`;
       }
@@ -5333,16 +5339,16 @@ export default function TagihanWarga({
           });
           grandTotalAccumulated += sub;
           const firstMonthRate = getDefaultRombongRate(selectedBillingYear, unpaidPriorMonths[0], rateRombong);
-          let monthLabel = `Tunggakan Bulan Sebelumnya`;
+          let monthLabel = `Tagihan Bulan Sebelumnya`;
           if (!isSelYearCurrent) {
-            monthLabel = `Tunggakan Tahun ${selectedBillingYear}`;
+            monthLabel = `Tagihan Tahun ${selectedBillingYear}`;
           }
           message += `• *${monthLabel}* (${unpaidPriorMonths.join(', ')} @ Rp ${firstMonthRate.toLocaleString('id-ID')}): Rp ${sub.toLocaleString('id-ID')}\n`;
         }
 
         if (priorArrears > 0) {
           grandTotalAccumulated += priorArrears;
-          message += `• *Tunggakan Tahun Sebelumnya*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
+          message += `• *Tagihan Tahun Sebelumnya*: Rp ${priorArrears.toLocaleString('id-ID')}\n`;
         }
       }
 
@@ -5532,9 +5538,9 @@ export default function TagihanWarga({
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
                 >
                   <option value="Semua">Status: Semua</option>
-                  <option value="Lunas">Bebas Tunggakan</option>
-                  <option value="Belum Lunas">Ada Tunggakan</option>
-                  <option value="Tunggakan2Bulan">⚠️ Tunggakan &gt; 2 Bln</option>
+                  <option value="Lunas">Lunas Seluruhnya</option>
+                  <option value="Belum Lunas">Ada Tagihan</option>
+                  <option value="Tunggakan2Bulan">⚠️ Tagihan &gt; 2 Bln</option>
                 </select>
               </div>
 
@@ -7873,8 +7879,8 @@ export default function TagihanWarga({
                   className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer mt-0.5 accent-emerald-600"
                 />
                 <div>
-                  <span className="font-bold text-slate-800">Tunggakan Sebelumnya (Arrears)</span>
-                  <p className="text-[10px] text-slate-500">Tunggakan bulan/tahun sebelumnya jika ada</p>
+                  <span className="font-bold text-slate-800">Tagihan Sebelumnya (Arrears)</span>
+                  <p className="text-[10px] text-slate-500">Tagihan belum lunas dari bulan/tahun sebelumnya jika ada</p>
                 </div>
               </label>
             </div>
@@ -7971,8 +7977,8 @@ export default function TagihanWarga({
                   className="w-4 h-4 text-emerald-600 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer mt-0.5 accent-emerald-600"
                 />
                 <div>
-                  <span className="font-bold text-slate-800">Tunggakan Sebelumnya (Arrears)</span>
-                  <p className="text-[10px] text-slate-500">Tunggakan bulan/tahun sebelumnya jika ada</p>
+                  <span className="font-bold text-slate-800">Tagihan Sebelumnya (Arrears)</span>
+                  <p className="text-[10px] text-slate-500">Tagihan belum lunas dari bulan/tahun sebelumnya jika ada</p>
                 </div>
               </label>
             </div>
@@ -8162,7 +8168,7 @@ export default function TagihanWarga({
 
                 <div className="p-4 rounded-2xl bg-amber-50/45 border border-amber-100 flex flex-col justify-between">
                   <div>
-                    <div className="text-[10px] font-bold text-amber-700 uppercase tracking-wider font-mono">Tunggakan ({historyYear})</div>
+                    <div className="text-[10px] font-bold text-amber-700 uppercase tracking-wider font-mono">Belum Terbayar ({historyYear})</div>
                     <div className="text-[10px] text-slate-400 font-medium font-mono">Tahun {historyYear}</div>
                     <div className="text-lg font-black font-mono text-amber-850 mt-1">
                       Rp {(() => {
@@ -8183,7 +8189,7 @@ export default function TagihanWarga({
                     </div>
                   </div>
                   <div className="mt-2 pt-1.5 border-t border-amber-200/40 text-[9px] text-amber-805 leading-relaxed font-medium italic">
-                    Tunggakan iuran RT adalah keterlambatan atau kelalaian warga dalam membayarkan iuran bulanan dalam waktu bulan berjalan
+                    Tagihan iuran RT adalah iuran bulanan warga yang belum terbayarkan dalam tahun buku berjalan
                   </div>
                 </div>
               </div>
@@ -8556,7 +8562,11 @@ export default function TagihanWarga({
                       );
 
                       const isLunas = matchedSlot ? matchedSlot.lunas : false;
-                      const nominalValue = matchedSlot ? matchedSlot.nominal : getDefaultRtRate(historyYear, IndoMonth, rateRT);
+                      const isFuture = !isMonthDue(IndoMonth, historyYear);
+                      const nominalValue = isLunas 
+                        ? (matchedSlot ? matchedSlot.nominal : getDefaultRtRate(historyYear, IndoMonth, rateRT))
+                        : (isFuture ? 0 : getDefaultRtRate(historyYear, IndoMonth, rateRT));
+                      const actualRateValue = matchedSlot ? matchedSlot.nominal : getDefaultRtRate(historyYear, IndoMonth, rateRT);
                       const displayBulan = matchedSlot ? matchedSlot.bulan : IndoMonth;
 
                       if (isBatchEdit) {
@@ -8697,7 +8707,7 @@ export default function TagihanWarga({
                                 {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                                   <button
                                     onClick={() => {
-                                      openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
+                                      openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, actualRateValue, 'iuranRT', historyYear);
                                     }}
                                     className="text-[9px] text-sky-600 hover:text-sky-850 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1"
                                   >
@@ -8710,7 +8720,7 @@ export default function TagihanWarga({
                                 {isWargaOfficer && !isWargaInactive ? (
                                   <button
                                     onClick={() => {
-                                      openPaymentModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
+                                      openPaymentModal(selectedWargaHistory, 'Iuran RT', displayBulan, actualRateValue, 'iuranRT', historyYear);
                                     }}
                                     className="text-[10px] font-extrabold px-1.5 py-0.5 rounded transition bg-amber-100 hover:bg-amber-250 text-amber-700 cursor-pointer active:scale-95 text-center leading-none"
                                   >
@@ -8724,7 +8734,7 @@ export default function TagihanWarga({
                                 {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                                   <button
                                     onClick={() => {
-                                      openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, nominalValue, 'iuranRT', historyYear);
+                                      openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, actualRateValue, 'iuranRT', historyYear);
                                     }}
                                     className="text-[9px] text-sky-600 hover:text-sky-850 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1"
                                   >
@@ -8934,7 +8944,7 @@ export default function TagihanWarga({
 
                 <div className="p-4 rounded-2xl bg-amber-50/45 border border-amber-104 flex flex-col justify-between">
                   <div>
-                    <div className="text-[10px] font-bold text-amber-700 uppercase tracking-wider font-mono">Tunggakan ({historyYear})</div>
+                    <div className="text-[10px] font-bold text-amber-700 uppercase tracking-wider font-mono">Belum Terbayar ({historyYear})</div>
                     <div className="text-[10px] text-slate-405 font-medium font-mono">Tahun {historyYear}</div>
                     <div className="text-lg font-black font-mono text-amber-850 mt-1">
                       Rp {(() => {
@@ -8955,7 +8965,7 @@ export default function TagihanWarga({
                     </div>
                   </div>
                   <div className="mt-2 pt-1.5 border-t border-amber-200/40 text-[9px] text-amber-805 leading-relaxed font-medium italic">
-                    Tunggakan sewa rombong adalah keterlambatan atau kelalaian dalam membayarkan sewa bulanan dalam waktu bulan berjalan
+                    Tagihan sewa rombong adalah sewa bulanan lapak/rombong yang belum terbayarkan dalam tahun berjalan
                   </div>
                 </div>
               </div>
@@ -8977,7 +8987,11 @@ export default function TagihanWarga({
 
                     const isLunas = matchedSlot ? matchedSlot.lunas : false;
                     const isPendingApp = isLunas && (matchedSlot as any).isCustom && !(matchedSlot as any).approved;
-                    const nominalValue = matchedSlot ? matchedSlot.nominal : getDefaultRombongRate(historyYear, IndoMonth, rateRombong);
+                    const isFuture = !isMonthDue(IndoMonth, historyYear);
+                    const nominalValue = isLunas 
+                      ? (matchedSlot ? matchedSlot.nominal : getDefaultRombongRate(historyYear, IndoMonth, rateRombong))
+                      : (isFuture ? 0 : getDefaultRombongRate(historyYear, IndoMonth, rateRombong));
+                    const actualRateValue = matchedSlot ? matchedSlot.nominal : getDefaultRombongRate(historyYear, IndoMonth, rateRombong);
                     const displayBulan = matchedSlot ? matchedSlot.bulan : IndoMonth;
 
                     return (
@@ -9040,7 +9054,7 @@ export default function TagihanWarga({
                               {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
                                 <button
                                   onClick={() => {
-                                    openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, nominalValue, 'iuranRombong', historyYear);
+                                    openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, actualRateValue, 'iuranRombong', historyYear);
                                   }}
                                   className="text-[9px] text-sky-600 hover:text-sky-850 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1"
                                 >
@@ -9053,7 +9067,7 @@ export default function TagihanWarga({
                               {isOfficer && !isRombongInactive ? (
                                 <button
                                   onClick={() => {
-                                    openRombongPaymentModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, nominalValue, 'iuranRombong', historyYear);
+                                    openRombongPaymentModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, actualRateValue, 'iuranRombong', historyYear);
                                   }}
                                   className="text-[10px] font-bold px-1.5 py-0.5 rounded transition bg-amber-100 hover:bg-amber-200 text-amber-700 cursor-pointer active:scale-95"
                                 >
@@ -9067,7 +9081,7 @@ export default function TagihanWarga({
                               {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
                                 <button
                                   onClick={() => {
-                                    openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, nominalValue, 'iuranRombong', historyYear);
+                                    openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, actualRateValue, 'iuranRombong', historyYear);
                                   }}
                                   className="text-[9px] text-sky-600 hover:text-sky-850 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1"
                                 >
@@ -9306,7 +9320,7 @@ export default function TagihanWarga({
                                     title={`Warga ini belum melunasi iuran bulanan sebanyak ${unpaidMonthsCount} bulan`}
                                   >
                                     <span className="w-1.5 h-1.5 bg-rose-600 rounded-full animate-ping" />
-                                    Tunggakan {unpaidMonthsCount} bln
+                                    Belum Lunas {unpaidMonthsCount} bln
                                   </span>
                                 )}
                               </div>
@@ -9573,7 +9587,7 @@ export default function TagihanWarga({
                                     title={`Lapak ini belum melunasi iuran bulanan sebanyak ${unpaidMonthsCount} bulan`}
                                   >
                                     <span className="w-1.5 h-1.5 bg-rose-600 rounded-full animate-ping" />
-                                    Tunggakan {unpaidMonthsCount} bln
+                                    Belum Lunas {unpaidMonthsCount} bln
                                   </span>
                                 )}
                               </div>
@@ -10156,7 +10170,7 @@ export default function TagihanWarga({
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
                         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">🔧 Pengaturan Konten Pesan WhatsApp Masal / Batch:</p>
-                        <p className="text-[11.5px] text-slate-550 mt-0.5">Atur apakah draf pesan akan menyertakan tagihan bulan aktif saat ini, tunggakan bulan sebelumnya, atau keduanya.</p>
+                        <p className="text-[11.5px] text-slate-550 mt-0.5">Atur apakah draf pesan akan menyertakan tagihan bulan aktif saat ini, tagihan belum lunas bulan sebelumnya, atau keduanya.</p>
                       </div>
                       
                       <div className="flex flex-wrap gap-4 shrink-0 bg-slate-50 p-2.5 border border-slate-200 rounded-xl">
@@ -10177,7 +10191,7 @@ export default function TagihanWarga({
                             onChange={(e) => setWaIncludeArrears(e.target.checked)}
                             className="w-4 h-4 text-emerald-650 focus:ring-emerald-400 border-slate-300 rounded cursor-pointer accent-emerald-600"
                           />
-                          <span className="font-bold text-slate-800">Tunggakan Sebelumnya (Arrears)</span>
+                          <span className="font-bold text-slate-800">Tagihan Sebelumnya (Arrears)</span>
                         </label>
                       </div>
                     </div>
@@ -10570,7 +10584,7 @@ export default function TagihanWarga({
                       }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:bg-slate-100 disabled:text-slate-400 font-bold"
                     />
-                    <p className="text-[10px] text-slate-400 mt-1">Diterapkan secara otomatis saat mendaftarkan warga baru / menghitung tunggakan RT.</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Diterapkan secara otomatis saat mendaftarkan warga baru / menghitung tagihan RT.</p>
                   </div>
 
                   <div>
