@@ -8585,6 +8585,7 @@ export default function TagihanWarga({
 
                       if (isBatchEdit) {
                         const isLunasBatch = batchMonthsPaidStatus[IndoMonth];
+                        const displayedNominal = isLunasBatch ? actualRateValue : nominalValue;
                         return (
                           <div 
                             key={IndoMonth}
@@ -8609,7 +8610,7 @@ export default function TagihanWarga({
                               />
                               <div className="flex flex-col text-left">
                                 <span className="text-xs font-extrabold text-slate-850">{IndoMonth}</span>
-                                <span className="text-[9.5px] font-mono font-medium text-slate-500 mt-0.5">Rp {nominalValue.toLocaleString('id-ID')}</span>
+                                <span className="text-[9.5px] font-mono font-medium text-slate-500 mt-0.5">Rp {displayedNominal.toLocaleString('id-ID')}</span>
                               </div>
                             </div>
                             
@@ -8624,6 +8625,7 @@ export default function TagihanWarga({
 
                       if (isBatchPaymentActive) {
                         const isSelected = !!batchPaymentSelectedMonths[IndoMonth];
+                        const displayedNominal = isSelected ? actualRateValue : nominalValue;
                         return (
                           <div 
                             key={IndoMonth}
@@ -8656,7 +8658,7 @@ export default function TagihanWarga({
                               )}
                               <div className="flex flex-col text-left">
                                 <span className="text-xs font-extrabold text-slate-850">{IndoMonth}</span>
-                                <span className="text-[9.5px] font-mono font-medium text-slate-500 mt-0.5">Rp {nominalValue.toLocaleString('id-ID')}</span>
+                                <span className="text-[9.5px] font-mono font-medium text-slate-500 mt-0.5">Rp {displayedNominal.toLocaleString('id-ID')}</span>
                               </div>
                             </div>
                             
