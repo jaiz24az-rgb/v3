@@ -1047,7 +1047,7 @@ export default function TagihanWarga({
                     <td><strong>${item.b}</strong></td>
                     <td style="text-align: right; font-family: monospace;">Rp ${item.nominal.toLocaleString('id-ID')}</td>
                     <td style="text-align: center;">${statusBadge}</td>
-                    <td style="font-size: 11px; color: #4a5568;">${item.lunas ? `Diterima pada ${formattedPayDate}` : `Menunggu pembayaran`}</td>
+                    <td style="font-size: 11px; color: #4a5568;">${item.lunas ? `Diterima pada ${formattedPayDate}` : (isFuture ? '-' : `Menunggu pembayaran`)}</td>
                   </tr>
                 `;
               }).join('')}
@@ -1551,7 +1551,7 @@ export default function TagihanWarga({
                     <td><strong>${item.b}</strong></td>
                     <td style="text-align: right; font-family: monospace;">Rp ${item.nominal.toLocaleString('id-ID')}</td>
                     <td style="text-align: center;">${statusBadge}</td>
-                    <td style="font-size: 11px; color: #4a5568;">${item.lunas ? `Diterima pada ${formattedPayDate}` : `Menunggu pembayaran`}</td>
+                    <td style="font-size: 11px; color: #4a5568;">${item.lunas ? `Diterima pada ${formattedPayDate}` : (isFuture ? '-' : `Menunggu pembayaran`)}</td>
                   </tr>
                 `;
               }).join('')}
@@ -5159,7 +5159,12 @@ export default function TagihanWarga({
         const timeStr = slot.tanggalBayar ? ` (Tgl: ${slot.tanggalBayar}${slot.jamBayar ? ` ${slot.jamBayar}` : ''})` : '';
         message += `${idx + 1}. *${m}*: Lunas - Rp ${slot.nominal.toLocaleString('id-ID')}${timeStr} ✓\n`;
       } else {
-        message += `${idx + 1}. *${m}*: Belum Bayar (Rp ${rateRT.toLocaleString('id-ID')}) ✗\n`;
+        const isFuture = !isMonthDue(m, targetYear);
+        if (isFuture) {
+          message += `${idx + 1}. *${m}*: -\n`;
+        } else {
+          message += `${idx + 1}. *${m}*: Belum Bayar (Rp ${rateRT.toLocaleString('id-ID')}) ✗\n`;
+        }
       }
     });
     
@@ -5191,7 +5196,12 @@ export default function TagihanWarga({
         const timeStr = slot.tanggalBayar ? ` (Tgl: ${slot.tanggalBayar}${slot.jamBayar ? ` ${slot.jamBayar}` : ''})` : '';
         message += `${idx + 1}. *${m}*: Lunas - Rp ${slot.nominal.toLocaleString('id-ID')}${timeStr} ✓\n`;
       } else {
-        message += `${idx + 1}. *${m}*: Belum Bayar (Rp ${rateRombong.toLocaleString('id-ID')}) ✗\n`;
+        const isFuture = !isMonthDue(m, targetYear);
+        if (isFuture) {
+          message += `${idx + 1}. *${m}*: -\n`;
+        } else {
+          message += `${idx + 1}. *${m}*: Belum Bayar (Rp ${rateRombong.toLocaleString('id-ID')}) ✗\n`;
+        }
       }
     });
     
