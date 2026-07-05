@@ -676,8 +676,10 @@ export default function TagihanWarga({
         (b.tahun === targetYear || (!b.tahun && targetYear === 2026))
       );
       const isLunas = slot ? slot.lunas : false;
-      const nominal = slot ? slot.nominal : getDefaultRtRate(targetYear, m, rateRT);
       const isDue = isMonthDue(m, targetYear);
+      const nominal = isLunas 
+        ? (slot ? slot.nominal : getDefaultRtRate(targetYear, m, rateRT))
+        : (isDue ? (slot ? slot.nominal : getDefaultRtRate(targetYear, m, rateRT)) : 0);
       
       currentYearList.push({
         b: m,
@@ -1028,9 +1030,12 @@ export default function TagihanWarga({
             </thead>
             <tbody>
               ${currentYearList.map((item, idx) => {
+                const isFuture = !isMonthDue(item.b, targetYear);
                 const statusBadge = item.lunas 
                   ? `<span class="badge-lunas">Lunas</span>` 
-                  : `<span class="badge-belum">Belum Lunas</span>`;
+                  : (isFuture 
+                      ? `<span style="color: #94a3b8; font-weight: 500; font-size: 10px;">-</span>`
+                      : `<span class="badge-belum">Belum Lunas</span>`);
                   
                 const formattedPayDate = item.tanggalBayar 
                   ? `${item.tanggalBayar} ${item.jamBayar || ''}` 
@@ -1175,8 +1180,10 @@ export default function TagihanWarga({
         (b.tahun === targetYear || (!b.tahun && targetYear === 2026))
       );
       const isLunas = slot ? slot.lunas : false;
-      const nominal = slot ? slot.nominal : getDefaultRombongRate(targetYear, m, rateRombong);
       const isDue = isMonthDue(m, targetYear);
+      const nominal = isLunas 
+        ? (slot ? slot.nominal : getDefaultRombongRate(targetYear, m, rateRombong))
+        : (isDue ? (slot ? slot.nominal : getDefaultRombongRate(targetYear, m, rateRombong)) : 0);
       
       currentYearList.push({
         b: m,
@@ -1527,9 +1534,12 @@ export default function TagihanWarga({
             </thead>
             <tbody>
               ${currentYearList.map((item, idx) => {
+                const isFuture = !isMonthDue(item.b, targetYear);
                 const statusBadge = item.lunas 
                   ? `<span class="badge-lunas">Lunas</span>` 
-                  : `<span class="badge-belum">Belum Lunas</span>`;
+                  : (isFuture 
+                      ? `<span style="color: #94a3b8; font-weight: 500; font-size: 10px;">-</span>`
+                      : `<span class="badge-belum">Belum Lunas</span>`);
                   
                 const formattedPayDate = item.tanggalBayar 
                   ? `${item.tanggalBayar} ${item.jamBayar || ''}` 
@@ -4359,7 +4369,9 @@ export default function TagihanWarga({
 
       const statusBadge = isLunas 
         ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
-        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
+        : (isFuture 
+            ? `<span style="color: #94a3b8; font-weight: 500; font-size: 10px;">-</span>`
+            : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`);
 
       return `
         <tr>
@@ -4770,7 +4782,9 @@ export default function TagihanWarga({
 
       const statusBadge = isLunas 
         ? `<span style="background-color: #d1fae5; color: #065f46; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #a7f3d0; display: inline-block;">LUNAS</span>` 
-        : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`;
+        : (isFuture 
+            ? `<span style="color: #94a3b8; font-weight: 500; font-size: 10px;">-</span>`
+            : `<span style="background-color: #fef3c7; color: #92400e; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; border: 1px solid #fde68a; display: inline-block;">BELUM BAYAR</span>`);
 
       return `
         <tr>
@@ -8727,8 +8741,12 @@ export default function TagihanWarga({
                                     Bayar ❯
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50/70 text-amber-600 border border-amber-100/50 select-none text-right">
-                                    Belum Lunas
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded select-none text-right ${
+                                    isFuture 
+                                      ? 'bg-slate-50 text-slate-400 border border-slate-150'
+                                      : 'bg-amber-50/70 text-amber-600 border border-amber-100/50'
+                                  }`}>
+                                    {isFuture ? '-' : 'Belum Lunas'}
                                   </span>
                                 )}
                                 {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
@@ -9074,8 +9092,12 @@ export default function TagihanWarga({
                                   Bayar ❯
                                 </button>
                               ) : (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50/70 text-amber-600 border border-amber-100/50 select-none text-right">
-                                  Belum Lunas
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded select-none text-right ${
+                                  isFuture 
+                                    ? 'bg-slate-50 text-slate-400 border border-slate-150'
+                                    : 'bg-amber-50/70 text-amber-600 border border-amber-100/50'
+                                }`}>
+                                  {isFuture ? '-' : 'Belum Lunas'}
                                 </span>
                               )}
                               {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
