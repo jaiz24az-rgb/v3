@@ -443,6 +443,7 @@ export default function TagihanWarga({
   });
   const [paymentReceiptBase64, setPaymentReceiptBase64] = useState<string>('');
   const [paymentReceiptNamaFile, setPaymentReceiptNamaFile] = useState<string>('');
+  const [paymentReceipts, setPaymentReceipts] = useState<{ base64: string; name: string }[]>([]);
 
   const [corrPaymentDate, setCorrPaymentDate] = useState<string>('');
   const [corrPaymentTime, setCorrPaymentTime] = useState<string>('');
@@ -3042,6 +3043,7 @@ export default function TagihanWarga({
     setPaymentTime(`${hh}:${mm}`);
     setPaymentReceiptBase64('');
     setPaymentReceiptNamaFile('');
+    setPaymentReceipts([]);
     setPayingInfo({ warga, category, bulan, nominal, billingType, tahun });
   };
 
@@ -3065,6 +3067,7 @@ export default function TagihanWarga({
     setPaymentTime(`${hh}:${mm}`);
     setPaymentReceiptBase64('');
     setPaymentReceiptNamaFile('');
+    setPaymentReceipts([]);
     
     // Initialize custom rombong settings
     setCustomRombongPayNominal(nominal);
@@ -3079,6 +3082,11 @@ export default function TagihanWarga({
 
     const { warga, category, bulan, nominal, billingType, tahun } = payingInfo;
 
+    const finalFotoBase64 = paymentReceipts.length > 0 ? paymentReceipts[0].base64 : (paymentReceiptBase64 || undefined);
+    const finalFotoNamaFile = paymentReceipts.length > 0 ? paymentReceipts[0].name : (paymentReceiptNamaFile || undefined);
+    const finalFotoBase64s = paymentReceipts.length > 0 ? paymentReceipts.map(r => r.base64) : undefined;
+    const finalFotoNamaFiles = paymentReceipts.length > 0 ? paymentReceipts.map(r => r.name) : undefined;
+
     const updatedWargaList = wargaList.map(w => {
       if (w.id === warga.id) {
         const index = w[billingType].findIndex(b => b.bulan.toLowerCase() === bulan.toLowerCase() && (b.tahun === tahun || (!b.tahun && tahun === 2026)));
@@ -3091,8 +3099,10 @@ export default function TagihanWarga({
                 lunas: true, 
                 tanggalBayar: paymentDate, 
                 jamBayar: paymentTime,
-                fotoBase64: paymentReceiptBase64 || undefined,
-                fotoNamaFile: paymentReceiptNamaFile || undefined
+                fotoBase64: finalFotoBase64,
+                fotoNamaFile: finalFotoNamaFile,
+                fotoBase64s: finalFotoBase64s,
+                fotoNamaFiles: finalFotoNamaFiles
               };
             }
             return b;
@@ -3105,8 +3115,10 @@ export default function TagihanWarga({
             tahun: tahun,
             tanggalBayar: paymentDate,
             jamBayar: paymentTime,
-            fotoBase64: paymentReceiptBase64 || undefined,
-            fotoNamaFile: paymentReceiptNamaFile || undefined
+            fotoBase64: finalFotoBase64,
+            fotoNamaFile: finalFotoNamaFile,
+            fotoBase64s: finalFotoBase64s,
+            fotoNamaFiles: finalFotoNamaFiles
           });
         }
         const updatedWarga = { ...w, [billingType]: updatedBillings };
@@ -3133,8 +3145,10 @@ export default function TagihanWarga({
       sumberKas: paymentTargetKas,
       kategori: category,
       petugas: currentUser?.nama || 'Petugas RT',
-      fotoBase64: paymentReceiptBase64 || undefined,
-      fotoNamaFile: paymentReceiptNamaFile || undefined
+      fotoBase64: finalFotoBase64,
+      fotoNamaFile: finalFotoNamaFile,
+      fotoBase64s: finalFotoBase64s,
+      fotoNamaFiles: finalFotoNamaFiles
     });
 
     setReceiptSuccessInfo({
@@ -3179,6 +3193,7 @@ export default function TagihanWarga({
     setPaymentTime(`${hh}:${mm}`);
     setPaymentReceiptBase64('');
     setPaymentReceiptNamaFile('');
+    setPaymentReceipts([]);
     setPayingBatchInfo({ warga, category, bulans, nominalPerBulan, totalNominal: total, billingType, tahun });
   };
 
@@ -3186,6 +3201,11 @@ export default function TagihanWarga({
     if (!payingBatchInfo) return;
 
     const { warga, category, bulans, nominalPerBulan, totalNominal, billingType, tahun } = payingBatchInfo;
+
+    const finalFotoBase64 = paymentReceipts.length > 0 ? paymentReceipts[0].base64 : (paymentReceiptBase64 || undefined);
+    const finalFotoNamaFile = paymentReceipts.length > 0 ? paymentReceipts[0].name : (paymentReceiptNamaFile || undefined);
+    const finalFotoBase64s = paymentReceipts.length > 0 ? paymentReceipts.map(r => r.base64) : undefined;
+    const finalFotoNamaFiles = paymentReceipts.length > 0 ? paymentReceipts.map(r => r.name) : undefined;
 
     const updatedWargaList = wargaList.map(w => {
       if (w.id === warga.id) {
@@ -3200,8 +3220,10 @@ export default function TagihanWarga({
               lunas: true, 
               tanggalBayar: paymentDate, 
               jamBayar: paymentTime,
-              fotoBase64: paymentReceiptBase64 || undefined,
-              fotoNamaFile: paymentReceiptNamaFile || undefined
+              fotoBase64: finalFotoBase64,
+              fotoNamaFile: finalFotoNamaFile,
+              fotoBase64s: finalFotoBase64s,
+              fotoNamaFiles: finalFotoNamaFiles
             };
           } else {
             updatedBillings.push({
@@ -3211,8 +3233,10 @@ export default function TagihanWarga({
               tahun: tahun,
               tanggalBayar: paymentDate,
               jamBayar: paymentTime,
-              fotoBase64: paymentReceiptBase64 || undefined,
-              fotoNamaFile: paymentReceiptNamaFile || undefined
+              fotoBase64: finalFotoBase64,
+              fotoNamaFile: finalFotoNamaFile,
+              fotoBase64s: finalFotoBase64s,
+              fotoNamaFiles: finalFotoNamaFiles
             });
           }
         });
@@ -3241,8 +3265,10 @@ export default function TagihanWarga({
       sumberKas: paymentTargetKas,
       kategori: category,
       petugas: currentUser?.nama || 'Petugas RT',
-      fotoBase64: paymentReceiptBase64 || undefined,
-      fotoNamaFile: paymentReceiptNamaFile || undefined
+      fotoBase64: finalFotoBase64,
+      fotoNamaFile: finalFotoNamaFile,
+      fotoBase64s: finalFotoBase64s,
+      fotoNamaFiles: finalFotoNamaFiles
     });
 
     setReceiptSuccessInfo({
@@ -3302,6 +3328,11 @@ export default function TagihanWarga({
       }
     }
 
+    const finalFotoBase64 = paymentReceipts.length > 0 ? paymentReceipts[0].base64 : (paymentReceiptBase64 || undefined);
+    const finalFotoNamaFile = paymentReceipts.length > 0 ? paymentReceipts[0].name : (paymentReceiptNamaFile || undefined);
+    const finalFotoBase64s = paymentReceipts.length > 0 ? paymentReceipts.map(r => r.base64) : undefined;
+    const finalFotoNamaFiles = paymentReceipts.length > 0 ? paymentReceipts.map(r => r.name) : undefined;
+
     const updatedRombongList = rombongList.map(r => {
       if (r.id === rombong.id) {
         const index = r[billingType].findIndex(b => b.bulan.toLowerCase() === bulan.toLowerCase() && (b.tahun === tahun || (!b.tahun && tahun === 2026)));
@@ -3315,8 +3346,10 @@ export default function TagihanWarga({
                 nominal: finalNominal,
                 tanggalBayar: paymentDate, 
                 jamBayar: paymentTime,
-                fotoBase64: paymentReceiptBase64 || undefined,
-                fotoNamaFile: paymentReceiptNamaFile || undefined,
+                fotoBase64: finalFotoBase64,
+                fotoNamaFile: finalFotoNamaFile,
+                fotoBase64s: finalFotoBase64s,
+                fotoNamaFiles: finalFotoNamaFiles,
                 isCustom: isCustom,
                 approved: !isCustom
               };
@@ -3331,8 +3364,10 @@ export default function TagihanWarga({
             tahun: tahun,
             tanggalBayar: paymentDate,
             jamBayar: paymentTime,
-            fotoBase64: paymentReceiptBase64 || undefined,
-            fotoNamaFile: paymentReceiptNamaFile || undefined,
+            fotoBase64: finalFotoBase64,
+            fotoNamaFile: finalFotoNamaFile,
+            fotoBase64s: finalFotoBase64s,
+            fotoNamaFiles: finalFotoNamaFiles,
             isCustom: isCustom,
             approved: !isCustom
           });
@@ -3363,8 +3398,10 @@ export default function TagihanWarga({
       sumberKas: paymentTargetKas,
       kategori: 'Pendapatan Rombong',
       petugas: currentUser?.nama || 'Petugas RT',
-      fotoBase64: paymentReceiptBase64 || undefined,
-      fotoNamaFile: paymentReceiptNamaFile || undefined,
+      fotoBase64: finalFotoBase64,
+      fotoNamaFile: finalFotoNamaFile,
+      fotoBase64s: finalFotoBase64s,
+      fotoNamaFiles: finalFotoNamaFiles,
       isCustomRombong: isCustom,
       approvedByAdmin: !isCustom,
       needApproval: isCustom,
@@ -6929,37 +6966,30 @@ export default function TagihanWarga({
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4 flex flex-col items-center justify-center gap-2">
-                <label className="block text-xs font-bold text-slate-700 font-mono mb-1 text-center w-full">Foto Nota / Bukti Transfer Pembayaran Warga</label>
-                {paymentReceiptBase64 ? (
-                  <div className="relative group w-32 h-32 border rounded-xl overflow-hidden shadow-xs bg-white">
-                    <img src={paymentReceiptBase64} alt="Bukti Transfer" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentReceiptBase64('');
-                        setPaymentReceiptNamaFile('');
-                      }}
-                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
-                      title="Hapus Bukti"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400">
+              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4">
+                <label className="block text-xs font-bold text-slate-700 font-mono mb-2.5 text-center w-full">Foto Nota / Bukti Transfer Pembayaran Warga (Bisa Lebih dari 1)</label>
+                {(paymentReceipts.length === 0 && !paymentReceiptBase64) ? (
+                  <div className="flex flex-col items-center text-slate-400 py-2">
                     <Camera className="w-8 h-8 mb-1 text-slate-350 pointer-events-none" />
-                    <span className="text-[10px] text-slate-500 font-semibold mb-1 text-center max-w-[280px]">Unggah foto struk transfer ATM, struk M-Banking, atau nota lunas</span>
+                    <span className="text-[10px] text-slate-500 font-semibold mb-2 text-center max-w-[280px]">Unggah foto struk transfer ATM, struk M-Banking, atau nota lunas</span>
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
+                        const files = Array.from(e.target.files || []) as File[];
+                        if (files.length > 0) {
                           try {
-                            const compressed = await compressImage(file);
-                            setPaymentReceiptBase64(compressed);
-                            setPaymentReceiptNamaFile(file.name);
+                            const newReceipts: { base64: string; name: string }[] = [];
+                            for (const file of files) {
+                              const compressed = await compressImage(file);
+                              newReceipts.push({ base64: compressed, name: file.name });
+                            }
+                            setPaymentReceipts(newReceipts);
+                            if (newReceipts.length > 0) {
+                              setPaymentReceiptBase64(newReceipts[0].base64);
+                              setPaymentReceiptNamaFile(newReceipts[0].name);
+                            }
                           } catch (err) {
                             console.error(err);
                             alert('Gagal mengompres gambar.');
@@ -6967,14 +6997,98 @@ export default function TagihanWarga({
                         }
                       }}
                       className="absolute inset-0 opacity-0 cursor-pointer hidden"
-                      id="upload-payment-struk-warga"
+                      id="upload-payment-struk-warga-init"
                     />
                     <label
-                      htmlFor="upload-payment-struk-warga"
+                      htmlFor="upload-payment-struk-warga-init"
                       className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-705 border border-slate-205 hover:border-slate-305 rounded-xl text-xs font-bold cursor-pointer inline-flex items-center gap-1 shadow-sm transition animate-none"
                     >
                       Pilih Struk / Foto
                     </label>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 justify-center justify-items-center">
+                    {/* Show existing legacy single receipt if any */}
+                    {paymentReceiptBase64 && paymentReceipts.length === 0 && (
+                      <div className="relative group w-16 h-16 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <img src={paymentReceiptBase64} alt="Bukti Transfer" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentReceiptBase64('');
+                            setPaymentReceiptNamaFile('');
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Bukti"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Show current list of multi receipts */}
+                    {paymentReceipts.map((receipt, idx) => (
+                      <div key={idx} className="relative group w-16 h-16 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <img src={receipt.base64} alt={`Bukti ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = paymentReceipts.filter((_, i) => i !== idx);
+                            setPaymentReceipts(updated);
+                            if (updated.length > 0) {
+                              setPaymentReceiptBase64(updated[0].base64);
+                              setPaymentReceiptNamaFile(updated[0].name);
+                            } else {
+                              setPaymentReceiptBase64('');
+                              setPaymentReceiptNamaFile('');
+                            }
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Bukti"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Elegant Plus button inside the grid */}
+                    <div className="flex items-center justify-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []) as File[];
+                          if (files.length > 0) {
+                            try {
+                              const newReceipts = [...paymentReceipts];
+                              for (const file of files) {
+                                const compressed = await compressImage(file);
+                                newReceipts.push({ base64: compressed, name: file.name });
+                              }
+                              setPaymentReceipts(newReceipts);
+                              if (newReceipts.length > 0) {
+                                setPaymentReceiptBase64(newReceipts[0].base64);
+                                setPaymentReceiptNamaFile(newReceipts[0].name);
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              alert('Gagal mengompres gambar.');
+                            }
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer hidden"
+                        id="upload-payment-struk-warga-multi"
+                      />
+                      <label
+                        htmlFor="upload-payment-struk-warga-multi"
+                        className="w-16 h-16 border border-dashed border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer transition shadow-sm"
+                        title="Tambah Foto Nota"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span className="text-[8px] font-bold">Tambah</span>
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
@@ -7057,37 +7171,30 @@ export default function TagihanWarga({
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 relative">
-                <label className="block text-xs font-bold text-slate-700 font-mono mb-1 text-center w-full">Foto Nota / Bukti Transfer Pembayaran Warga (Opsional)</label>
-                {paymentReceiptBase64 ? (
-                  <div className="relative group w-32 h-32 border rounded-xl overflow-hidden shadow-xs bg-white">
-                    <img src={paymentReceiptBase64} alt="Bukti Transfer" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentReceiptBase64('');
-                        setPaymentReceiptNamaFile('');
-                      }}
-                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
-                      title="Hapus Bukti"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400">
+              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4 relative">
+                <label className="block text-xs font-bold text-slate-700 font-mono mb-2.5 text-center w-full">Foto Nota / Bukti Transfer Pembayaran Warga (Bisa Lebih dari 1)</label>
+                {(paymentReceipts.length === 0 && !paymentReceiptBase64) ? (
+                  <div className="flex flex-col items-center text-slate-400 py-2">
                     <Camera className="w-8 h-8 mb-1 text-slate-350 pointer-events-none" />
-                    <span className="text-[10px] text-slate-500 font-semibold mb-1 text-center max-w-[280px]">Unggah foto struk transfer ATM, struk M-Banking, atau nota lunas</span>
+                    <span className="text-[10px] text-slate-500 font-semibold mb-2 text-center max-w-[280px]">Unggah foto struk transfer ATM, struk M-Banking, atau nota lunas</span>
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
+                        const files = Array.from(e.target.files || []) as File[];
+                        if (files.length > 0) {
                           try {
-                            const compressed = await compressImage(file);
-                            setPaymentReceiptBase64(compressed);
-                            setPaymentReceiptNamaFile(file.name);
+                            const newReceipts: { base64: string; name: string }[] = [];
+                            for (const file of files) {
+                              const compressed = await compressImage(file);
+                              newReceipts.push({ base64: compressed, name: file.name });
+                            }
+                            setPaymentReceipts(newReceipts);
+                            if (newReceipts.length > 0) {
+                              setPaymentReceiptBase64(newReceipts[0].base64);
+                              setPaymentReceiptNamaFile(newReceipts[0].name);
+                            }
                           } catch (err) {
                             console.error(err);
                             alert('Gagal mengompres gambar.');
@@ -7095,14 +7202,98 @@ export default function TagihanWarga({
                         }
                       }}
                       className="absolute inset-0 opacity-0 cursor-pointer hidden"
-                      id="upload-payment-struk-warga-batch"
+                      id="upload-payment-struk-warga-batch-init"
                     />
                     <label
-                      htmlFor="upload-payment-struk-warga-batch"
+                      htmlFor="upload-payment-struk-warga-batch-init"
                       className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-705 border border-slate-205 hover:border-slate-305 rounded-xl text-xs font-bold cursor-pointer inline-flex items-center gap-1 shadow-sm transition animate-none"
                     >
                       Pilih Struk / Foto
                     </label>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 justify-center justify-items-center">
+                    {/* Show existing legacy single receipt if any */}
+                    {paymentReceiptBase64 && paymentReceipts.length === 0 && (
+                      <div className="relative group w-16 h-16 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <img src={paymentReceiptBase64} alt="Bukti Transfer" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentReceiptBase64('');
+                            setPaymentReceiptNamaFile('');
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Bukti"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Show current list of multi receipts */}
+                    {paymentReceipts.map((receipt, idx) => (
+                      <div key={idx} className="relative group w-16 h-16 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <img src={receipt.base64} alt={`Bukti ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = paymentReceipts.filter((_, i) => i !== idx);
+                            setPaymentReceipts(updated);
+                            if (updated.length > 0) {
+                              setPaymentReceiptBase64(updated[0].base64);
+                              setPaymentReceiptNamaFile(updated[0].name);
+                            } else {
+                              setPaymentReceiptBase64('');
+                              setPaymentReceiptNamaFile('');
+                            }
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Bukti"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Elegant Plus button inside the grid */}
+                    <div className="flex items-center justify-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []) as File[];
+                          if (files.length > 0) {
+                            try {
+                              const newReceipts = [...paymentReceipts];
+                              for (const file of files) {
+                                const compressed = await compressImage(file);
+                                newReceipts.push({ base64: compressed, name: file.name });
+                              }
+                              setPaymentReceipts(newReceipts);
+                              if (newReceipts.length > 0) {
+                                setPaymentReceiptBase64(newReceipts[0].base64);
+                                setPaymentReceiptNamaFile(newReceipts[0].name);
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              alert('Gagal mengompres gambar.');
+                            }
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer hidden"
+                        id="upload-payment-struk-warga-batch-multi"
+                      />
+                      <label
+                        htmlFor="upload-payment-struk-warga-batch-multi"
+                        className="w-16 h-16 border border-dashed border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer transition shadow-sm"
+                        title="Tambah Foto Nota"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span className="text-[8px] font-bold">Tambah</span>
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
@@ -7258,37 +7449,30 @@ export default function TagihanWarga({
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4 flex flex-col items-center justify-center gap-2">
-                <label className="block text-xs font-bold text-slate-700 font-mono mb-1 text-center w-full">Foto Nota / Bukti Bayar Sewa Rombong</label>
-                {paymentReceiptBase64 ? (
-                  <div className="relative group w-32 h-32 border rounded-xl overflow-hidden shadow-xs bg-white">
-                    <img src={paymentReceiptBase64} alt="Bukti Transfer Sewa" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentReceiptBase64('');
-                        setPaymentReceiptNamaFile('');
-                      }}
-                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
-                      title="Hapus Bukti"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400">
+              <div className="bg-slate-50 border border-dashed border-slate-250 rounded-2xl p-4">
+                <label className="block text-xs font-bold text-slate-700 font-mono mb-2.5 text-center w-full">Foto Nota / Bukti Bayar Sewa Rombong (Bisa Lebih dari 1)</label>
+                {(paymentReceipts.length === 0 && !paymentReceiptBase64) ? (
+                  <div className="flex flex-col items-center text-slate-400 py-2">
                     <Camera className="w-8 h-8 mb-1 text-slate-350 pointer-events-none" />
-                    <span className="text-[10px] text-slate-500 font-semibold mb-1 text-center max-w-[280px]">Unggah foto kuitansi manual sewa lapak atau bukti transfer</span>
+                    <span className="text-[10px] text-slate-500 font-semibold mb-2 text-center max-w-[280px]">Unggah foto kuitansi manual sewa lapak atau bukti transfer</span>
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
+                        const files = Array.from(e.target.files || []) as File[];
+                        if (files.length > 0) {
                           try {
-                            const compressed = await compressImage(file);
-                            setPaymentReceiptBase64(compressed);
-                            setPaymentReceiptNamaFile(file.name);
+                            const newReceipts: { base64: string; name: string }[] = [];
+                            for (const file of files) {
+                              const compressed = await compressImage(file);
+                              newReceipts.push({ base64: compressed, name: file.name });
+                            }
+                            setPaymentReceipts(newReceipts);
+                            if (newReceipts.length > 0) {
+                              setPaymentReceiptBase64(newReceipts[0].base64);
+                              setPaymentReceiptNamaFile(newReceipts[0].name);
+                            }
                           } catch (err) {
                             console.error(err);
                             alert('Gagal mengompres gambar.');
@@ -7296,14 +7480,98 @@ export default function TagihanWarga({
                         }
                       }}
                       className="absolute inset-0 opacity-0 cursor-pointer hidden"
-                      id="upload-payment-struk-rombong"
+                      id="upload-payment-struk-rombong-init"
                     />
                     <label
-                      htmlFor="upload-payment-struk-rombong"
+                      htmlFor="upload-payment-struk-rombong-init"
                       className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-705 border border-slate-205 hover:border-slate-305 rounded-xl text-xs font-bold cursor-pointer inline-flex items-center gap-1 shadow-sm transition animate-none"
                     >
                       Pilih Foto / Struk
                     </label>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 justify-center justify-items-center">
+                    {/* Show existing legacy single receipt if any */}
+                    {paymentReceiptBase64 && paymentReceipts.length === 0 && (
+                      <div className="relative group w-16 h-16 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <img src={paymentReceiptBase64} alt="Bukti Transfer Sewa" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentReceiptBase64('');
+                            setPaymentReceiptNamaFile('');
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Bukti"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Show current list of multi receipts */}
+                    {paymentReceipts.map((receipt, idx) => (
+                      <div key={idx} className="relative group w-16 h-16 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+                        <img src={receipt.base64} alt={`Bukti ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = paymentReceipts.filter((_, i) => i !== idx);
+                            setPaymentReceipts(updated);
+                            if (updated.length > 0) {
+                              setPaymentReceiptBase64(updated[0].base64);
+                              setPaymentReceiptNamaFile(updated[0].name);
+                            } else {
+                              setPaymentReceiptBase64('');
+                              setPaymentReceiptNamaFile('');
+                            }
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Bukti"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Elegant Plus button inside the grid */}
+                    <div className="flex items-center justify-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []) as File[];
+                          if (files.length > 0) {
+                            try {
+                              const newReceipts = [...paymentReceipts];
+                              for (const file of files) {
+                                const compressed = await compressImage(file);
+                                newReceipts.push({ base64: compressed, name: file.name });
+                              }
+                              setPaymentReceipts(newReceipts);
+                              if (newReceipts.length > 0) {
+                                setPaymentReceiptBase64(newReceipts[0].base64);
+                                setPaymentReceiptNamaFile(newReceipts[0].name);
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              alert('Gagal mengompres gambar.');
+                            }
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer hidden"
+                        id="upload-payment-struk-rombong-multi"
+                      />
+                      <label
+                        htmlFor="upload-payment-struk-rombong-multi"
+                        className="w-16 h-16 border border-dashed border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer transition shadow-sm"
+                        title="Tambah Foto Nota"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span className="text-[8px] font-bold">Tambah</span>
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
@@ -8722,13 +8990,30 @@ export default function TagihanWarga({
                                     })()}
                                   </span>
                                 )}
-                                {matchedSlot?.fotoBase64 && (
-                                  <button
-                                    onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar RT - ${displayBulan} ${historyYear} - ${selectedWargaHistory.nama}` })}
-                                    className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1 flex items-center gap-0.5"
-                                  >
-                                    <Receipt className="w-2.5 h-2.5 pointer-events-none" /> Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})
-                                  </button>
+                                {matchedSlot?.fotoBase64s && matchedSlot.fotoBase64s.length > 0 ? (
+                                  <div className="flex flex-col gap-0.5 items-end mt-1">
+                                    {matchedSlot.fotoBase64s.map((base64, sIdx) => {
+                                      const fileName = matchedSlot.fotoNamaFiles?.[sIdx] || `Bukti ${sIdx + 1}`;
+                                      return (
+                                        <button
+                                          key={sIdx}
+                                          onClick={() => setDocumentPreviewUrl({ url: base64, title: `Bukti Bayar RT ${sIdx + 1} - ${displayBulan} ${historyYear} - ${selectedWargaHistory.nama}` })}
+                                          className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5"
+                                        >
+                                          <Receipt className="w-2.5 h-2.5 pointer-events-none" /> {fileName.length > 15 ? fileName.substring(0, 15) + '...' : fileName} ({formatFileSize(getBase64SizeInBytes(base64))})
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  matchedSlot?.fotoBase64 && (
+                                    <button
+                                      onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar RT - ${displayBulan} ${historyYear} - ${selectedWargaHistory.nama}` })}
+                                      className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1 flex items-center gap-0.5"
+                                    >
+                                      <Receipt className="w-2.5 h-2.5 pointer-events-none" /> Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})
+                                    </button>
+                                  )
                                 )}
                                 {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                                   <button
@@ -9073,14 +9358,31 @@ export default function TagihanWarga({
                                   })()}
                                 </span>
                               )}
-                               {matchedSlot?.fotoBase64 && (
-                                <button
-                                  onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar Sewa - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
-                                  className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1 flex items-center gap-0.5"
-                                >
-                                  <Receipt className="w-2.5 h-2.5 pointer-events-none" /> Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})
-                                </button>
-                              )}
+                               {matchedSlot?.fotoBase64s && matchedSlot.fotoBase64s.length > 0 ? (
+                                 <div className="flex flex-col gap-0.5 items-end mt-1">
+                                   {matchedSlot.fotoBase64s.map((base64, sIdx) => {
+                                     const fileName = matchedSlot.fotoNamaFiles?.[sIdx] || `Bukti ${sIdx + 1}`;
+                                     return (
+                                       <button
+                                         key={sIdx}
+                                         onClick={() => setDocumentPreviewUrl({ url: base64, title: `Bukti Bayar Sewa ${sIdx + 1} - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
+                                         className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5"
+                                       >
+                                         <Receipt className="w-2.5 h-2.5 pointer-events-none" /> {fileName.length > 15 ? fileName.substring(0, 15) + '...' : fileName} ({formatFileSize(getBase64SizeInBytes(base64))})
+                                       </button>
+                                     );
+                                   })}
+                                 </div>
+                               ) : (
+                                 matchedSlot?.fotoBase64 && (
+                                   <button
+                                     onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar Sewa - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
+                                     className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1 flex items-center gap-0.5"
+                                   >
+                                     <Receipt className="w-2.5 h-2.5 pointer-events-none" /> Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})
+                                   </button>
+                                 )
+                               )}
                               {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
                                 <button
                                   onClick={() => {

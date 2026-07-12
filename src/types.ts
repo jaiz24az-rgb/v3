@@ -20,6 +20,8 @@ export interface LedgerEntry {
   tanggalInput?: string; // Tanggal input/pencatatan transaksi
   fotoBase64?: string; // Transaction receipt photo
   fotoNamaFile?: string; // Transaction receipt filename
+  fotoBase64s?: string[]; // Multiple transaction receipt photos
+  fotoNamaFiles?: string[]; // Multiple transaction receipt filenames
   isCustomRombong?: boolean; // Flag to indicate custom payment
   approvedByAdmin?: boolean; // Approved by admin
   needApproval?: boolean; // Needs admin approval to count
@@ -70,6 +72,8 @@ export interface WargaBill {
     catatan?: string;
     fotoBase64?: string; // Payment receipt photo Base64
     fotoNamaFile?: string; // Payment receipt filename
+    fotoBase64s?: string[]; // Multiple payment receipt photos
+    fotoNamaFiles?: string[]; // Multiple payment receipt filenames
     manualKoreksi?: boolean; // User manual correction flag 2024-2026
   }[];
   anggotaKeluarga?: FamilyMember[];
@@ -96,6 +100,8 @@ export interface RombongBill {
     catatan?: string;
     fotoBase64?: string; // Payment receipt photo Base64
     fotoNamaFile?: string; // Payment receipt filename
+    fotoBase64s?: string[]; // Multiple payment receipt photos
+    fotoNamaFiles?: string[]; // Multiple payment receipt filenames
     manualKoreksi?: boolean; // User manual correction flag 2024-2026
   }[];
 }
