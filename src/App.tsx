@@ -68,6 +68,7 @@ import {
 } from 'lucide-react';
 
 const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
+  if (!Array.isArray(wList)) return [];
   const fullMonths = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -75,7 +76,9 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
   const monthsOrder = fullMonths.map(m => m.toLowerCase());
   
   return wList.map(w => {
-    const newIuran = w.iuranRT.map(b => ({ ...b }));
+    if (!w) return w;
+    const iuranRT = Array.isArray(w.iuranRT) ? w.iuranRT : [];
+    const newIuran = iuranRT.map(b => ({ ...b }));
     
     const startMonthIndex = w.mulaiBulan ? monthsOrder.indexOf(w.mulaiBulan.toLowerCase()) : -1;
     const startYear = w.mulaiTahun || 2026;
@@ -93,7 +96,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
       fullMonths.forEach((m) => {
         const shortM = m.slice(0, 3);
         const idx = newIuran.findIndex(b => 
-          (b.tahun === yr) && 
+          b && b.bulan && (b.tahun === yr) && 
           (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
         );
         const beforePlacement = isBeforePlacement(yr, m);
@@ -110,7 +113,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
           });
         } else {
           const slot = newIuran[idx];
-          if (slot.manualKoreksi !== true) {
+          if (slot && slot.manualKoreksi !== true) {
             if (beforePlacement) {
               slot.lunas = true;
               slot.nominal = 0;
@@ -142,7 +145,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
     fullMonths.slice(0, 5).forEach((m) => {
       const shortM = m.slice(0, 3);
       const idx = newIuran.findIndex(b => 
-        (b.tahun === 2026 || !b.tahun) && 
+        b && b.bulan && (b.tahun === 2026 || !b.tahun) && 
         (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
       );
       const beforePlacement = isBeforePlacement(2026, m);
@@ -171,7 +174,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
         }
       } else {
         const slot = newIuran[idx];
-        if (slot.manualKoreksi !== true) {
+        if (slot && slot.manualKoreksi !== true) {
           if (beforePlacement) {
             slot.lunas = true;
             slot.nominal = 0;
@@ -208,7 +211,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
     });
 
     // 3. Process all remaining months in other years
-    const allYears = Array.from(new Set([2024, 2025, 2026, 2027, ...(w.iuranRT.map(b => b.tahun).filter(Boolean) as number[])]));
+    const allYears = Array.from(new Set([2024, 2025, 2026, 2027, ...(newIuran.map(b => b.tahun).filter(Boolean) as number[])]));
     allYears.forEach(yr => {
       fullMonths.forEach(m => {
         const isJanMei2026 = yr === 2026 && monthsOrder.indexOf(m.toLowerCase()) < 5;
@@ -216,7 +219,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
 
         const shortM = m.slice(0, 3);
         const idx = newIuran.findIndex(b =>
-          (b.tahun === yr) &&
+          b && b.bulan && (b.tahun === yr) &&
           (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
         );
 
@@ -234,7 +237,7 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
             });
           } else {
             const slot = newIuran[idx];
-            if (slot.manualKoreksi !== true) {
+            if (slot && slot.manualKoreksi !== true) {
               slot.lunas = true;
               slot.nominal = 0;
               slot.catatan = 'Bebas (Warga Baru)';
@@ -254,17 +257,20 @@ const ensurePaidFor2024toMei2026_Warga = (wList: WargaBill[]): WargaBill[] => {
 };
 
 const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[] => {
+  if (!Array.isArray(rList)) return [];
   const fullMonths = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
   return rList.map(r => {
-    const newIuran = r.iuranRombong.map(b => ({ ...b }));
+    if (!r) return r;
+    const iuranRombong = Array.isArray(r.iuranRombong) ? r.iuranRombong : [];
+    const newIuran = iuranRombong.map(b => ({ ...b }));
     [2024, 2025].forEach((yr) => {
       fullMonths.forEach((m) => {
         const shortM = m.slice(0, 3);
         const idx = newIuran.findIndex(b => 
-          (b.tahun === yr) && 
+          b && b.bulan && (b.tahun === yr) && 
           (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
         );
         if (idx === -1) {
@@ -279,7 +285,7 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
           });
         } else {
           const slot = newIuran[idx];
-          if (slot.manualKoreksi !== true) {
+          if (slot && slot.manualKoreksi !== true) {
             slot.lunas = true;
             slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
             slot.tanggalBayar = slot.tanggalBayar || `${yr}-12-31`;
@@ -292,7 +298,7 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
     fullMonths.slice(0, 5).forEach((m) => {
       const shortM = m.slice(0, 3);
       const idx = newIuran.findIndex(b => 
-        (b.tahun === 2026 || !b.tahun) && 
+        b && b.bulan && (b.tahun === 2026 || !b.tahun) && 
         (b.bulan.toLowerCase() === m.toLowerCase() || b.bulan.toLowerCase() === shortM.toLowerCase())
       );
       if (idx === -1) {
@@ -307,7 +313,7 @@ const ensurePaidFor2024toMei2026_Rombong = (rList: RombongBill[]): RombongBill[]
         });
       } else {
         const slot = newIuran[idx];
-        if (slot.manualKoreksi !== true) {
+        if (slot && slot.manualKoreksi !== true) {
           slot.lunas = true;
           slot.catatan = slot.catatan || 'Lunas Otomatis (2024-2026)';
           slot.tanggalBayar = slot.tanggalBayar || '2026-05-01';
