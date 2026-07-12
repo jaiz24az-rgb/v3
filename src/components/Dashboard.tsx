@@ -49,8 +49,8 @@ export default function Dashboard({
 }: DashboardProps) {
   const isKolektor = currentUser?.role === 'kolektor';
   const isKolektor2 = isKolektor && currentUser && (
-    currentUser.username.toLowerCase().includes('kolektor2') || 
-    currentUser.nama.toLowerCase().includes('kolektor2')
+    (currentUser.username || '').toLowerCase().includes('kolektor2') || 
+    (currentUser.nama || '').toLowerCase().includes('kolektor2')
   );
 
   // Precompute derived cash balances from the ledger entries (the ultimate truth of real transactional flows)

@@ -65,7 +65,7 @@ export default function LandingPage({
   const [recoverySuccess, setRecoverySuccess] = useState('');
 
   const typedUser = users.find(
-    u => u.username.toLowerCase() === username.trim().toLowerCase()
+    u => (u.username || '').toLowerCase() === username.trim().toLowerCase()
   );
   const isAdmin = typedUser?.role === 'admin';
 
@@ -77,7 +77,7 @@ export default function LandingPage({
     // Simulate small smooth delay for luxury premium feel
     setTimeout(() => {
       const foundUser = users.find(
-        u => u.username.toLowerCase() === username.trim().toLowerCase() && u.pin.trim() === password.trim()
+        u => (u.username || '').toLowerCase() === username.trim().toLowerCase() && (u.pin || '').trim() === password.trim()
       );
 
       if (foundUser) {

@@ -408,28 +408,80 @@ const safeFetchSaveLocalSync = async (baseUrl: string, payload: any): Promise<an
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'tagihan' | 'buku_kas' | 'buku_kolektor' | 'undangan' | 'panduan'>('dashboard');
   const [usersList, setUsersList] = useState<AppUser[]>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_users');
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return INITIAL_USERS;
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_users dari localStorage:", e);
+      return INITIAL_USERS;
+    }
   });
   const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_current_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_current_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+      return null;
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_current_user dari localStorage:", e);
+      return null;
+    }
   });
   const [blocksList, setBlocksList] = useState<string[]>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_blocks');
-    return saved ? JSON.parse(saved) : ['A4', 'A3', 'C5', 'C3'];
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_blocks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return ['A4', 'A3', 'C5', 'C3'];
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_blocks dari localStorage:", e);
+      return ['A4', 'A3', 'C5', 'C3'];
+    }
   });
   const [yearsList, setYearsList] = useState<number[]>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_years');
-    return saved ? JSON.parse(saved) : [2024, 2025, 2026, 2027, 2028];
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_years');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return [2024, 2025, 2026, 2027, 2028];
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_years dari localStorage:", e);
+      return [2024, 2025, 2026, 2027, 2028];
+    }
   });
   const [rateRT, setRateRT] = useState<number>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_rate_rt');
-    return saved ? parseInt(saved, 10) : 110000;
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_rate_rt');
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed)) return parsed;
+      }
+      return 110000;
+    } catch (e) {
+      return 110000;
+    }
   });
   const [rateRombong, setRateRombong] = useState<number>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_rate_rombong');
-    return saved ? parseInt(saved, 10) : 130000;
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_rate_rombong');
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed)) return parsed;
+      }
+      return 130000;
+    } catch (e) {
+      return 130000;
+    }
   });
   const [rtTitle, setRtTitle] = useState<string>(() => {
     const saved = localStorage.getItem('perumtas_rt08_title');
@@ -705,13 +757,31 @@ export default function App() {
 
   // Core financial states persisted to Local Storage
   const [kas, setKas] = useState<Balance>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_kas');
-    return saved ? JSON.parse(saved) : INITIAL_BALANCES;
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_kas');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+      }
+      return INITIAL_BALANCES;
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_kas dari localStorage:", e);
+      return INITIAL_BALANCES;
+    }
   });
 
   const [ledger, setLedger] = useState<LedgerEntry[]>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_ledger');
-    return saved ? JSON.parse(saved) : INITIAL_LEDGER;
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_ledger');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return INITIAL_LEDGER;
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_ledger dari localStorage:", e);
+      return INITIAL_LEDGER;
+    }
   });
 
   const [wargaList, setWargaList] = useState<WargaBill[]>(() => {
@@ -719,11 +789,13 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.length > 0 && ('iuranKebersihan' in parsed[0])) {
-          localStorage.removeItem('perumtas_rt08_warga');
-          return ensurePaidFor2024toMei2026_Warga(INITIAL_WARGA);
+        if (Array.isArray(parsed)) {
+          if (parsed.length > 0 && ('iuranKebersihan' in parsed[0])) {
+            localStorage.removeItem('perumtas_rt08_warga');
+            return ensurePaidFor2024toMei2026_Warga(INITIAL_WARGA);
+          }
+          return ensurePaidFor2024toMei2026_Warga(parsed);
         }
-        return ensurePaidFor2024toMei2026_Warga(parsed);
       } catch (e) {
         return ensurePaidFor2024toMei2026_Warga(INITIAL_WARGA);
       }
@@ -736,11 +808,13 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.length > 0 && ('iuranSewa' in parsed[0])) {
-          localStorage.removeItem('perumtas_rt08_rombong');
-          return ensurePaidFor2024toMei2026_Rombong(INITIAL_ROMBONG);
+        if (Array.isArray(parsed)) {
+          if (parsed.length > 0 && ('iuranSewa' in parsed[0])) {
+            localStorage.removeItem('perumtas_rt08_rombong');
+            return ensurePaidFor2024toMei2026_Rombong(INITIAL_ROMBONG);
+          }
+          return ensurePaidFor2024toMei2026_Rombong(parsed);
         }
-        return ensurePaidFor2024toMei2026_Rombong(parsed);
       } catch (e) {
         return ensurePaidFor2024toMei2026_Rombong(INITIAL_ROMBONG);
       }
@@ -749,8 +823,17 @@ export default function App() {
   });
 
   const [lettersList, setLettersList] = useState<OfficialLetter[]>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_letters');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_letters');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return [];
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_letters dari localStorage:", e);
+      return [];
+    }
   });
 
   // --- STATE-STATE UNTUK SINKRONISASI SERVER LOKAL WI-FI ---

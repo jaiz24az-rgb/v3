@@ -241,8 +241,8 @@ export default function TagihanWarga({
   };
 
   const isKolektor2 = isLoggedIn && currentUser && (
-    currentUser.username.toLowerCase().includes('kolektor2') || 
-    currentUser.nama.toLowerCase().includes('kolektor2')
+    (currentUser.username || '').toLowerCase().includes('kolektor2') || 
+    (currentUser.nama || '').toLowerCase().includes('kolektor2')
   );
 
   // Sub-tab selection: 'warga' (resident) or 'rombong' (food stalls)

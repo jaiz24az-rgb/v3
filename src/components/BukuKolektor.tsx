@@ -89,8 +89,13 @@ export default function BukuKolektor({
 
   // Local verification helper (reconciliation check list saved to localStorage)
   const [verifiedIds, setVerifiedIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('perumtas_rt08_kolektor_verified_ids');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('perumtas_rt08_kolektor_verified_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.warn("Gagal mengurai perumtas_rt08_kolektor_verified_ids:", e);
+      return [];
+    }
   });
 
   const toggleVerifyId = (id: string) => {
@@ -120,8 +125,8 @@ export default function BukuKolektor({
 
   // 1. Filter ledger entries by selected year and month
   const isKolektor2 = isLoggedIn && currentUser && (
-    currentUser.username.toLowerCase().includes('kolektor2') || 
-    currentUser.nama.toLowerCase().includes('kolektor2')
+    (currentUser.username || '').toLowerCase().includes('kolektor2') || 
+    (currentUser.nama || '').toLowerCase().includes('kolektor2')
   );
 
   const allowedLedger = ledger.filter(entry => {
