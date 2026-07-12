@@ -2,7 +2,7 @@
  * Utility to compress and scale down images in browser before saving them
  * to Firestore or localStorage as lightweight Base64 strings.
  */
-export function compressImage(file: File, maxWidth = 900, maxHeight = 900, quality = 0.5): Promise<string> {
+export function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
     // Check if the file is an image
     if (!file.type.startsWith('image/')) {
