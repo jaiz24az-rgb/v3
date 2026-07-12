@@ -520,7 +520,7 @@ export default function TagihanWarga({
   useEffect(() => {
     setIsBatchPaymentActive(false);
     setBatchPaymentSelectedMonths({});
-  }, [selectedWargaHistory, historyYear]);
+  }, [selectedWargaHistory]);
 
   const fullMonths = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
