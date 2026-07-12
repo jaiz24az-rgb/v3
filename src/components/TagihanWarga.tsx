@@ -390,11 +390,9 @@ export default function TagihanWarga({
   const [payingBatchInfo, setPayingBatchInfo] = useState<{
     warga: WargaBill;
     category: 'Iuran RT';
-    bulans: string[];
-    nominalPerBulan: { [bulan: string]: number };
+    items: { bulan: string; tahun: number; nominal: number }[];
     totalNominal: number;
     billingType: 'iuranRT';
-    tahun: number;
   } | null>(null);
 
   // Rombong Payment confirmation state (with year)
@@ -3175,16 +3173,14 @@ export default function TagihanWarga({
   const openBatchPaymentModal = (
     warga: WargaBill,
     category: 'Iuran RT',
-    bulans: string[],
-    nominalPerBulan: { [bulan: string]: number },
-    billingType: 'iuranRT',
-    tahun: number = 2026
+    items: { bulan: string; tahun: number; nominal: number }[],
+    billingType: 'iuranRT'
   ) => {
     if (!isLoggedIn) {
       alert('Anda harus masuk/login sebagai petugas terlebih dahulu untuk mencatat pembayaran.');
       return;
     }
-    const total = bulans.reduce((sum, b) => sum + (nominalPerBulan[b] || 0), 0);
+    const total = items.reduce((sum, item) => sum + item.nominal, 0);
     setPaymentTargetKas('rtTunai');
     setPaymentDate(new Date().toISOString().split('T')[0]);
     const now = new Date();
@@ -3194,13 +3190,13 @@ export default function TagihanWarga({
     setPaymentReceiptBase64('');
     setPaymentReceiptNamaFile('');
     setPaymentReceipts([]);
-    setPayingBatchInfo({ warga, category, bulans, nominalPerBulan, totalNominal: total, billingType, tahun });
+    setPayingBatchInfo({ warga, category, items, totalNominal: total, billingType });
   };
 
   const processBatchPayment = () => {
     if (!payingBatchInfo) return;
 
-    const { warga, category, bulans, nominalPerBulan, totalNominal, billingType, tahun } = payingBatchInfo;
+    const { warga, category, items, totalNominal, billingType } = payingBatchInfo;
 
     const finalFotoBase64 = paymentReceipts.length > 0 ? paymentReceipts[0].base64 : (paymentReceiptBase64 || undefined);
     const finalFotoNamaFile = paymentReceipts.length > 0 ? paymentReceipts[0].name : (paymentReceiptNamaFile || undefined);
@@ -3211,9 +3207,8 @@ export default function TagihanWarga({
       if (w.id === warga.id) {
         let updatedBillings = [...w[billingType]];
         
-        bulans.forEach(bulan => {
-          const index = updatedBillings.findIndex(b => b.bulan.toLowerCase() === bulan.toLowerCase() && (b.tahun === tahun || (!b.tahun && tahun === 2026)));
-          const nominal = nominalPerBulan[bulan] || 0;
+        items.forEach(item => {
+          const index = updatedBillings.findIndex(b => b.bulan.toLowerCase() === item.bulan.toLowerCase() && (b.tahun === item.tahun || (!b.tahun && item.tahun === 2026)));
           if (index > -1) {
             updatedBillings[index] = { 
               ...updatedBillings[index], 
@@ -3227,10 +3222,10 @@ export default function TagihanWarga({
             };
           } else {
             updatedBillings.push({
-              bulan: bulan,
+              bulan: item.bulan,
               lunas: true,
-              nominal: nominal,
-              tahun: tahun,
+              nominal: item.nominal,
+              tahun: item.tahun,
               tanggalBayar: paymentDate,
               jamBayar: paymentTime,
               fotoBase64: finalFotoBase64,
@@ -3256,10 +3251,10 @@ export default function TagihanWarga({
     nextKas[paymentTargetKas] += totalNominal;
     updateKas(nextKas);
 
-    const bulansJoined = bulans.join(', ');
+    const itemsDescription = items.map(item => `${item.bulan} ${item.tahun}`).join(', ');
     addLedgerEntry({
       tanggal: paymentDate,
-      deskripsi: `${category} Kolektif (${bulansJoined}) ${tahun} - ${warga.nama} (Blok ${warga.blok}-${warga.noRumah})`,
+      deskripsi: `${category} Kolektif (${itemsDescription}) - ${warga.nama} (Blok ${warga.blok}-${warga.noRumah})`,
       jumlah: totalNominal,
       tipe: 'pemasukan',
       sumberKas: paymentTargetKas,
@@ -3279,8 +3274,8 @@ export default function TagihanWarga({
       noRumah: warga.noRumah,
       noWa: warga.noWa || '',
       category,
-      bulan: bulansJoined,
-      tahun,
+      bulan: itemsDescription,
+      tahun: 0,
       nominal: totalNominal,
       tanggalBayar: paymentDate,
       jamBayar: paymentTime,
@@ -7126,10 +7121,10 @@ export default function TagihanWarga({
             </button>
             <h4 className="font-extrabold text-emerald-600 text-base mb-2 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-emerald-600" />
-              Konfirmasi Pencatatan Pembayaran Kolektif ({payingBatchInfo.bulans.length} Bulan)
+              Konfirmasi Pencatatan Pembayaran Kolektif ({payingBatchInfo.items.length} Bulan)
             </h4>
             <p className="text-slate-650 text-sm mb-3 leading-relaxed">
-              Mencatat pembayaran iuran <strong className="text-slate-900">{payingBatchInfo.category}</strong> kolektif untuk bulan <strong className="text-slate-900">{payingBatchInfo.bulans.join(', ')}</strong> oleh warga <strong className="text-slate-900">{payingBatchInfo.warga.nama}</strong> (Blok {payingBatchInfo.warga.blok}-{payingBatchInfo.warga.noRumah}) sebesar <strong className="text-emerald-605 font-mono font-bold text-sm bg-emerald-50 px-2 py-0.5 rounded-lg">Rp {payingBatchInfo.totalNominal.toLocaleString('id-ID')}</strong> ({payingBatchInfo.bulans.length} x Rp {(payingBatchInfo.totalNominal / payingBatchInfo.bulans.length).toLocaleString('id-ID')}).
+              Mencatat pembayaran iuran <strong className="text-slate-900">{payingBatchInfo.category}</strong> kolektif untuk periode <strong className="text-slate-900">{payingBatchInfo.items.map(item => `${item.bulan} ${item.tahun}`).join(', ')}</strong> oleh warga <strong className="text-slate-900">{payingBatchInfo.warga.nama}</strong> (Blok {payingBatchInfo.warga.blok}-{payingBatchInfo.warga.noRumah}) sebesar <strong className="text-emerald-605 font-mono font-bold text-sm bg-emerald-50 px-2 py-0.5 rounded-lg">Rp {payingBatchInfo.totalNominal.toLocaleString('id-ID')}</strong>.
             </p>
             <div className="bg-sky-50 border border-sky-150 rounded-xl p-3 mb-4 text-xs text-sky-800 leading-relaxed">
               💡 <strong>Ketentuan Kas:</strong> Uang tagihan kolektif ini dihitung sebagai <strong>Pendapatan Akrual / Kas Masuk</strong> dan langsung disetorkan ke Bank untuk keamanan dan pembukuan resmi, serta tetap terhitung dalam total saldo keseluruhan kas warga.
@@ -7137,15 +7132,39 @@ export default function TagihanWarga({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-605 mb-1.5 font-mono font-bold">Target Penerimaan Kas Pelunasan (Iuran RT Tunai / Iuran RT Bank)</label>
-                <select
-                  value={paymentTargetKas}
-                  onChange={(e) => setPaymentTargetKas(e.target.value as keyof Balance)}
-                  className="w-full bg-slate-50 border border-slate-205 rounded-xl p-2.5 text-xs text-slate-955 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold cursor-pointer"
-                >
-                  <option value="rtTunai">Iuran RT Tunai (Sisa: Rp {kas.rtTunai.toLocaleString('id-ID')})</option>
-                  <option value="rtBank">Iuran RT Bank (Sisa: Rp {kas.rtBank.toLocaleString('id-ID')})</option>
-                </select>
+                <label className="block text-xs font-bold text-slate-700 font-mono mb-2">Pilihan Metode Pembayaran (Cash atau Bank)</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTargetKas('rtTunai')}
+                    className={`flex items-center justify-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition cursor-pointer active:scale-98 ${
+                      paymentTargetKas === 'rtTunai'
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Coins className="w-4 h-4 text-emerald-600" />
+                    <div className="text-left">
+                      <div className="font-extrabold">Bayar Cash (Tunai)</div>
+                      <div className="text-[9px] text-slate-400 font-normal">Sisa: Rp {kas.rtTunai.toLocaleString('id-ID')}</div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTargetKas('rtBank')}
+                    className={`flex items-center justify-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition cursor-pointer active:scale-98 ${
+                      paymentTargetKas === 'rtBank'
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4 text-sky-600" />
+                    <div className="text-left">
+                      <div className="font-extrabold">Bayar Bank (Transfer)</div>
+                      <div className="text-[9px] text-slate-400 font-normal">Sisa: Rp {kas.rtBank.toLocaleString('id-ID')}</div>
+                    </div>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3.5">
@@ -8762,17 +8781,45 @@ export default function TagihanWarga({
                 )}
 
                 {isBatchPaymentActive && selectedWargaHistory && (
-                  <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3.5 shadow-xs">
+                  <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3.5 shadow-xs animate-in slide-in-from-top duration-200">
                     <div className="text-left w-full sm:w-auto">
-                      <h6 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest font-mono">Mode Bayar Kolektif Aktif ({historyYear})</h6>
-                      <p className="text-[11px] text-slate-650 mt-0.5 leading-relaxed font-semibold">
-                        Klik bulan-bulan belum lunas di bawah untuk memilih pembayaran, lalu klik tombol Proses Bayar.
-                      </p>
+                      <h6 className="text-[10.5px] font-extrabold text-emerald-850 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        ⚡ Mode Bayar Kolektif Lintas Tahun Aktif
+                      </h6>
+                      {(() => {
+                        const selectedKeys = Object.keys(batchPaymentSelectedMonths).filter(k => batchPaymentSelectedMonths[k]);
+                        if (selectedKeys.length === 0) {
+                          return (
+                            <p className="text-[11px] text-slate-650 mt-1 leading-relaxed font-semibold">
+                              Silakan klik bulan-bulan belum lunas di bawah. Anda bisa mengganti <strong className="text-slate-905">Tahun Buku</strong> di atas untuk memilih bulan dari tahun yang berbeda!
+                            </p>
+                          );
+                        }
+                        // Group by year for display
+                        const grouped: { [yr: string]: string[] } = {};
+                        selectedKeys.forEach(k => {
+                          const [yr, m] = k.split('-');
+                          if (!grouped[yr]) grouped[yr] = [];
+                          grouped[yr].push(m.slice(0, 3));
+                        });
+                        const summaryParts = Object.keys(grouped).sort().map(yr => {
+                          return `${yr} (${grouped[yr].join(', ')})`;
+                        });
+                        return (
+                          <div className="mt-1.5 flex flex-wrap gap-1 items-center">
+                            <span className="text-[10px] bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider font-mono">Terpilih:</span>
+                            <span className="text-[11px] text-emerald-950 font-extrabold font-sans leading-relaxed">
+                              {summaryParts.join(' | ')}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="flex gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto justify-end">
                       <button
                         onClick={() => {
-                          const allMonthsStatus: {[key: string]: boolean} = {};
+                          const updated = { ...batchPaymentSelectedMonths };
                           fullMonths.forEach(m => {
                             const shortM = m.slice(0, 3);
                             const slot = selectedWargaHistory.iuranRT.find(b => 
@@ -8781,14 +8828,14 @@ export default function TagihanWarga({
                             );
                             const isLunas = slot ? slot.lunas : false;
                             if (!isLunas) {
-                              allMonthsStatus[m] = true;
+                              updated[`${historyYear}-${m}`] = true;
                             }
                           });
-                          setBatchPaymentSelectedMonths(allMonthsStatus);
+                          setBatchPaymentSelectedMonths(updated);
                         }}
                         className="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-705 rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95"
                       >
-                        Pilih Semua Belum Lunas
+                        Pilih Semua Belum Lunas ({historyYear})
                       </button>
                       <button
                         onClick={() => {
@@ -8799,24 +8846,31 @@ export default function TagihanWarga({
                         Batal Semua
                       </button>
                       {(() => {
-                        const selectedList = Object.keys(batchPaymentSelectedMonths).filter(m => batchPaymentSelectedMonths[m]);
-                        const totalCount = selectedList.length;
-                        const totalNominal = selectedList.reduce((sum, m) => sum + getDefaultRtRate(historyYear, m, rateRT), 0);
+                        const selectedKeys = Object.keys(batchPaymentSelectedMonths).filter(k => batchPaymentSelectedMonths[k]);
+                        const totalCount = selectedKeys.length;
+                        const totalNominal = selectedKeys.reduce((sum, key) => {
+                          const [yrStr, mName] = key.split('-');
+                          const yr = parseInt(yrStr) || historyYear;
+                          return sum + getDefaultRtRate(yr, mName, rateRT);
+                        }, 0);
                         return (
                           <button
                             disabled={totalCount === 0}
                             onClick={() => {
-                              const nominals: { [b: string]: number } = {};
-                              selectedList.forEach(m => {
-                                nominals[m] = getDefaultRtRate(historyYear, m, rateRT);
+                              const items = selectedKeys.map(key => {
+                                const [yrStr, mName] = key.split('-');
+                                const yr = parseInt(yrStr) || historyYear;
+                                return {
+                                  bulan: mName,
+                                  tahun: yr,
+                                  nominal: getDefaultRtRate(yr, mName, rateRT)
+                                };
                               });
                               openBatchPaymentModal(
                                 selectedWargaHistory,
                                 'Iuran RT',
-                                selectedList,
-                                nominals,
-                                'iuranRT',
-                                historyYear
+                                items,
+                                'iuranRT'
                               );
                             }}
                             className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition duration-150 active:scale-95 flex items-center gap-1 cursor-pointer ${
@@ -8902,7 +8956,8 @@ export default function TagihanWarga({
                       }
 
                       if (isBatchPaymentActive) {
-                        const isSelected = !!batchPaymentSelectedMonths[IndoMonth];
+                        const batchKey = `${historyYear}-${IndoMonth}`;
+                        const isSelected = !!batchPaymentSelectedMonths[batchKey];
                         const displayedNominal = isSelected ? actualRateValue : nominalValue;
                         return (
                           <div 
@@ -8914,7 +8969,7 @@ export default function TagihanWarga({
                               }
                               setBatchPaymentSelectedMonths(prev => ({
                                 ...prev,
-                                [IndoMonth]: !prev[IndoMonth]
+                                [batchKey]: !prev[batchKey]
                               }));
                             }}
                             className={`p-3 rounded-xl border flex items-center justify-between min-h-[4.5rem] h-auto cursor-pointer transition duration-150 select-none ${
