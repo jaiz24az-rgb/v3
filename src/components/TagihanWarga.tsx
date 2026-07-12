@@ -6905,8 +6905,8 @@ export default function TagihanWarga({
 
       {/* Warga Payment Processing Confirmation Box (Floating Modal Overlay) */}
       {payingInfo && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setPayingInfo(null)}
               className="absolute top-4 right-4 text-slate-450 hover:text-slate-800 cursor-pointer p-1 rounded-full hover:bg-slate-105 transition"
@@ -7110,8 +7110,8 @@ export default function TagihanWarga({
 
       {/* Warga Batch Payment Processing Confirmation Box (Floating Modal Overlay) */}
       {payingBatchInfo && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setPayingBatchInfo(null)}
               className="absolute top-4 right-4 text-slate-450 hover:text-slate-800 cursor-pointer p-1 rounded-full hover:bg-slate-105 transition"
@@ -7339,8 +7339,8 @@ export default function TagihanWarga({
 
       {/* Rombong Payment Processing Confirmation Box (Floating Modal Overlay) */}
       {payingRombongInfo && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setPayingRombongInfo(null)}
               className="absolute top-4 right-4 text-slate-455 hover:text-slate-800 cursor-pointer p-1 rounded-full hover:bg-slate-105 transition"
@@ -7617,8 +7617,8 @@ export default function TagihanWarga({
 
       {/* 4. MODAL DETIL SUKSES VERIFIKASI PEMBAYARAN & WHATSAPP RECEIPT NOTIFIKASI */}
       {receiptSuccessInfo && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-[110] animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-md w-full font-sans">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-[110] animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 text-slate-800 max-w-md w-full font-sans max-h-[90vh] overflow-y-auto">
             <button 
               type="button"
               onClick={() => setReceiptSuccessInfo(null)}
