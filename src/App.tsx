@@ -2378,6 +2378,8 @@ export default function App() {
               rtAddress={rtAddress}
               rtEmail={rtEmail}
               onTriggerLogin={() => setShowLoginModal(true)}
+              wargaList={wargaList}
+              rombongList={rombongList}
             />
           )}
 
