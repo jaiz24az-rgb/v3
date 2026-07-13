@@ -22,7 +22,8 @@ import {
   Eye,
   Edit2,
   MessageSquare,
-  Check
+  Check,
+  Copy
 } from 'lucide-react';
 
 interface LedgerProps {
@@ -153,7 +154,213 @@ export default function Ledger({
     return temp.trim();
   };
 
-  const printSingleReceiptPDF = (receiptInfo: {
+  const drawReceiptOnCanvas = (receiptInfo: {
+    id: string;
+    nama: string;
+    tipe: 'warga' | 'rombong';
+    blok?: string;
+    noRumah?: string;
+    noLapak?: string;
+    noWa: string;
+    category: string;
+    bulan: string;
+    tahun: number;
+    nominal: number;
+    tanggalBayar: string;
+    jamBayar: string;
+    kasPenerima: string;
+    petugas: string;
+    catatan?: string;
+  }, canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 800, 560);
+
+    // Background light beige tint
+    ctx.fillStyle = '#fafaf9';
+    ctx.fillRect(15, 15, 770, 530);
+
+    // Outer border double
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(15, 15, 770, 530);
+    ctx.strokeRect(19, 19, 762, 522);
+
+    // 1. Header Area
+    // Draw Logo Circle
+    ctx.beginPath();
+    ctx.arc(60, 65, 25, 0, Math.PI * 2);
+    ctx.fillStyle = '#0284c7';
+    ctx.fill();
+
+    // Logo Text "08"
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px "Helvetica Neue", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('08', 60, 65);
+
+    // RT Title
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 15px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('PAGUYUBAN WARGA RT 08 RW 04', 100, 55);
+
+    // RT Subtitle
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 10px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('Perumtas 3 Wonoayu Sidoarjo • Desa Popoh • Jawa Timur', 100, 75);
+
+    // KUITANSI title right aligned
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '900 22px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('KUITANSI', 750, 55);
+
+    // Receipt No
+    const detailLoc = receiptInfo.tipe === 'warga'
+      ? `Blok ${receiptInfo.blok || ''}-${receiptInfo.noRumah || ''}`
+      : `No Lapak ${receiptInfo.noLapak || ''}`;
+    const receiptNo = `KWT/${receiptInfo.tipe === 'warga' ? 'WRG' : 'RBG'}/${receiptInfo.tahun}/${(receiptInfo.bulan || '').replace(/[\s,]+/g, '-').slice(0, 10).toUpperCase()}/${(receiptInfo.id || '').substring(0, 4).toUpperCase()}`;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 10px monospace';
+    ctx.fillText(`NO: ${receiptNo}`, 750, 75);
+
+    // Draw Header separator line
+    ctx.beginPath();
+    ctx.moveTo(35, 105);
+    ctx.lineTo(765, 105);
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 2. Content Table
+    const startXLabel = 40;
+    const startXValue = 240;
+    let currentY = 140;
+    const rowHeight = 32;
+
+    const fields = [
+      { label: 'TELAH DITERIMA DARI', value: `Bapak/Ibu ${receiptInfo.nama || ''}`, isHighlight: true },
+      { label: receiptInfo.tipe === 'warga' ? 'UNIT RUMAH' : 'NO LAPAK', value: detailLoc },
+      { label: 'KATEGORI PEMBAYARAN', value: receiptInfo.category || '' },
+      { label: 'PERIODE / BULAN', value: `${receiptInfo.bulan || ''} ${receiptInfo.tahun || ''}` },
+      { label: 'TERBILANG (UANG)', value: getTerbilang(receiptInfo.nominal) + ' Rupiah', isItalic: true },
+      { label: 'CATATAN / LAMPIRAN', value: receiptInfo.catatan || '-' }
+    ];
+
+    fields.forEach(field => {
+      // Label
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#475569';
+      ctx.font = 'bold 9.5px "Helvetica Neue", Arial, sans-serif';
+      ctx.fillText(field.label, startXLabel, currentY);
+
+      // Separator colon
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText(':', startXValue - 15, currentY);
+
+      // Value
+      if (field.isHighlight) {
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '900 12.5px "Helvetica Neue", Arial, sans-serif';
+      } else if (field.isItalic) {
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'italic bold 11px "Helvetica Neue", Arial, sans-serif';
+      } else {
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 11px "Helvetica Neue", Arial, sans-serif';
+      }
+      ctx.fillText(field.value, startXValue, currentY);
+
+      // Dashed line under row
+      ctx.beginPath();
+      ctx.setLineDash([3, 3]);
+      ctx.moveTo(startXLabel, currentY + 10);
+      ctx.lineTo(760, currentY + 10);
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset dashed line
+
+      currentY += rowHeight;
+    });
+
+    // 3. Terbilang Box
+    const terbilangText = getTerbilang(receiptInfo.nominal) + ' Rupiah';
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(40, currentY + 5, 720, 36);
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(40, currentY + 5, 720, 36);
+
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'italic bold 11px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText(`Terbilang: "# ${terbilangText} #"`, 55, currentY + 27);
+
+    currentY += 60;
+
+    // 4. Footer & Signature
+    // Left: Tanda Terima Penyetor
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 10px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('TANDA TERIMA PENYETOR', 150, currentY);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 11px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText(receiptInfo.nama || '', 150, currentY + 65);
+    // draw thin underline for name
+    ctx.beginPath();
+    ctx.moveTo(90, currentY + 70);
+    ctx.lineTo(210, currentY + 70);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 9px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('Pembayar', 150, currentY + 82);
+
+    // Middle: LUNAS Stamp
+    ctx.save();
+    ctx.translate(400, currentY + 35);
+    ctx.rotate(-5 * Math.PI / 180);
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 3;
+    // rounded rectangle for stamp
+    ctx.strokeRect(-60, -18, 120, 36);
+    ctx.fillStyle = '#10b981';
+    ctx.font = '900 15px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('LUNAS ✓', 0, 5);
+    ctx.restore();
+
+    // Right: Petugas Kas
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 10px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText(`SIDOARJO, ${receiptInfo.tanggalBayar || ''}`, 650, currentY);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 11px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText(receiptInfo.petugas || '', 650, currentY + 65);
+    // draw thin underline for name
+    ctx.beginPath();
+    ctx.moveTo(590, currentY + 70);
+    ctx.lineTo(710, currentY + 70);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 9px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText(`Petugas Kas (${(receiptInfo.kasPenerima || '').toUpperCase()})`, 650, currentY + 82);
+  };
+
+  const printSingleReceiptPNG = (receiptInfo: {
     id: string;
     nama: string;
     tipe: 'warga' | 'rombong';
@@ -171,322 +378,22 @@ export default function Ledger({
     petugas: string;
     catatan?: string;
   }) => {
-    const detailLoc = receiptInfo.tipe === 'warga'
-      ? `Blok ${receiptInfo.blok}-${receiptInfo.noRumah}`
-      : `No Lapak ${receiptInfo.noLapak}`;
-
-    const receiptNo = `KWT/${receiptInfo.tipe === 'warga' ? 'WRG' : 'RBG'}/${receiptInfo.tahun}/${receiptInfo.bulan.replace(/[\s,]+/g, '-').slice(0, 10).toUpperCase()}/${receiptInfo.id.substring(0, 4).toUpperCase()}`;
-
-    const terbilangText = getTerbilang(receiptInfo.nominal) + " Rupiah";
-
-    const htmlContent = `
-      <html>
-        <head>
-          <title>Kuitansi Pembayaran - ${receiptInfo.nama}</title>
-          <style>
-            body {
-              font-family: 'Helvetica Neue', Arial, sans-serif;
-              color: #1e293b;
-              padding: 40px;
-              margin: 0;
-              background-color: #ffffff;
-              font-size: 13px;
-              line-height: 1.6;
-            }
-            .kuitansi-border {
-              border: 4px double #475569;
-              padding: 25px;
-              position: relative;
-              background-color: #fafaf9;
-            }
-            .header-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 20px;
-              border-bottom: 2px solid #475569;
-              padding-bottom: 10px;
-            }
-            .logo-cell {
-              width: 70px;
-              vertical-align: middle;
-            }
-            .rt-logo {
-              width: 60px;
-              height: 60px;
-              background-color: #0284c7;
-              color: white;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 24px;
-              font-weight: bold;
-              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            }
-            .title-cell {
-              text-align: left;
-              padding-left: 15px;
-              vertical-align: middle;
-            }
-            .rt-title {
-              font-size: 16px;
-              font-weight: 800;
-              color: #0f172a;
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-              margin: 0;
-            }
-            .rt-sub {
-              font-size: 11px;
-              color: #475569;
-              margin: 2px 0 0 0;
-              font-weight: 600;
-            }
-            .kuitansi-title-container {
-              text-align: right;
-              vertical-align: middle;
-            }
-            .kuitansi-title {
-              font-size: 22px;
-              font-weight: 900;
-              color: #0f172a;
-              margin: 0;
-              letter-spacing: 1px;
-            }
-            .kuitansi-no {
-              font-family: monospace;
-              font-size: 11px;
-              color: #64748b;
-              margin-top: 3px;
-            }
-            .content-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 25px;
-              margin-bottom: 25px;
-            }
-            .content-table td {
-              padding: 8px 10px;
-              vertical-align: top;
-            }
-            .label-column {
-              width: 180px;
-              font-weight: 700;
-              color: #475569;
-              text-transform: uppercase;
-              font-size: 11px;
-              letter-spacing: 0.5px;
-              border-bottom: 1px dashed #e2e8f0;
-            }
-            .value-column {
-              font-weight: 600;
-              color: #0f172a;
-              border-bottom: 1px dashed #e2e8f0;
-            }
-            .value-column-highlight {
-              font-size: 14px;
-              font-weight: 800;
-              color: #0f172a;
-              border-bottom: 1px dashed #e2e8f0;
-            }
-            .terbilang-box {
-              background-color: #f1f5f9;
-              border: 1px solid #cbd5e1;
-              padding: 10px 15px;
-              font-style: italic;
-              font-weight: 700;
-              color: #1e293b;
-              border-radius: 8px;
-              margin: 15px 0;
-            }
-            .footer-container {
-              width: 100%;
-              margin-top: 35px;
-              border-collapse: collapse;
-            }
-            .footer-container td {
-              width: 33%;
-              text-align: center;
-              vertical-align: top;
-            }
-            .sign-title {
-              font-size: 11px;
-              font-weight: 700;
-              color: #475569;
-              text-transform: uppercase;
-              margin-bottom: 55px;
-            }
-            .sign-name {
-              font-size: 12px;
-              font-weight: 800;
-              color: #0f172a;
-              text-decoration: underline;
-              margin: 0;
-            }
-            .sign-sub {
-              font-size: 10px;
-              color: #64748b;
-              margin: 2px 0 0 0;
-            }
-            .status-stamp {
-              border: 3px solid #10b981;
-              color: #10b981;
-              font-size: 16px;
-              font-weight: 900;
-              text-transform: uppercase;
-              padding: 6px 15px;
-              border-radius: 8px;
-              display: inline-block;
-              transform: rotate(-5deg);
-              margin-top: 10px;
-              letter-spacing: 1px;
-              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-            }
-            .nominal-badge {
-              font-size: 18px;
-              font-weight: 900;
-              color: #059669;
-              background-color: #ecfdf5;
-              border: 2px solid #10b981;
-              padding: 10px 20px;
-              border-radius: 10px;
-              display: inline-block;
-              font-family: monospace;
-              letter-spacing: 0.5px;
-            }
-            .meta-text {
-              font-size: 10px;
-              color: #94a3b8;
-              text-align: center;
-              margin-top: 25px;
-              font-style: italic;
-            }
-            @media print {
-              body {
-                padding: 10px;
-                background-color: #ffffff;
-              }
-              .kuitansi-border {
-                border: 3px solid #000000;
-                background-color: #ffffff;
-                box-shadow: none;
-              }
-              .nominal-badge {
-                border: 2px solid #000000;
-                background-color: #ffffff;
-                color: #000000;
-              }
-              .status-stamp {
-                border: 3px solid #000000;
-                color: #000000;
-              }
-              .terbilang-box {
-                background-color: #ffffff;
-                border: 1px solid #000000;
-              }
-              .no-print-btn {
-                display: none !important;
-              }
-            }
-            .no-print-btn {
-              background-color: #0284c7;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              font-size: 13px;
-              font-weight: bold;
-              border-radius: 8px;
-              cursor: pointer;
-              box-shadow: 0 4px 6px -1px rgb(2 132 199 / 0.3);
-              transition: all 0.2s;
-              margin-bottom: 20px;
-            }
-            .no-print-btn:hover {
-              background-color: #0369a1;
-              box-shadow: 0 4px 6px -1px rgb(3 105 161 / 0.4);
-            }
-          </style>
-        </head>
-        <body>
-          <div style="text-align: right;" class="no-print-btn-container">
-            <button class="no-print-btn" onclick="window.print()">Cetak / Simpan PDF</button>
-          </div>
-          <div class="kuitansi-border">
-            <table class="header-table">
-              <tr>
-                <td class="logo-cell">
-                  <div class="rt-logo">08</div>
-                </td>
-                <td class="title-cell">
-                  <h1 class="rt-title">PAGUYUBAN WARGA RT 08 RW 04</h1>
-                  <p class="rt-sub">Perumtas 3 Wonoayu Sidoarjo • Desa Popoh • Jawa Timur</p>
-                </td>
-                <td class="kuitansi-title-container">
-                  <h2 class="kuitansi-title">KUITANSI</h2>
-                  <div class="kuitansi-no">NO: ${receiptNo}</div>
-                </td>
-              </tr>
-            </table>
-
-            <table class="content-table">
-              <tr>
-                <td class="label-column">Telah Diterima Dari</td>
-                <td class="value-column-highlight">: Bapak/Ibu ${receiptInfo.nama}</td>
-              </tr>
-              <tr>
-                <td class="label-column">Unit Rumah / Lapak</td>
-                <td class="value-column">: ${detailLoc}</td>
-              </tr>
-              <tr>
-                <td class="label-column">Kategori Pembayaran</td>
-                <td class="value-column">: ${receiptInfo.category}</td>
-              </tr>
-              <tr>
-                <td class="label-column">Periode / Bulan</td>
-                <td class="value-column">: ${receiptInfo.bulan} ${receiptInfo.tahun}</td>
-              </tr>
-              <tr>
-                <td class="label-column">Terbilang (Uang)</td>
-                <td class="value-column" style="text-transform: capitalize; font-style: italic;">: ${terbilangText}</td>
-              </tr>
-              <tr>
-                <td class="label-column">Catatan / Lampiran</td>
-                <td class="value-column">: ${receiptInfo.catatan || '-'}</td>
-              </tr>
-            </table>
-
-            <div class="terbilang-box">
-              Terbilang: "# ${terbilangText} #"
-            </div>
-
-            <table class="footer-container">
-              <tr>
-                <td>
-                  <div class="sign-title">Tanda Terima Penyetor</div>
-                  <div style="height: 40px;"></div>
-                  <p class="sign-name">${receiptInfo.nama}</p>
-                  <p class="sign-sub">Pembayar</p>
-                </td>
-                <td style="vertical-align: middle;">
-                  <div class="status-stamp">LUNAS ✓</div>
-                </td>
-                <td>
-                  <div class="sign-title">Sidoarjo, ${receiptInfo.tanggalBayar}</div>
-                  <div style="height: 40px;"></div>
-                  <p class="sign-name">${receiptInfo.petugas}</p>
-                  <p class="sign-sub">Petugas Kas (${receiptInfo.kasPenerima.toUpperCase()})</p>
-                </td>
-              </tr>
-            </table>
-
-            <div class="meta-text">
-              Kuitansi ini diterbitkan secara digital oleh Sistem Aplikasi Kas RT 08 Tas 3 dan merupakan bukti pembayaran yang sah.
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-    printContentViaIframe(htmlContent);
+    const canvas = document.createElement('canvas');
+    canvas.width = 1600;
+    canvas.height = 1120;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.scale(2, 2);
+      drawReceiptOnCanvas(receiptInfo, canvas);
+      
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `Kuitansi_${(receiptInfo.nama || 'Warga').replace(/\s+/g, '_')}_${receiptInfo.bulan || 'Periode'}_${receiptInfo.tahun || 'Tahun'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const getMatchedBillInfo = (entry: LedgerEntry) => {
@@ -510,6 +417,9 @@ export default function Ledger({
 
       let bulan = entry.tanggal || '';
       let tahun = entry.tahun || (entry.tanggal ? new Date(entry.tanggal).getFullYear() : new Date().getFullYear());
+      if (isNaN(tahun)) {
+        tahun = new Date().getFullYear();
+      }
       const kolektifMatch = (entry.deskripsi || '').match(/Kolektif \(([^)]+)\)/);
       if (kolektifMatch) {
         bulan = kolektifMatch[1];
@@ -552,6 +462,9 @@ export default function Ledger({
 
       let bulan = entry.tanggal || '';
       let tahun = entry.tahun || (entry.tanggal ? new Date(entry.tanggal).getFullYear() : new Date().getFullYear());
+      if (isNaN(tahun)) {
+        tahun = new Date().getFullYear();
+      }
       const kolektifMatch = (entry.deskripsi || '').match(/Kolektif \(([^)]+)\)/);
       if (kolektifMatch) {
         bulan = kolektifMatch[1];
@@ -593,6 +506,24 @@ export default function Ledger({
   const [showPrintPreview, setShowPrintPreview] = useState<boolean>(false);
   const [selectedReceipt, setSelectedReceipt] = useState<{ deskripsi: string; fotoBase64: string; fotoNamaFile: string } | null>(null);
   const [reprintReceiptInfo, setReprintReceiptInfo] = useState<any | null>(null);
+  const [reprintReceiptPNGUrl, setReprintReceiptPNGUrl] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (reprintReceiptInfo) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1600;
+      canvas.height = 1120;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(2, 2);
+        drawReceiptOnCanvas(reprintReceiptInfo, canvas);
+        const url = canvas.toDataURL('image/png');
+        setReprintReceiptPNGUrl(url);
+      }
+    } else {
+      setReprintReceiptPNGUrl(null);
+    }
+  }, [reprintReceiptInfo]);
   const [entryToDelete, setEntryToDelete] = useState<{ 
     id: string; 
     jumlah: number; 
@@ -2863,15 +2794,34 @@ export default function Ledger({
               </p>
             </div>
 
+            {/* Visual Rincian / Kuitansi PNG Preview */}
+            {reprintReceiptPNGUrl ? (
+              <div className="mb-4 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 p-2 shadow-inner">
+                <p className="text-[10px] text-slate-500 font-bold mb-1.5 text-center font-mono uppercase tracking-wider">Gambar Kuitansi Digital (PNG) 📸</p>
+                <img 
+                  src={reprintReceiptPNGUrl} 
+                  alt="Kuitansi Digital" 
+                  className="w-full rounded-lg border border-slate-100 shadow-md transition hover:scale-[1.01] duration-250"
+                />
+                <p className="text-[9px] text-slate-400 text-center mt-1.5 italic">
+                  *Bisa tekan lama gambar di atas untuk simpan/bagikan langsung di HP
+                </p>
+              </div>
+            ) : (
+              <div className="h-32 mb-4 bg-slate-50 animate-pulse rounded-2xl flex items-center justify-center text-slate-400 text-xs">
+                Mempersiapkan gambar kuitansi...
+              </div>
+            )}
+
             {/* Rincian Finansial Kuitansi */}
             <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 space-y-2.5 text-[11px]">
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Kategori Iuran</span>
-                <span className="font-extrabold text-slate-900">{reprintReceiptInfo.category}</span>
+                <span className="font-extrabold text-slate-900">{reprintReceiptInfo.category || ''}</span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Nama Pembayar</span>
-                <span className="font-extrabold text-slate-900">{reprintReceiptInfo.nama}</span>
+                <span className="font-extrabold text-slate-900">{reprintReceiptInfo.nama || ''}</span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">
@@ -2879,29 +2829,29 @@ export default function Ledger({
                 </span>
                 <span className="font-extrabold text-slate-900 font-mono">
                   {reprintReceiptInfo.tipe === 'warga' 
-                    ? `Blok ${reprintReceiptInfo.blok}-${reprintReceiptInfo.noRumah}` 
-                    : `Lapak ${reprintReceiptInfo.noLapak}`}
+                    ? `Blok ${(reprintReceiptInfo.blok || '')}-${(reprintReceiptInfo.noRumah || '')}` 
+                    : `Lapak ${(reprintReceiptInfo.noLapak || '')}`}
                 </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Periode Pembayaran</span>
-                <span className="font-extrabold text-slate-900">{reprintReceiptInfo.bulan} {reprintReceiptInfo.tahun}</span>
+                <span className="font-extrabold text-slate-900">{(reprintReceiptInfo.bulan || '')} {(reprintReceiptInfo.tahun || '')}</span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Metode Kas Masuk</span>
                 <span className="font-extrabold text-slate-950 font-mono text-[10px] bg-slate-200/65 px-1.5 py-0.5 rounded uppercase">
-                  {reprintReceiptInfo.kasPenerima}
+                  {(reprintReceiptInfo.kasPenerima || '')}
                 </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Tanggal &amp; Waktu</span>
                 <span className="font-extrabold text-slate-800 font-mono">
-                  {reprintReceiptInfo.tanggalBayar} ({reprintReceiptInfo.jamBayar})
+                  {(reprintReceiptInfo.tanggalBayar || '')} ({(reprintReceiptInfo.jamBayar || '')})
                 </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Petugas Kas</span>
-                <span className="font-extrabold text-slate-800">{reprintReceiptInfo.petugas}</span>
+                <span className="font-extrabold text-slate-800">{(reprintReceiptInfo.petugas || '')}</span>
               </div>
               {reprintReceiptInfo.catatan && (
                 <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
@@ -2914,7 +2864,7 @@ export default function Ledger({
               <div className="flex justify-between items-center pt-0.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono text-xs">Total Nominal</span>
                 <span className="font-black text-emerald-600 text-sm font-mono">
-                  Rp {reprintReceiptInfo.nominal.toLocaleString('id-ID')}
+                  Rp {(reprintReceiptInfo.nominal || 0).toLocaleString('id-ID')}
                 </span>
               </div>
             </div>
@@ -2934,7 +2884,7 @@ export default function Ledger({
               </h5>
               
               <p className="text-[10.5px] text-slate-650 leading-relaxed mt-2 font-medium font-sans">
-                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{reprintReceiptInfo.nama}</span> dalam pelunasan {reprintReceiptInfo.bulan.includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{reprintReceiptInfo.category} ({reprintReceiptInfo.bulan} {reprintReceiptInfo.tahun})</strong>.
+                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{(reprintReceiptInfo.nama || '')}</span> dalam pelunasan {(reprintReceiptInfo.bulan || '').includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{(reprintReceiptInfo.category || '')} ({(reprintReceiptInfo.bulan || '')} {(reprintReceiptInfo.tahun || '')})</strong>.
               </p>
               
               <p className="text-[10px] text-slate-505 leading-relaxed mt-1.5 font-semibold italic bg-white/70 border border-slate-100 p-1.5 rounded-xl">
@@ -2966,17 +2916,17 @@ export default function Ledger({
                   }
                   
                   const detailLoc = reprintReceiptInfo.tipe === 'warga'
-                    ? `Blok ${reprintReceiptInfo.blok}-${reprintReceiptInfo.noRumah}`
-                    : `No Lapak ${reprintReceiptInfo.noLapak}`;
+                    ? `Blok ${(reprintReceiptInfo.blok || '')}-${(reprintReceiptInfo.noRumah || '')}`
+                    : `No Lapak ${(reprintReceiptInfo.noLapak || '')}`;
 
-                  const isBatch = reprintReceiptInfo.bulan.includes(',');
-                  const numMonths = isBatch ? reprintReceiptInfo.bulan.split(',').length : 1;
+                  const isBatch = (reprintReceiptInfo.bulan || '').includes(',');
+                  const numMonths = isBatch ? (reprintReceiptInfo.bulan || '').split(',').length : 1;
                   const tipeBayarText = isBatch ? `\n• Jenis: Pembayaran Kolektif (${numMonths} Bulan)` : '';
                   const periodeText = isBatch 
-                    ? `${reprintReceiptInfo.bulan} ${reprintReceiptInfo.tahun}`
-                    : `${reprintReceiptInfo.bulan} ${reprintReceiptInfo.tahun}`;
+                    ? `${(reprintReceiptInfo.bulan || '')} ${(reprintReceiptInfo.tahun || '')}`
+                    : `${(reprintReceiptInfo.bulan || '')} ${(reprintReceiptInfo.tahun || '')}`;
 
-                  const textMessage = `Assalamualaikum wr.wb.\n\n*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${reprintReceiptInfo.nama}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${reprintReceiptInfo.nama}\n• Unit: ${detailLoc}\n• Kategori: ${reprintReceiptInfo.category}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${reprintReceiptInfo.nominal.toLocaleString('id-ID')}\n• Tanggal: ${reprintReceiptInfo.tanggalBayar} ${reprintReceiptInfo.jamBayar}\n• Penerima: KAS ${reprintReceiptInfo.kasPenerima.toUpperCase()}\n• Petugas: ${reprintReceiptInfo.petugas}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
+                  const textMessage = `Assalamualaikum wr.wb.\n\n*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${(reprintReceiptInfo.nama || '')}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${(reprintReceiptInfo.nama || '')}\n• Unit: ${detailLoc}\n• Kategori: ${(reprintReceiptInfo.category || '')}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${(reprintReceiptInfo.nominal || 0).toLocaleString('id-ID')}\n• Tanggal: ${(reprintReceiptInfo.tanggalBayar || '')} ${(reprintReceiptInfo.jamBayar || '')}\n• Penerima: KAS ${(reprintReceiptInfo.kasPenerima || '').toUpperCase()}\n• Petugas: ${(reprintReceiptInfo.petugas || '')}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
                   
                   if (!noWaFmt) {
                     const customPhone = prompt("Nomor WhatsApp belum terdaftar untuk warga ini. Silakan masukkan nomor WhatsApp tujuan (contoh: 08123456789):");
@@ -2998,16 +2948,42 @@ export default function Ledger({
                 <span>Kirim Bukti via WhatsApp</span>
               </button>
 
-              {/* PDF Receipt Reprint Button */}
+              {/* Copy Image to Clipboard Button */}
+              {reprintReceiptPNGUrl && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(reprintReceiptPNGUrl);
+                      const blob = await response.blob();
+                      await navigator.clipboard.write([
+                        new ClipboardItem({
+                          [blob.type]: blob
+                        })
+                      ]);
+                      alert("Gambar kuitansi berhasil disalin ke clipboard! Silakan paste (Ctrl+V) langsung di chat WhatsApp.");
+                    } catch (err) {
+                      console.error(err);
+                      alert("Browser Anda membatasi salin gambar langsung. Silakan gunakan tombol Unduh Gambar.");
+                    }
+                  }}
+                  className="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-2.5 rounded-xl cursor-pointer transition text-xs flex items-center justify-center gap-2 active:scale-97 shadow-lg shadow-sky-500/10"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>Salin Gambar Kuitansi</span>
+                </button>
+              )}
+
+              {/* PNG Download Button */}
               <button
                 type="button"
                 onClick={() => {
-                  printSingleReceiptPDF(reprintReceiptInfo);
+                  printSingleReceiptPNG(reprintReceiptInfo);
                 }}
                 className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-xl cursor-pointer transition text-xs flex items-center justify-center gap-2 active:scale-97 border border-slate-250"
               >
-                <Printer className="w-4 h-4 text-slate-700" />
-                <span>Cetak Ulang Kuitansi (PDF)</span>
+                <Download className="w-4 h-4 text-slate-700" />
+                <span>Unduh Gambar Kuitansi (PNG)</span>
               </button>
 
               {/* Tutup Button */}
