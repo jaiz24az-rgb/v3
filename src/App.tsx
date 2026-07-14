@@ -33,6 +33,7 @@ import {
   deleteOfficialLetter
 } from './supabase';
 import Dashboard from './components/Dashboard';
+import { safeStorage as localStorage } from './utils/safeStorage';
 import TagihanWarga, { getDefaultRombongRate } from './components/TagihanWarga';
 import Ledger from './components/Ledger';
 import BukuKolektor from './components/BukuKolektor';

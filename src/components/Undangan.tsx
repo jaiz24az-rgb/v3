@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { safeStorage as localStorage } from '../utils/safeStorage';
 import { 
   Mail, 
   Send, 

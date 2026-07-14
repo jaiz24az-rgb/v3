@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeStorage as localStorage } from '../utils/safeStorage';
 import { LedgerEntry, Balance, AppUser } from '../types';
 import { 
   isBillingPayment, 

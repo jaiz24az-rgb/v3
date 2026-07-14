@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'; // Verified line endings
+import { safeStorage as localStorage } from '../utils/safeStorage';
 import { 
   isSupabaseConfigured, 
   supabase, 
