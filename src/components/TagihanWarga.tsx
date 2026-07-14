@@ -8093,7 +8093,9 @@ export default function TagihanWarga({
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Periode Pembayaran</span>
-                <span className="font-extrabold text-slate-900">{receiptSuccessInfo.bulan} {receiptSuccessInfo.tahun}</span>
+                <span className="font-extrabold text-slate-900">
+                  {/\b\d{4}\b/.test(receiptSuccessInfo.bulan || '') ? receiptSuccessInfo.bulan : `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun || ''}`}
+                </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Metode Kas Masuk</span>
@@ -8142,7 +8144,7 @@ export default function TagihanWarga({
               </h5>
               
               <p className="text-[10.5px] text-slate-650 leading-relaxed mt-2 font-medium font-sans">
-                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{receiptSuccessInfo.nama}</span> dalam pelunasan {receiptSuccessInfo.bulan.includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{receiptSuccessInfo.category} ({receiptSuccessInfo.bulan} {receiptSuccessInfo.tahun})</strong>.
+                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{receiptSuccessInfo.nama}</span> dalam pelunasan {receiptSuccessInfo.bulan.includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{receiptSuccessInfo.category} ({/\b\d{4}\b/.test(receiptSuccessInfo.bulan || '') ? receiptSuccessInfo.bulan : `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun || ''}`})</strong>.
               </p>
               
               <p className="text-[10px] text-slate-505 leading-relaxed mt-1.5 font-semibold italic bg-white/70 border border-slate-100 p-1.5 rounded-xl">
@@ -8180,9 +8182,8 @@ export default function TagihanWarga({
                   const isBatch = receiptSuccessInfo.bulan.includes(',');
                   const numMonths = isBatch ? receiptSuccessInfo.bulan.split(',').length : 1;
                   const tipeBayarText = isBatch ? `\n• Jenis: Pembayaran Kolektif (${numMonths} Bulan)` : '';
-                  const periodeText = isBatch 
-                    ? `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}`
-                    : `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun}`;
+                  const hasYear = /\b\d{4}\b/.test(receiptSuccessInfo.bulan || '');
+                  const periodeText = hasYear ? receiptSuccessInfo.bulan : `${receiptSuccessInfo.bulan} ${receiptSuccessInfo.tahun || ''}`;
 
                   const textMessage = `Assalamualaikum wr.wb.\n\n*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${receiptSuccessInfo.nama}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${receiptSuccessInfo.nama}\n• Unit: ${detailLoc}\n• Kategori: ${receiptSuccessInfo.category}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${receiptSuccessInfo.nominal.toLocaleString('id-ID')}\n• Tanggal: ${receiptSuccessInfo.tanggalBayar} ${receiptSuccessInfo.jamBayar}\n• Penerima: KAS ${receiptSuccessInfo.kasPenerima.toUpperCase()}\n• Petugas: ${receiptSuccessInfo.petugas}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;
                   const url = `https://wa.me/${noWaFmt}?text=${encodeURIComponent(textMessage)}`;
@@ -9507,19 +9508,22 @@ export default function TagihanWarga({
                             )}
                           </div>
 
-                          <div className="mt-1 flex justify-between items-end bg-transparent">
-                            <div className={`text-[10px] font-mono self-end ${isLunas ? 'text-emerald-705 font-bold' : 'text-slate-500'}`}>
-                              Rp {nominalValue.toLocaleString('id-ID')}
-                            </div>
-                            
-                            {/* Payment status badge */}
-                            {isLunas ? (
-                              <div className="flex flex-col items-end gap-0.5 bg-transparent">
-                                <span className="text-[9.5px] text-white bg-emerald-600 border border-emerald-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
+                          {isLunas ? (
+                            <div className="mt-2 pt-2 border-t border-emerald-100/65 flex flex-col gap-1.5 w-full text-left font-sans">
+                              {/* Row 1: Price (left) and Lunas Badge (right) */}
+                              <div className="flex justify-between items-center w-full">
+                                <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                  Rp {nominalValue.toLocaleString('id-ID')}
+                                </span>
+                                <span className="text-[8.5px] text-white bg-emerald-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shadow-xs">
                                   Lunas ✓
                                 </span>
+                              </div>
+
+                              {/* Row 2: Date & File Info */}
+                              <div className="flex flex-col gap-1 text-right w-full">
                                 {matchedSlot?.tanggalBayar && (
-                                  <span className="text-[7.5px] text-slate-500 font-mono text-right leading-none scale-[0.9] origin-right">
+                                  <span className="text-[8px] text-slate-505 font-mono">
                                     {(() => {
                                       const p = matchedSlot.tanggalBayar.split('-');
                                       const datePart = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : matchedSlot.tanggalBayar;
@@ -9527,8 +9531,9 @@ export default function TagihanWarga({
                                     })()}
                                   </span>
                                 )}
+
                                 {matchedSlot?.fotoBase64s && matchedSlot.fotoBase64s.length > 0 ? (
-                                  <div className="flex flex-col gap-0.5 items-end mt-1 max-w-[120px] overflow-hidden">
+                                  <div className="flex flex-col gap-0.5 items-end w-full">
                                     {matchedSlot.fotoBase64s.map((base64, sIdx) => {
                                       const fileName = matchedSlot.fotoNamaFiles?.[sIdx] || `Bukti ${sIdx + 1}`;
                                       return (
@@ -9538,7 +9543,7 @@ export default function TagihanWarga({
                                           className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5 w-full justify-end"
                                         >
                                           <Receipt className="w-2.5 h-2.5 pointer-events-none shrink-0" />
-                                          <span className="truncate max-w-[60px]" title={fileName}>{fileName}</span>
+                                          <span className="truncate max-w-[80px]" title={fileName}>{fileName}</span>
                                           <span className="text-[7.5px] opacity-80 shrink-0">({formatFileSize(getBase64SizeInBytes(base64))})</span>
                                         </button>
                                       );
@@ -9548,33 +9553,38 @@ export default function TagihanWarga({
                                   matchedSlot?.fotoBase64 && (
                                     <button
                                       onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar RT - ${displayBulan} ${historyYear} - ${selectedWargaHistory.nama}` })}
-                                      className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1 flex items-center gap-0.5"
+                                      className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5 w-full justify-end"
                                     >
                                       <Receipt className="w-2.5 h-2.5 pointer-events-none shrink-0" />
                                       <span>Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})</span>
                                     </button>
                                   )
                                 )}
+                              </div>
+
+                              {/* Row 3: Action Buttons (Cetak and Koreksi) */}
+                              <div className="flex flex-col gap-1 w-full mt-0.5">
                                 <button
                                   type="button"
                                   onClick={() => openReceiptReprint(selectedWargaHistory, 'warga', matchedSlot, historyYear)}
-                                  className="text-[9px] text-emerald-600 hover:text-emerald-850 font-extrabold hover:underline cursor-pointer active:scale-95 leading-none mt-1.5 flex items-center gap-0.5 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded-md border border-emerald-200"
+                                  className="w-full text-[8.5px] text-emerald-700 hover:text-emerald-900 font-extrabold hover:underline cursor-pointer active:scale-95 leading-none py-1 flex items-center justify-center gap-1 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-205"
                                   title="Reprint Kuitansi / Kirim WA"
                                 >
-                                  <Printer className="w-2.5 h-2.5" /> Cetak Kuitansi (WA/PDF)
+                                  <Printer className="w-2.5 h-2.5 shrink-0" /> Cetak Kuitansi (WA/PDF)
                                 </button>
                                 {isLoggedIn && currentUser?.role === 'admin' && !isWargaInactive && (
                                   <button
                                     onClick={() => {
                                       openCorrectionModal(selectedWargaHistory, 'Iuran RT', displayBulan, actualRateValue, 'iuranRT', historyYear);
                                     }}
-                                    className="text-[9px] text-sky-600 hover:text-sky-850 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1"
+                                    className="w-full text-[8.5px] text-sky-750 hover:text-sky-900 font-bold hover:underline cursor-pointer active:scale-95 py-0.5 border border-sky-100 rounded bg-sky-50 hover:bg-sky-100 flex items-center justify-center"
                                   >
                                     Koreksi ⚙
                                   </button>
                                 )}
                               </div>
-                            ) : (
+                            </div>
+                          ) : (
                               <div className="flex flex-col items-end gap-1 font-sans">
                                 {isWargaOfficer && !isWargaInactive ? (
                                   <button
@@ -9606,7 +9616,6 @@ export default function TagihanWarga({
                                 )}
                               </div>
                             )}
-                          </div>
                         </div>
                       );
                     })}
@@ -9880,25 +9889,28 @@ export default function TagihanWarga({
                           )}
                         </div>
 
-                        <div className="mt-1 flex justify-between items-end bg-transparent">
-                          <div className={`text-[10px] font-mono self-end ${isPendingApp ? 'text-amber-705 font-bold' : isLunas ? 'text-emerald-705 font-bold' : 'text-slate-500'}`}>
-                            Rp {nominalValue.toLocaleString('id-ID')}
-                          </div>
-                          
-                          {/* Payment status badge */}
-                          {isLunas ? (
-                            <div className="flex flex-col items-end gap-0.5 bg-transparent">
+                        {isLunas ? (
+                          <div className="mt-2 pt-2 border-t border-emerald-100/65 flex flex-col gap-1.5 w-full text-left font-sans">
+                            {/* Row 1: Price (left) and Lunas/Pending Badge (right) */}
+                            <div className="flex justify-between items-center w-full">
+                              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${isPendingApp ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'}`}>
+                                Rp {nominalValue.toLocaleString('id-ID')}
+                              </span>
                               {isPendingApp ? (
-                                <span className="text-[9.5px] text-white bg-amber-500 border border-amber-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
+                                <span className="text-[8.5px] text-white bg-amber-500 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shadow-xs">
                                   Pending ⌛
                                 </span>
                               ) : (
-                                <span className="text-[9.5px] text-white bg-emerald-600 border border-emerald-750/10 px-2 py-0.5 rounded-md font-black flex items-center gap-0.5 whitespace-nowrap shadow-xs uppercase tracking-wider">
+                                <span className="text-[8.5px] text-white bg-emerald-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shadow-xs">
                                   Lunas ✓
                                 </span>
                               )}
+                            </div>
+
+                            {/* Row 2: Date & File Info */}
+                            <div className="flex flex-col gap-1 text-right w-full">
                               {matchedSlot?.tanggalBayar && (
-                                <span className="text-[7.5px] text-slate-500 font-mono text-right leading-none scale-[0.9] origin-right">
+                                <span className="text-[8px] text-slate-505 font-mono">
                                   {(() => {
                                     const p = matchedSlot.tanggalBayar.split('-');
                                     const datePart = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : matchedSlot.tanggalBayar;
@@ -9906,54 +9918,64 @@ export default function TagihanWarga({
                                   })()}
                                 </span>
                               )}
-                               {matchedSlot?.fotoBase64s && matchedSlot.fotoBase64s.length > 0 ? (
-                                 <div className="flex flex-col gap-0.5 items-end mt-1 max-w-[120px] overflow-hidden">
-                                   {matchedSlot.fotoBase64s.map((base64, sIdx) => {
-                                     const fileName = matchedSlot.fotoNamaFiles?.[sIdx] || `Bukti ${sIdx + 1}`;
-                                     return (
-                                       <button
-                                         key={sIdx}
-                                         onClick={() => setDocumentPreviewUrl({ url: base64, title: `Bukti Bayar Sewa ${sIdx + 1} - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
-                                         className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5 w-full justify-end"
-                                       >
-                                         <Receipt className="w-2.5 h-2.5 pointer-events-none shrink-0" />
-                                         <span className="truncate max-w-[60px]" title={fileName}>{fileName}</span>
-                                         <span className="text-[7.5px] opacity-80 shrink-0">({formatFileSize(getBase64SizeInBytes(base64))})</span>
-                                       </button>
-                                     );
-                                   })}
-                                 </div>
-                               ) : (
-                                 matchedSlot?.fotoBase64 && (
-                                   <button
-                                     onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar Sewa - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
-                                     className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1 flex items-center gap-0.5"
-                                   >
-                                     <Receipt className="w-2.5 h-2.5 pointer-events-none shrink-0" />
-                                     <span>Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})</span>
-                                   </button>
-                                 )
-                               )}
-                               <button
-                                 type="button"
-                                 onClick={() => openReceiptReprint(selectedRombongHistory, 'rombong', matchedSlot, historyYear)}
-                                 className="text-[9px] text-emerald-600 hover:text-emerald-850 font-extrabold hover:underline cursor-pointer active:scale-95 leading-none mt-1.5 flex items-center gap-0.5 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded-md border border-emerald-200"
-                                 title="Reprint Kuitansi / Kirim WA"
-                               >
-                                 <Printer className="w-2.5 h-2.5" /> Cetak Kuitansi (WA/PDF)
-                               </button>
+
+                              {matchedSlot?.fotoBase64s && matchedSlot.fotoBase64s.length > 0 ? (
+                                <div className="flex flex-col gap-0.5 items-end w-full">
+                                  {matchedSlot.fotoBase64s.map((base64, sIdx) => {
+                                    const fileName = matchedSlot.fotoNamaFiles?.[sIdx] || `Bukti ${sIdx + 1}`;
+                                    return (
+                                      <button
+                                        key={sIdx}
+                                        onClick={() => setDocumentPreviewUrl({ url: base64, title: `Bukti Bayar Sewa ${sIdx + 1} - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
+                                        className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5 w-full justify-end"
+                                      >
+                                        <Receipt className="w-2.5 h-2.5 pointer-events-none shrink-0" />
+                                        <span className="truncate max-w-[80px]" title={fileName}>{fileName}</span>
+                                        <span className="text-[7.5px] opacity-80 shrink-0">({formatFileSize(getBase64SizeInBytes(base64))})</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                matchedSlot?.fotoBase64 && (
+                                  <button
+                                    onClick={() => setDocumentPreviewUrl({ url: matchedSlot.fotoBase64!, title: `Bukti Bayar Sewa - ${displayBulan} ${historyYear} - ${selectedRombongHistory.namaPemilik}` })}
+                                    className="text-[9px] text-emerald-600 hover:text-emerald-800 font-bold hover:underline cursor-pointer active:scale-95 leading-none flex items-center gap-0.5 w-full justify-end"
+                                  >
+                                    <Receipt className="w-2.5 h-2.5 pointer-events-none shrink-0" />
+                                    <span>Lihat Bukti ({formatFileSize(getBase64SizeInBytes(matchedSlot.fotoBase64))})</span>
+                                  </button>
+                                )
+                              )}
+                            </div>
+
+                            {/* Row 3: Action Buttons (Cetak and Koreksi) */}
+                            <div className="flex flex-col gap-1 w-full mt-0.5">
+                              <button
+                                type="button"
+                                onClick={() => openReceiptReprint(selectedRombongHistory, 'rombong', matchedSlot, historyYear)}
+                                className="w-full text-[8.5px] text-emerald-700 hover:text-emerald-900 font-extrabold hover:underline cursor-pointer active:scale-95 leading-none py-1 flex items-center justify-center gap-1 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-205"
+                                title="Reprint Kuitansi / Kirim WA"
+                              >
+                                <Printer className="w-2.5 h-2.5 shrink-0" /> Cetak Kuitansi (WA/PDF)
+                              </button>
                               {isLoggedIn && currentUser?.role === 'admin' && !isRombongInactive && (
                                 <button
                                   onClick={() => {
                                     openRombongCorrectionModal(selectedRombongHistory, 'Iuran Rombong', displayBulan, actualRateValue, 'iuranRombong', historyYear);
                                   }}
-                                  className="text-[9px] text-sky-600 hover:text-sky-850 font-bold hover:underline cursor-pointer active:scale-95 leading-none mt-1"
+                                  className="w-full text-[8.5px] text-sky-750 hover:text-sky-900 font-bold hover:underline cursor-pointer active:scale-95 py-0.5 border border-sky-100 rounded bg-sky-50 hover:bg-sky-100 flex items-center justify-center"
                                 >
                                   Koreksi ⚙
                                 </button>
                               )}
                             </div>
-                          ) : (
+                          </div>
+                        ) : (
+                          <div className="mt-1 flex justify-between items-end bg-transparent w-full">
+                            <div className={`text-[10px] font-mono self-end ${isPendingApp ? 'text-amber-705 font-bold' : 'text-slate-500'}`}>
+                              Rp {nominalValue.toLocaleString('id-ID')}
+                            </div>
                             <div className="flex flex-col items-end gap-1">
                               {isOfficer && !isRombongInactive ? (
                                 <button
@@ -9984,10 +10006,10 @@ export default function TagihanWarga({
                                 </button>
                               )}
                             </div>
-                          )}
+                          </div>
+                        )}
                         </div>
-                      </div>
-                    );
+                      );
                   })}
                 </div>
               </div>
