@@ -190,15 +190,21 @@ export default function Ledger({
     ctx.strokeRect(19, 19, 762, 522);
 
     // 1. Header Area
-    // Draw Logo Circle
+    // Draw Logo Circle with double ring
     ctx.beginPath();
     ctx.arc(60, 65, 25, 0, Math.PI * 2);
     ctx.fillStyle = '#0284c7';
     ctx.fill();
 
+    ctx.beginPath();
+    ctx.arc(60, 65, 22, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
     // Logo Text "08"
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 22px "Helvetica Neue", Arial, sans-serif';
+    ctx.font = '900 18px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('08', 60, 65);
@@ -206,13 +212,13 @@ export default function Ledger({
     // RT Title
     ctx.textAlign = 'left';
     ctx.fillStyle = '#0f172a';
-    ctx.font = '900 15px "Helvetica Neue", Arial, sans-serif';
-    ctx.fillText('PAGUYUBAN WARGA RT 08 RW 04', 100, 55);
+    ctx.font = '900 24px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillText('RT.008 RW.004', 100, 58);
 
     // RT Subtitle
     ctx.fillStyle = '#475569';
     ctx.font = 'bold 10px "Helvetica Neue", Arial, sans-serif';
-    ctx.fillText('Perumtas 3 Wonoayu Sidoarjo • Desa Popoh • Jawa Timur', 100, 75);
+    ctx.fillText('Perumtas 3 Wonoayu Sidoarjo • Desa Popoh • Jawa Timur', 100, 80);
 
     // KUITANSI title right aligned
     ctx.textAlign = 'right';
@@ -240,20 +246,61 @@ export default function Ledger({
     // 2. Content Table
     const startXLabel = 40;
     const startXValue = 240;
-    let currentY = 140;
-    const rowHeight = 32;
+    const maxTextWidth = 510; // 750 - 240
+    let currentY = 125;
+    const rowHeight = 28;
+    const valueLineHeight = 16;
+
+    const rawBulan = receiptInfo.bulan || '';
+    const hasYearInBulan = /\b\d{4}\b/.test(rawBulan);
+    const periodeValue = hasYearInBulan ? rawBulan : `${rawBulan} ${receiptInfo.tahun || ''}`;
 
     const fields = [
       { label: 'TELAH DITERIMA DARI', value: `Bapak/Ibu ${receiptInfo.nama || ''}`, isHighlight: true },
       { label: receiptInfo.tipe === 'warga' ? 'UNIT RUMAH' : 'NO LAPAK', value: detailLoc },
       { label: 'KATEGORI PEMBAYARAN', value: receiptInfo.category || '' },
-      { label: 'PERIODE / BULAN', value: `${receiptInfo.bulan || ''} ${receiptInfo.tahun || ''}` },
+      { label: 'PERIODE / BULAN', value: periodeValue },
       { label: 'TERBILANG (UANG)', value: getTerbilang(receiptInfo.nominal) + ' Rupiah', isItalic: true },
       { label: 'CATATAN / LAMPIRAN', value: receiptInfo.catatan || '-' }
     ];
 
     fields.forEach(field => {
-      // Label
+      // 1. Determine font style
+      let fontStyle = 'bold 11px "Helvetica Neue", Arial, sans-serif';
+      if (field.isHighlight) {
+        fontStyle = '900 12.5px "Helvetica Neue", Arial, sans-serif';
+      } else if (field.isItalic) {
+        fontStyle = 'italic bold 11px "Helvetica Neue", Arial, sans-serif';
+      }
+
+      // 2. Wrap text of the value column
+      ctx.font = fontStyle;
+      const valueText = field.value;
+      const words = valueText.split(' ');
+      const lines: string[] = [];
+      let currentLine = '';
+
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const testLine = currentLine ? currentLine + ' ' + word : word;
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxTextWidth) {
+          if (currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            lines.push(word);
+            currentLine = '';
+          }
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+
+      // 3. Draw Label & Colon on the first line's Y
       ctx.textAlign = 'left';
       ctx.fillStyle = '#475569';
       ctx.font = 'bold 9.5px "Helvetica Neue", Arial, sans-serif';
@@ -263,30 +310,36 @@ export default function Ledger({
       ctx.fillStyle = '#0f172a';
       ctx.fillText(':', startXValue - 15, currentY);
 
-      // Value
+      // 4. Draw Wrapped Value Lines
+      ctx.font = fontStyle;
       if (field.isHighlight) {
         ctx.fillStyle = '#0f172a';
-        ctx.font = '900 12.5px "Helvetica Neue", Arial, sans-serif';
       } else if (field.isItalic) {
         ctx.fillStyle = '#1e293b';
-        ctx.font = 'italic bold 11px "Helvetica Neue", Arial, sans-serif';
       } else {
         ctx.fillStyle = '#1e293b';
-        ctx.font = 'bold 11px "Helvetica Neue", Arial, sans-serif';
       }
-      ctx.fillText(field.value, startXValue, currentY);
+
+      lines.forEach((line, lineIdx) => {
+        ctx.fillText(line, startXValue, currentY + (lineIdx * valueLineHeight));
+      });
+
+      // 5. Calculate row baseline for dashed line
+      const rowContentHeight = (lines.length - 1) * valueLineHeight;
+      const dashedLineY = currentY + rowContentHeight + 10;
 
       // Dashed line under row
       ctx.beginPath();
       ctx.setLineDash([3, 3]);
-      ctx.moveTo(startXLabel, currentY + 10);
-      ctx.lineTo(760, currentY + 10);
+      ctx.moveTo(startXLabel, dashedLineY);
+      ctx.lineTo(760, dashedLineY);
       ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.setLineDash([]); // Reset dashed line
 
-      currentY += rowHeight;
+      // 6. Advance currentY for next row
+      currentY += rowHeight + rowContentHeight;
     });
 
     // 3. Terbilang Box
@@ -2954,10 +3007,24 @@ export default function Ledger({
                   type="button"
                   onClick={async () => {
                     try {
-                      const response = await fetch(reprintReceiptPNGUrl);
-                      const blob = await response.blob();
+                      const ClipboardItemClass = (window as any).ClipboardItem;
+                      if (!ClipboardItemClass || !navigator.clipboard || !navigator.clipboard.write) {
+                        alert("Salin gambar tidak didukung oleh browser Anda di lingkungan ini. Silakan unduh gambar kuitansi sebagai gantinya.");
+                        return;
+                      }
+                      
+                      const arr = reprintReceiptPNGUrl.split(',');
+                      const mime = arr[0].match(/:(.*?);/)![1];
+                      const bstr = atob(arr[1]);
+                      let n = bstr.length;
+                      const u8arr = new Uint8Array(n);
+                      while (n--) {
+                        u8arr[n] = bstr.charCodeAt(n);
+                      }
+                      const blob = new Blob([u8arr], { type: mime });
+
                       await navigator.clipboard.write([
-                        new ClipboardItem({
+                        new ClipboardItemClass({
                           [blob.type]: blob
                         })
                       ]);
