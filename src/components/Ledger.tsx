@@ -230,7 +230,10 @@ export default function Ledger({
     const detailLoc = receiptInfo.tipe === 'warga'
       ? `Blok ${receiptInfo.blok || ''}-${receiptInfo.noRumah || ''}`
       : `No Lapak ${receiptInfo.noLapak || ''}`;
-    const receiptNo = `KWT/${receiptInfo.tipe === 'warga' ? 'WRG' : 'RBG'}/${receiptInfo.tahun}/${(receiptInfo.bulan || '').replace(/[\s,]+/g, '-').slice(0, 10).toUpperCase()}/${(receiptInfo.id || '').substring(0, 4).toUpperCase()}`;
+    const yearForNo = receiptInfo.tahun && receiptInfo.tahun !== 0
+      ? receiptInfo.tahun
+      : (receiptInfo.tanggalBayar ? receiptInfo.tanggalBayar.split('-')[0] : new Date().getFullYear());
+    const receiptNo = `KWT/${receiptInfo.tipe === 'warga' ? 'WRG' : 'RBG'}/${yearForNo}/${(receiptInfo.bulan || '').replace(/[\s,]+/g, '-').slice(0, 10).toUpperCase()}/${(receiptInfo.id || '').substring(0, 4).toUpperCase()}`;
     ctx.fillStyle = '#64748b';
     ctx.font = '500 10px monospace';
     ctx.fillText(`NO: ${receiptNo}`, 750, 75);
@@ -2888,7 +2891,11 @@ export default function Ledger({
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Periode Pembayaran</span>
-                <span className="font-extrabold text-slate-900">{(reprintReceiptInfo.bulan || '')} {(reprintReceiptInfo.tahun || '')}</span>
+                <span className="font-extrabold text-slate-900">
+                  {/\b\d{4}\b/.test(reprintReceiptInfo.bulan || '') 
+                    ? (reprintReceiptInfo.bulan || '') 
+                    : `${(reprintReceiptInfo.bulan || '')} ${(reprintReceiptInfo.tahun || '')}`}
+                </span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5">
                 <span className="text-slate-455 font-bold uppercase tracking-wider font-mono">Metode Kas Masuk</span>
@@ -2937,7 +2944,7 @@ export default function Ledger({
               </h5>
               
               <p className="text-[10.5px] text-slate-650 leading-relaxed mt-2 font-medium font-sans">
-                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{(reprintReceiptInfo.nama || '')}</span> dalam pelunasan {(reprintReceiptInfo.bulan || '').includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{(reprintReceiptInfo.category || '')} ({(reprintReceiptInfo.bulan || '')} {(reprintReceiptInfo.tahun || '')})</strong>.
+                Terima kasih atas partisipasi aktif Bapak/Ibu <span className="font-extrabold text-emerald-800">{(reprintReceiptInfo.nama || '')}</span> dalam pelunasan {(reprintReceiptInfo.bulan || '').includes(',') ? 'Kolektif ' : ''}<strong className="text-slate-805 font-bold">{(reprintReceiptInfo.category || '')} ({/\b\d{4}\b/.test(reprintReceiptInfo.bulan || '') ? reprintReceiptInfo.bulan : `${reprintReceiptInfo.bulan || ''} ${reprintReceiptInfo.tahun || ''}`})</strong>.
               </p>
               
               <p className="text-[10px] text-slate-505 leading-relaxed mt-1.5 font-semibold italic bg-white/70 border border-slate-100 p-1.5 rounded-xl">
@@ -2975,8 +2982,9 @@ export default function Ledger({
                   const isBatch = (reprintReceiptInfo.bulan || '').includes(',');
                   const numMonths = isBatch ? (reprintReceiptInfo.bulan || '').split(',').length : 1;
                   const tipeBayarText = isBatch ? `\n• Jenis: Pembayaran Kolektif (${numMonths} Bulan)` : '';
-                  const periodeText = isBatch 
-                    ? `${(reprintReceiptInfo.bulan || '')} ${(reprintReceiptInfo.tahun || '')}`
+                  const hasYear = /\b\d{4}\b/.test(reprintReceiptInfo.bulan || '');
+                  const periodeText = hasYear 
+                    ? (reprintReceiptInfo.bulan || '') 
                     : `${(reprintReceiptInfo.bulan || '')} ${(reprintReceiptInfo.tahun || '')}`;
 
                   const textMessage = `Assalamualaikum wr.wb.\n\n*BUKTI PEMBAYARAN IURAN RT 08* ✅\n\nHalo Bapak/Ibu *${(reprintReceiptInfo.nama || '')}*,\nTerima kasih, pembayaran Iuran Anda telah sukses kami verifikasi.\n\n*Detail Pembayaran:*\n• Nama: ${(reprintReceiptInfo.nama || '')}\n• Unit: ${detailLoc}\n• Kategori: ${(reprintReceiptInfo.category || '')}${tipeBayarText}\n• Periode: ${periodeText}\n• Nominal: Rp ${(reprintReceiptInfo.nominal || 0).toLocaleString('id-ID')}\n• Tanggal: ${(reprintReceiptInfo.tanggalBayar || '')} ${(reprintReceiptInfo.jamBayar || '')}\n• Penerima: KAS ${(reprintReceiptInfo.kasPenerima || '').toUpperCase()}\n• Petugas: ${(reprintReceiptInfo.petugas || '')}\n\n*Status:* LUNAS & TERVERIFIKASI 🟢\n\nTerima kasih atas partisipasi aktif Bapak/Ibu dalam mendukung program pembangunan lingkungan RT 08 Perumahan TAS 3.\n\nSalam hangat,\n*Pengurus RT 08 Perumahan TAS 3* 🙏`;

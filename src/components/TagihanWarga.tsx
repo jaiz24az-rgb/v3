@@ -3142,7 +3142,10 @@ export default function TagihanWarga({
     const detailLoc = receiptInfo.tipe === 'warga'
       ? `Blok ${receiptInfo.blok || ''}-${receiptInfo.noRumah || ''}`
       : `No Lapak ${receiptInfo.noLapak || ''}`;
-    const receiptNo = `KWT/${receiptInfo.tipe === 'warga' ? 'WRG' : 'RBG'}/${receiptInfo.tahun}/${(receiptInfo.bulan || '').replace(/[\s,]+/g, '-').slice(0, 10).toUpperCase()}/${(receiptInfo.id || '').substring(0, 4).toUpperCase()}`;
+    const yearForNo = receiptInfo.tahun && receiptInfo.tahun !== 0
+      ? receiptInfo.tahun
+      : (receiptInfo.tanggalBayar ? receiptInfo.tanggalBayar.split('-')[0] : new Date().getFullYear());
+    const receiptNo = `KWT/${receiptInfo.tipe === 'warga' ? 'WRG' : 'RBG'}/${yearForNo}/${(receiptInfo.bulan || '').replace(/[\s,]+/g, '-').slice(0, 10).toUpperCase()}/${(receiptInfo.id || '').substring(0, 4).toUpperCase()}`;
     ctx.fillStyle = '#64748b';
     ctx.font = '500 10px monospace';
     ctx.fillText(`NO: ${receiptNo}`, 750, 75);
