@@ -672,23 +672,26 @@ export default function Ledger({
 
     const oldSumber = originalEntry.sumberKas;
     const newSumber = editingLedgerEntry.sumberKas;
+    const oldJumlah = originalEntry.jumlah;
+    const newJumlah = editingLedgerEntry.jumlah;
+    const oldTipe = originalEntry.tipe;
+    const newTipe = editingLedgerEntry.tipe;
 
-    if (oldSumber !== newSumber) {
+    if (oldSumber !== newSumber || oldJumlah !== newJumlah || oldTipe !== newTipe) {
       const nextKas = { ...kas };
-      const { jumlah, tipe } = originalEntry;
 
       // Reverse original account balance change
-      if (tipe === 'pemasukan') {
-        nextKas[oldSumber] = (nextKas[oldSumber] || 0) - jumlah;
+      if (oldTipe === 'pemasukan') {
+        nextKas[oldSumber] = (nextKas[oldSumber] || 0) - oldJumlah;
       } else {
-        nextKas[oldSumber] = (nextKas[oldSumber] || 0) + jumlah;
+        nextKas[oldSumber] = (nextKas[oldSumber] || 0) + oldJumlah;
       }
 
       // Apply to new account balance
-      if (tipe === 'pemasukan') {
-        nextKas[newSumber] = (nextKas[newSumber] || 0) + jumlah;
+      if (newTipe === 'pemasukan') {
+        nextKas[newSumber] = (nextKas[newSumber] || 0) + newJumlah;
       } else {
-        nextKas[newSumber] = (nextKas[newSumber] || 0) - jumlah;
+        nextKas[newSumber] = (nextKas[newSumber] || 0) - newJumlah;
       }
 
       updateKas(nextKas);
@@ -703,7 +706,9 @@ export default function Ledger({
           deskripsi: editingLedgerEntry.deskripsi,
           kategori: editingLedgerEntry.kategori,
           petugas: editingLedgerEntry.petugas,
-          sumberKas: editingLedgerEntry.sumberKas
+          sumberKas: editingLedgerEntry.sumberKas,
+          jumlah: editingLedgerEntry.jumlah,
+          tipe: editingLedgerEntry.tipe
         };
       }
       return item;
@@ -2792,15 +2797,29 @@ export default function Ledger({
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Nilai & Tipe Transaksi (Terkunci)</label>
-                <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-700 font-extrabold font-mono flex items-center justify-between">
-                  <span>Rp {editingLedgerEntry.jumlah.toLocaleString('id-ID')}</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                    editingLedgerEntry.tipe === 'pemasukan' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}>
-                    {editingLedgerEntry.tipe}
-                  </span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Nilai Transaksi (Rp)</label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={editingLedgerEntry.jumlah}
+                    onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, jumlah: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono font-extrabold text-slate-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 font-mono">Tipe Transaksi</label>
+                  <select
+                    value={editingLedgerEntry.tipe}
+                    onChange={e => setEditingLedgerEntry({ ...editingLedgerEntry, tipe: e.target.value as 'pemasukan' | 'pengeluaran' })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold"
+                  >
+                    <option value="pemasukan" className="text-emerald-700 font-bold">PEMASUKAN</option>
+                    <option value="pengeluaran" className="text-rose-700 font-bold">PENGELUARAN</option>
+                  </select>
                 </div>
               </div>
 
